@@ -1,6 +1,0 @@
-{
-  "/page": "app/page.js",
-  "/panel/page": "app/panel/page.js",
-  "/ogrenci/page": "app/ogrenci/page.js",
-  "/panel/student-report/page": "app/panel/student-report/page.js"
-}
