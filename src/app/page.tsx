@@ -101,16 +101,16 @@ export default function HomePage() {
 
       <div className="relative z-10 max-w-7xl mx-auto py-8">
         {/* Başlık ve Logo */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <img
             src="/logo.png"
             alt="Köprüler Ortaokulu"
-            className="w-16 h-16 mx-auto mb-6 hover:scale-110 transition-transform duration-300 drop-shadow-xl"
+            className="w-12 h-12 mx-auto mb-4 hover:scale-110 transition-transform duration-300 drop-shadow-xl"
           />
-          <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-center mb-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-xs sm:text-sm font-black tracking-tight text-center mb-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Köprüler LGS Portalı
           </h1>
-          <p className="text-center text-sm sm:text-base text-gray-600 leading-relaxed max-w-lg mx-auto mb-8">
+          <p className="text-center text-xs text-gray-600 leading-relaxed max-w-lg mx-auto mb-6">
             Öğrenciler başarılarını takip edebilir, öğretmenler sınıf performanslarını anlık olarak görebilir.
           </p>
 
@@ -118,91 +118,91 @@ export default function HomePage() {
         </div>
 
         {/* İstatistik Kartları */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-12">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mb-8">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-3 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium">Toplam Öğrenci</p>
-                <p className="text-3xl font-bold">{totalStudents}</p>
+                <p className="text-blue-100 text-xs font-medium">Toplam Öğrenci</p>
+                <p className="text-xs font-bold">{totalStudents}</p>
               </div>
-              <div className="text-4xl">👥</div>
+              <div className="text-xs">👥</div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-3 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm font-medium">Toplam Sınıf</p>
-                <p className="text-3xl font-bold">{totalClasses}</p>
+                <p className="text-green-100 text-xs font-medium">Toplam Sınıf</p>
+                <p className="text-xs font-bold">{totalClasses}</p>
               </div>
-              <div className="text-4xl">🏫</div>
+              <div className="text-xs">🏫</div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-3 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm font-medium">Toplam Deneme</p>
-                <p className="text-3xl font-bold">{totalExams}</p>
+                <p className="text-purple-100 text-xs font-medium">Toplam Deneme</p>
+                <p className="text-xs font-bold">{totalExams}</p>
               </div>
-              <div className="text-4xl">📝</div>
+              <div className="text-xs">📝</div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-3 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-100 text-sm font-medium">Toplam Görüntülenme</p>
-                <p className="text-3xl font-bold">{totalViews.toLocaleString()}</p>
+                <p className="text-orange-100 text-xs font-medium">Toplam Görüntülenme</p>
+                <p className="text-xs font-bold">{totalViews.toLocaleString()}</p>
               </div>
-              <div className="text-4xl">👁️</div>
+              <div className="text-xs">👁️</div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+          <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl p-3 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-pink-100 text-sm font-medium">Aktif Öğrenci</p>
-                <p className="text-3xl font-bold">{activeStudents}</p>
+                <p className="text-pink-100 text-xs font-medium">Aktif Öğrenci</p>
+                <p className="text-xs font-bold">{activeStudents}</p>
               </div>
-              <div className="text-4xl">⚡</div>
+              <div className="text-xs">⚡</div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+          <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-3 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-teal-100 text-sm font-medium">Ort. Görüntülenme</p>
-                <p className="text-3xl font-bold">{averageViews}</p>
+                <p className="text-teal-100 text-xs font-medium">Ort. Görüntülenme</p>
+                <p className="text-xs font-bold">{averageViews}</p>
               </div>
-              <div className="text-4xl">📊</div>
+              <div className="text-xs">📊</div>
             </div>
           </div>
         </div>
 
         {/* Sınıf Bazlı Detaylı İstatistikler */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Sınıf Bazlı Detaylı İstatistikler</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="mb-8">
+          <h2 className="text-xs font-bold text-gray-800 mb-4 text-center">Sınıf Bazlı Detaylı İstatistikler</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {Object.entries(detailedClassStats).map(([className, stats], index) => (
-              <div key={className} className={`bg-gradient-to-br ${colors[index % colors.length]} rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300`}>
+              <div key={className} className={`bg-gradient-to-br ${colors[index % colors.length]} rounded-2xl p-3 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300`}>
                 <div className="text-center">
-                  <h3 className="text-xl font-bold mb-4">{className}</h3>
+                  <h3 className="text-xs font-bold mb-4">{className}</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm opacity-90">Öğrenci:</span>
+                      <span className="text-xs opacity-90">Öğrenci:</span>
                       <span className="font-bold">{stats.studentCount}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm opacity-90">Aktif:</span>
+                      <span className="text-xs opacity-90">Aktif:</span>
                       <span className="font-bold">{stats.activeStudents}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm opacity-90">Deneme:</span>
+                      <span className="text-xs opacity-90">Deneme:</span>
                       <span className="font-bold">{stats.totalExams}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm opacity-90">Toplam Görüntülenme:</span>
+                      <span className="text-xs opacity-90">Toplam Görüntülenme:</span>
                       <span className="font-bold">{stats.totalViewCount}</span>
                     </div>
                   </div>
@@ -214,25 +214,25 @@ export default function HomePage() {
 
         {/* En Aktif 10 Öğrenci */}
         {topActiveStudents.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">En Aktif 10 Öğrenci</h2>
+          <div className="mb-8">
+            <h2 className="text-xs font-bold text-gray-800 mb-4 text-center">En Aktif 10 Öğrenci</h2>
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
                     <tr>
-                      <th className="px-6 py-4 text-left text-sm font-bold">Sıra</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold">Ad Soyad</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold">Sınıf</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold">Numara</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold">Görüntülenme</th>
+                      <th className="px-3 py-2 text-left text-xs font-bold">Sıra</th>
+                      <th className="px-3 py-2 text-left text-xs font-bold">Ad Soyad</th>
+                      <th className="px-3 py-2 text-left text-xs font-bold">Sınıf</th>
+                      <th className="px-3 py-2 text-left text-xs font-bold">Numara</th>
+                      <th className="px-3 py-2 text-left text-xs font-bold">Görüntülenme</th>
                     </tr>
                   </thead>
                   <tbody>
                     {topActiveStudents.map((student, index) => (
                       <tr key={student.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-white font-bold text-sm ${index === 0 ? 'bg-yellow-500' :
+                        <td className="px-3 py-2">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-white font-bold text-xs ${index === 0 ? 'bg-yellow-500' :
                               index === 1 ? 'bg-gray-400' :
                                 index === 2 ? 'bg-orange-500' :
                                   'bg-blue-500'
@@ -240,11 +240,11 @@ export default function HomePage() {
                             {index + 1}
                           </span>
                         </td>
-                        <td className="px-6 py-4 font-medium text-gray-900">{student.name}</td>
-                        <td className="px-6 py-4 text-gray-600">{student.class}</td>
-                        <td className="px-6 py-4 text-gray-600">{student.number}</td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        <td className="px-3 py-2 font-medium text-gray-900">{student.name}</td>
+                        <td className="px-3 py-2 text-gray-600">{student.class}</td>
+                        <td className="px-3 py-2 text-gray-600">{student.number}</td>
+                        <td className="px-3 py-2">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             {student.viewCount} görüntülenme
                           </span>
                         </td>
@@ -260,16 +260,16 @@ export default function HomePage() {
 
 
         {/* Giriş Butonları */}
-        <div className="flex flex-col items-center gap-5 mb-8">
+        <div className="flex flex-col items-center gap-3 mb-6">
           <Link href="/ogrenci">
-            <button className="px-12 py-5 rounded-2xl text-white text-xl font-bold shadow-2xl bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:scale-105 hover:shadow-blue-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-3">
-              <span className="text-2xl">🎓</span>
+            <button className="px-8 py-3 rounded-2xl text-white text-xs font-bold shadow-2xl bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:scale-105 hover:shadow-blue-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2">
+              <span className="text-xs">🎓</span>
               <span>Öğrenci Girişi</span>
             </button>
           </Link>
           <Link href="/panel">
-            <button className="px-12 py-5 rounded-2xl text-white text-xl font-bold shadow-2xl bg-gradient-to-r from-green-500 via-emerald-600 to-teal-600 hover:from-green-600 hover:to-teal-700 hover:scale-105 hover:shadow-emerald-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-3">
-              <span className="text-2xl">📚</span>
+            <button className="px-8 py-3 rounded-2xl text-white text-xs font-bold shadow-2xl bg-gradient-to-r from-green-500 via-emerald-600 to-teal-600 hover:from-green-600 hover:to-teal-700 hover:scale-105 hover:shadow-emerald-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2">
+              <span className="text-xs">📚</span>
               <span>Öğretmen Paneli</span>
             </button>
           </Link>
@@ -278,7 +278,7 @@ export default function HomePage() {
         </div>
 
         {/* Footer */}
-        <footer className="text-center text-xs text-gray-500">
+        <footer className="text-center text-xs text-gray-500 mt-6">
           © {new Date().getFullYear()} Köprüler LGS | Developed by Murat UYSAL
         </footer>
       </div>
