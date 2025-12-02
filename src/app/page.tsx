@@ -1,22 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React from "react";
 
 export default function HomePage() {
-  // Basit statik veri - Firebase bağımlılığı yok
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // 2 saniye sonra loading'i kapat
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Statik veriler
+  // Statik veriler - loading yok!
   const totalStudents = 125;
   const totalClasses = 12;
   const totalExams = 8;
@@ -29,17 +17,6 @@ export default function HomePage() {
     { id: 2, name: "Ayşe Kaya", class: "8-B", number: "002", views: 42 },
     { id: 3, name: "Mehmet Demir", class: "8-A", number: "003", views: 38 },
   ];
-
-  if (loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 font-sans relative overflow-hidden">
@@ -144,7 +121,7 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer className="text-center text-xs text-gray-500 mt-6">
-          © {new Date().getFullYear()} Köprüler LGS | Developed by MiniMax Agent
+          © {new Date().getFullYear()} Köprüler LGS | Developed by MiniMax Agent | ✅ Güncellenmiş versiyon
         </footer>
       </div>
     </main>
