@@ -71,7 +71,6 @@ const StudentReport: React.FC<StudentReportProps> = ({
 
   // Debug: URL parametrelerini console'a yazdır
   useEffect(() => {
-    console.log('=== STUDENT REPORT DEBUG ===');
     console.log('Current URL:', window.location.href);
     console.log('SearchParams:', searchParams?.toString());
     console.log('All params:', Object.fromEntries(searchParams?.entries() || []));
@@ -99,7 +98,6 @@ const StudentReport: React.FC<StudentReportProps> = ({
       const studentId = searchParams.get('studentId');
       const classId = searchParams.get('classId');
 
-      console.log('DEBUG - Search params:', { type, studentId, classId });
 
       // Parametre kontrolü
       if (!type) {
@@ -119,15 +117,10 @@ const StudentReport: React.FC<StudentReportProps> = ({
         toast.error('Sınıf ID belirtilmemiş');
         return;
       }
-      console.log('DEBUG - Students count:', students.length);
-      console.log('DEBUG - Exams count:', exams.length);
-      console.log('DEBUG - Results count:', results.length);
 
       if (type === 'student' && studentId) {
         // Öğrenci raporu
         const student = students.find(s => s.id === studentId);
-        console.log('DEBUG - Looking for student with ID:', studentId);
-        console.log('DEBUG - Found student:', student);
         if (!student) {
           console.error('Student not found for ID:', studentId);
           toast.error('Öğrenci bulunamadı');
@@ -135,13 +128,10 @@ const StudentReport: React.FC<StudentReportProps> = ({
         }
 
         const studentResults = results.filter(r => r.studentId === studentId);
-        console.log('DEBUG - Student results count:', studentResults.length);
-        console.log('DEBUG - Student results:', studentResults);
         const examResults = [];
 
         for (const result of studentResults) {
           const exam = exams.find(e => e.id === result.examId);
-          console.log('DEBUG - Looking for exam with ID:', result.examId, 'Found:', exam);
           if (!exam) continue;
 
           // Sınıf ortalamasını hesapla
@@ -165,8 +155,6 @@ const StudentReport: React.FC<StudentReportProps> = ({
 
         examResults.sort((a, b) => new Date(a.exam.date).getTime() - new Date(b.exam.date).getTime());
 
-        console.log('DEBUG - Final examResults count:', examResults.length);
-        console.log('DEBUG - Setting report data:', { student, examResultsCount: examResults.length });
 
         setReportData({
           student,
