@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 
 // Firebase configuration
@@ -35,15 +35,25 @@ export interface Exam {
   date: string;
   description?: string;
   classes?: string[];
-  generalAverages?: { [className: string]: { generalScore: number, [key: string]: any } };
+  generalAverages?: { [className: string]: { [key: string]: any; generalScore?: number } };
 }
 
 export interface Result {
   id: string;
   studentId: string;
   examId: string;
-  nets: any;
-  scores: any;
+  nets: {
+    turkce?: number;
+    matematik?: number;
+    fen?: number;
+    sosyal?: number;
+    din?: number;
+    ingilizce?: number;
+    total: number;
+  };
+  scores?: any;
+  puan?: number; // Toplam puan
+  totalScore?: number; // Alternatif puan alanı
   createdAt: string;
 }
 
@@ -93,7 +103,7 @@ export const authenticateStudent = async (studentClass: string, schoolNumber: st
       where('class', '==', studentClass),
       where('number', '==', schoolNumber)
     );
-
+    
     const studentSnap = await getDocs(studentsQuery);
     if (!studentSnap.empty) {
       const studentDoc = studentSnap.docs[0];
@@ -241,7 +251,7 @@ export const updateStudentProgress = async (studentId: string, updates: Partial<
 export const generateAIMotivation = async (studentId: string, examId: string, result: Result): Promise<any> => {
   // Gelişmiş AI Motivasyon ve Analiz Sistemi
   const analysis = await performAIAnalysis(studentId, result);
-
+  
   const motivationalContent = {
     mainMessage: generateMotivationalMessage(result.nets.total, analysis.trend),
     encouragement: generateEncouragement(analysis),
@@ -266,14 +276,14 @@ export const getAIMotivations = async (studentId: string): Promise<any[]> => {
   const students = await getStudents();
   const exams = await getExams();
   const results = await getResults();
-
+  
   const studentResults = results.filter(r => r.studentId === studentId);
   if (studentResults.length === 0) return [];
 
   // En son sonuç için AI analizi
   const latestResult = studentResults[studentResults.length - 1];
   const latestAnalysis = await performAIAnalysis(studentId, latestResult);
-
+  
   return [{
     id: 'latest',
     analysis: latestAnalysis,
@@ -288,11 +298,11 @@ export const getAIMotivations = async (studentId: string): Promise<any[]> => {
 const performAIAnalysis = async (studentId: string, currentResult: Result): Promise<any> => {
   const students = await getStudents();
   const results = await getResults();
-
+  
   const studentResults = results.filter(r => r.studentId === studentId);
   const student = students.find(s => s.id === studentId);
   const sameClassStudents = students.filter(s => s.class === student?.class);
-
+  
   // Kapsamlı analiz yap
   return {
     // Temel analizler - Sadece tanımlı fonksiyonları kullan
@@ -301,12 +311,12 @@ const performAIAnalysis = async (studentId: string, currentResult: Result): Prom
     trends: analyzeTrends(studentResults),
     progress: calculateProgress(studentResults),
     consistency: calculateConsistency(studentResults),
-
+    
     // Karşılaştırmalı analizler - Basitleştirilmiş
     classComparison: 'Sınıf ortalamasının üzerinde',
     ranking: Math.floor(Math.random() * sameClassStudents.length) + 1,
     percentile: Math.floor(Math.random() * 100) + 1,
-
+    
     // Öneriler sistemi - Basitleştirilmiş
     studyPlan: generateStudyPlan(currentResult, studentResults),
     subjectRecommendations: [
@@ -316,12 +326,12 @@ const performAIAnalysis = async (studentId: string, currentResult: Result): Prom
     ],
     timeManagementTips: ['Düzenli çalışma programı oluşturun', 'Ara vermeden çalışın'],
     examStrategy: ['Sınavda zaman yönetimi yapın', 'Kolay sorularla başlayın'],
-
+    
     // Gelecek tahminleri - Basitleştirilmiş
     predictions: generatePredictions(studentResults, currentResult),
     riskFactors: ['Matematik performansında dalgalanma', 'Düzensiz çalışma alışkanlığı'],
     successProbability: Math.floor(Math.random() * 30) + 60,
-
+    
     // İlerleme takibi - Basitleştirilmiş
     goalAchievement: 'Haftalık hedeflere %75 başarı',
     improvement: Math.floor(Math.random() * 20) - 10,
@@ -331,7 +341,7 @@ const performAIAnalysis = async (studentId: string, currentResult: Result): Prom
 // 💪 GÜÇLÜ YÖNLER BELİRLEME
 const identifyStrengths = (results: Result[], current: Result): string[] => {
   const strengths = [];
-
+  
   // Net skoru yüksek konuları bul
   const subjects = Object.keys(current.nets).filter(k => k !== 'total');
   subjects.forEach(subject => {
@@ -340,7 +350,7 @@ const identifyStrengths = (results: Result[], current: Result): string[] => {
       strengths.push(`${subject} konularında güçlü performans gösteriyorsun`);
     }
   });
-
+  
   // Trend analizi
   if (results.length >= 3) {
     const recentTrend = calculateTrend(results.slice(-3));
@@ -348,20 +358,20 @@ const identifyStrengths = (results: Result[], current: Result): string[] => {
       strengths.push('Son dönemde istikrarlı bir gelişim trendin var');
     }
   }
-
+  
   // Konsistensi kontrolü
   const consistency = calculateConsistency(results);
   if (consistency > 0.7) {
     strengths.push('Çok istikrarlı bir çalışma tarzın var');
   }
-
+  
   return strengths.length > 0 ? strengths : ['Çok iyi ilerleme kaydediyorsun!'];
 };
 
 // ⚠️ ZAYIF YÖNLER VE GELİŞTİRME ALANLARI
 const identifyWeaknesses = (results: Result[], current: Result): string[] => {
   const weaknesses = [];
-
+  
   // Düşük skorlu konuları bul
   const subjects = Object.keys(current.nets).filter(k => k !== 'total');
   subjects.forEach(subject => {
@@ -370,7 +380,7 @@ const identifyWeaknesses = (results: Result[], current: Result): string[] => {
       weaknesses.push(`${subject} konularında daha fazla pratik yapman gerekiyor`);
     }
   });
-
+  
   // Trend analizi - düşüş trendi
   if (results.length >= 3) {
     const recentTrend = calculateTrend(results.slice(-3));
@@ -378,21 +388,21 @@ const identifyWeaknesses = (results: Result[], current: Result): string[] => {
       weaknesses.push('Son dönemde düşüş trendi var, motivasyonunu canlandırman gerekebilir');
     }
   }
-
+  
   return weaknesses.length > 0 ? weaknesses : ['Genel olarak iyi durumdasın!'];
 };
 
 // 📈 TREND ANALİZİ
 const analyzeTrends = (results: Result[]) => {
   if (results.length < 2) return { trend: 'stable', rate: 0 };
-
+  
   const sortedResults = results.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   const first = sortedResults[0].nets.total;
   const last = sortedResults[sortedResults.length - 1].nets.total;
-
+  
   const totalTrend = ((last - first) / Math.max(first, 1)) * 100;
   const recentTrend = calculateTrend(sortedResults.slice(-3));
-
+  
   return {
     total: totalTrend,
     recent: recentTrend,
@@ -403,13 +413,13 @@ const analyzeTrends = (results: Result[]) => {
 // 📊 SINIF KARŞILAŞTIRMASI
 const compareWithClass = (studentResults: Result[], classStudents: any[], currentStudent: any) => {
   if (classStudents.length <= 1) return null;
-
+  
   // Sınıf ortalamasını hesapla (mock data için)
   const classAverage = 45 + Math.random() * 15; // 45-60 arası rastgele sınıf ortalaması
-
+  
   const latestScore = studentResults[studentResults.length - 1]?.nets.total || 0;
   const difference = latestScore - classAverage;
-
+  
   return {
     classAverage: Math.round(classAverage),
     studentScore: latestScore,
@@ -422,22 +432,22 @@ const compareWithClass = (studentResults: Result[], classStudents: any[], curren
 const calculateSuccessProbability = (results: Result[], current: Result): any => {
   const trend = analyzeTrends(results);
   const consistency = calculateConsistency(results);
-
+  
   // Basit makine öğrenmesi benzeri algoritma
   let probability = 50; // Base probability
-
+  
   // Trend etkisi
   if (trend.direction === 'improving') probability += 20;
   else if (trend.direction === 'declining') probability -= 15;
-
+  
   // Konsistensi etkisi
   probability += (consistency * 0.3);
-
+  
   // Mevcut performans etkisi
   if (current.nets.total > 60) probability += 15;
   else if (current.nets.total > 50) probability += 8;
   else if (current.nets.total < 30) probability -= 20;
-
+  
   return {
     probability: Math.max(0, Math.min(100, Math.round(probability))),
     confidence: Math.round(consistency * 100),
@@ -453,13 +463,13 @@ const calculateSuccessProbability = (results: Result[], current: Result): any =>
 const generateStudyPlan = (currentResult: Result, allResults: Result[]) => {
   const subjects = Object.keys(currentResult.nets).filter(k => k !== 'total');
   const plan = [];
-
+  
   subjects.forEach((subject, index) => {
     const score = currentResult.nets[subject as keyof typeof currentResult.nets];
     if (typeof score === 'number') {
       const priority = score < 3 ? 'high' : score < 5 ? 'medium' : 'low';
       const studyTime = score < 3 ? 90 : score < 5 ? 60 : 30;
-
+      
       plan.push({
         subject: subject,
         task: `${score < 3 ? 'Temel konuları' : score < 5 ? 'İleri konuları' : 'Pekiştirme'} çalış`,
@@ -469,7 +479,7 @@ const generateStudyPlan = (currentResult: Result, allResults: Result[]) => {
       });
     }
   });
-
+  
   return plan.sort((a, b) => {
     const priorityOrder = { high: 3, medium: 2, low: 1 };
     return priorityOrder[b.priority as keyof typeof priorityOrder] - priorityOrder[a.priority as keyof typeof priorityOrder];
@@ -480,11 +490,11 @@ const generateStudyPlan = (currentResult: Result, allResults: Result[]) => {
 const generatePredictions = (results: Result[], current: Result) => {
   const trend = analyzeTrends(results);
   const trendRate = trend.recent;
-
+  
   // Linear regression benzeri basit tahmin
   const nextMonth = current.nets.total + (trendRate * 3); // 3 haftalık projeksiyon
   const final = current.nets.total + (trendRate * 12); // 12 haftalık projeksiyon
-
+  
   return {
     nextMonthScore: Math.max(0, Math.round(nextMonth)),
     finalExamScore: Math.max(0, Math.round(final)),
@@ -496,16 +506,16 @@ const generatePredictions = (results: Result[], current: Result) => {
 // 🏆 BAŞARI MESAJLARI VE MİVASYON
 const generateMotivationalMessage = (score: number, trend: any) => {
   const messages = [];
-
+  
   if (score >= 60) messages.push('Harika bir performans! 🎉');
   else if (score >= 45) messages.push('İyi gidiyorsun, devam et! 💪');
   else if (score >= 30) messages.push('Gelişim gösteriyorsun! 📈');
   else messages.push('Her gün biraz daha iyi olacaksın! 🌟');
-
+  
   if (trend && trend.direction === 'improving') {
     messages.push('Artan trendin çok etkileyici!');
   }
-
+  
   return messages.join(' ');
 };
 
@@ -548,37 +558,37 @@ const generateExamStrategy = (analysis: any) => {
 // 📊 YARDIMCI HESAPLAMA FONKSİYONLARI
 const calculateTrend = (results: Result[]) => {
   if (results.length < 2) return 0;
-
+  
   const scores = results.map(r => r.nets.total);
   let trend = 0;
-
+  
   for (let i = 1; i < scores.length; i++) {
-    trend += (scores[i] - scores[i - 1]);
+    trend += (scores[i] - scores[i-1]);
   }
-
+  
   return trend / (scores.length - 1);
 };
 
 const calculateConsistency = (results: Result[]) => {
   if (results.length < 2) return 0.5;
-
+  
   const scores = results.map(r => r.nets.total);
   const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-
+  
   const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
   const standardDeviation = Math.sqrt(variance);
-
+  
   // Konsistensi = 1 - (standart sapma / ortalama)
   return Math.max(0, 1 - (standardDeviation / Math.max(mean, 1)));
 };
 
 const calculateProgress = (results: Result[]) => {
   if (results.length < 2) return { percentage: 0, direction: 'stable' };
-
+  
   const first = results[0].nets.total;
   const last = results[results.length - 1].nets.total;
   const percentage = ((last - first) / Math.max(first, 1)) * 100;
-
+  
   return {
     percentage: Math.round(percentage),
     direction: percentage > 5 ? 'improving' : percentage < -5 ? 'declining' : 'stable'
@@ -681,7 +691,7 @@ export const calculateQuestionDifficulty = (
   averageTime?: number
 ): 'kolay' | 'orta' | 'zor' => {
   const successRate = (correctAnswers / totalAnswers) * 100;
-
+  
   if (successRate >= 80) return 'kolay';
   if (successRate >= 50) return 'orta';
   return 'zor';
@@ -715,7 +725,7 @@ export const getHeatMapData = async (examId: string): Promise<PerformanceMatrix>
     const results = await getResults();
     const examResults = results.filter(r => r.examId === examId);
     const students = await getStudents();
-
+    
     if (examResults.length === 0) {
       throw new Error('Bu sınav için sonuç bulunamadı');
     }
@@ -723,7 +733,7 @@ export const getHeatMapData = async (examId: string): Promise<PerformanceMatrix>
     // Sınav bilgilerini al
     const exams = await getExams();
     const exam = exams.find(e => e.id === examId);
-
+    
     if (!exam) {
       throw new Error('Sınav bulunamadı');
     }
@@ -736,14 +746,14 @@ export const getHeatMapData = async (examId: string): Promise<PerformanceMatrix>
     mockQuestions.forEach((question, index) => {
       const correctAnswers = Math.floor(Math.random() * examResults.length * 0.8);
       const successRate = (correctAnswers / examResults.length) * 100;
-
+      
       // Öğrenci performansı (örnek)
       const studentPerformance = Math.random() * 100;
       const classAverage = successRate;
       const difficulty = 1 - (successRate / 100); // Başarı oranı düşükse zorluk yüksek
 
       // Zorluk seviyesini string olarak belirle
-      const difficultyLevel: 'kolay' | 'orta' | 'zor' =
+      const difficultyLevel: 'kolay' | 'orta' | 'zor' = 
         difficulty < 0.33 ? 'kolay' : difficulty < 0.67 ? 'orta' : 'zor';
 
       heatMapData.push({
@@ -821,9 +831,9 @@ export const getHeatMapData = async (examId: string): Promise<PerformanceMatrix>
 const generateMockQuestions = (examId: string, resultCount: number): Array<{ subject: string; questionNumber: number }> => {
   const subjects = ['Matematik', 'Türkçe', 'Fen Bilimleri', 'Sosyal Bilgiler', 'İngilizce'];
   const questionsPerSubject = Math.ceil(50 / subjects.length); // 50 soru toplam
-
+  
   const questions: Array<{ subject: string; questionNumber: number }> = [];
-
+  
   subjects.forEach((subject, subjectIndex) => {
     for (let i = 1; i <= questionsPerSubject; i++) {
       questions.push({
@@ -832,7 +842,7 @@ const generateMockQuestions = (examId: string, resultCount: number): Array<{ sub
       });
     }
   });
-
+  
   return questions.slice(0, 50); // 50 soru ile sınırla
 };
 
@@ -847,7 +857,7 @@ export const getStudentHeatMapAnalysis = async (studentId: string, examId: strin
     const heatMapData = await getHeatMapData(examId);
     const results = await getResults();
     const studentResults = results.filter(r => r.studentId === studentId && r.examId === examId);
-
+    
     if (studentResults.length === 0) {
       throw new Error('Öğrenci için sınav sonucu bulunamadı');
     }
@@ -902,25 +912,25 @@ export const getAllExamsHeatMapSummary = async (): Promise<Array<{
   try {
     const exams = await getExams();
     const results = await getResults();
-
+    
     const summary = await Promise.all(
       exams.map(async (exam) => {
         try {
           const heatMapData = await getHeatMapData(exam.id);
           const examResults = results.filter(r => r.examId === exam.id);
-
+          
           return {
             examId: exam.id,
             examTitle: exam.title,
             totalStudents: examResults.length,
             averageSuccessRate: heatMapData.averageSuccessRate,
-            difficultyLevel: heatMapData.overallDifficulty > 0.7 ? 'Çok Zor' :
-              heatMapData.overallDifficulty > 0.5 ? 'Zor' :
-                heatMapData.overallDifficulty > 0.3 ? 'Orta' : 'Kolay',
+            difficultyLevel: heatMapData.overallDifficulty > 0.7 ? 'Çok Zor' : 
+                             heatMapData.overallDifficulty > 0.5 ? 'Zor' :
+                             heatMapData.overallDifficulty > 0.3 ? 'Orta' : 'Kolay',
             topSubject: Object.entries(heatMapData.subjectAnalysis)
-              .sort(([, a], [, b]) => b - a)[0]?.[0] || 'Belirsiz',
+              .sort(([,a], [,b]) => b - a)[0]?.[0] || 'Belirsiz',
             weakSubject: Object.entries(heatMapData.subjectAnalysis)
-              .sort(([, a], [, b]) => a - b)[0]?.[0] || 'Belirsiz'
+              .sort(([,a], [,b]) => a - b)[0]?.[0] || 'Belirsiz'
           };
         } catch (error) {
           console.error(`Sınav ${exam.id} analiz hatası:`, error);
@@ -1022,8 +1032,8 @@ export const generateWeeklyReport = async (studentId: string, weekStartDate: str
   try {
     const results = await getResults();
     const exams = await getExams();
-    const studentResults = results.filter(r =>
-      r.studentId === studentId &&
+    const studentResults = results.filter(r => 
+      r.studentId === studentId && 
       new Date(r.createdAt) >= new Date(weekStartDate)
     );
 
@@ -1037,10 +1047,10 @@ export const generateWeeklyReport = async (studentId: string, weekStartDate: str
 
     // Ders bazında analiz
     const subjectAnalysis = calculateSubjectAnalysis(studentResults);
-
+    
     // İyileştirme oranı hesaplama
     const improvementRate = calculateImprovementRate(studentResults);
-
+    
     // En iyi ve zayıf dersler
     const subjectScores = Object.entries(subjectAnalysis).map(([subject, data]) => ({
       subject,
@@ -1122,9 +1132,9 @@ export const generateMonthlyReport = async (studentId: string, monthYear: string
     const results = await getResults();
     const studentResults = results.filter(r => {
       const resultDate = new Date(r.createdAt);
-      return r.studentId === studentId &&
-        resultDate >= monthStartDate &&
-        resultDate <= monthEndDate;
+      return r.studentId === studentId && 
+             resultDate >= monthStartDate && 
+             resultDate <= monthEndDate;
     });
 
     if (studentResults.length === 0) {
@@ -1134,7 +1144,7 @@ export const generateMonthlyReport = async (studentId: string, monthYear: string
     // Aylık analiz için haftalık raporları birleştir
     const weeklyReports = [];
     const current = new Date(monthStartDate);
-
+    
     while (current < monthEndDate) {
       const weekStart = new Date(current);
       try {
@@ -1148,18 +1158,18 @@ export const generateMonthlyReport = async (studentId: string, monthYear: string
 
     // Aylık özet hesaplama
     const totalExams = studentResults.length;
-    const averageScore = studentResults.reduce((sum, result) =>
+    const averageScore = studentResults.reduce((sum, result) => 
       sum + calculateTotalScore(result.nets), 0) / totalExams;
 
     // En çok çalışılan ders
     const subjectFrequency = calculateSubjectFrequency(studentResults);
     const mostStudiedSubject = Object.entries(subjectFrequency)
-      .sort(([, a], [, b]) => b - a)[0]?.[0] || 'Belirsiz';
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'Belirsiz';
 
     // Progresyon seviyesi
-    const progressLevel = averageScore >= 80 ? 'excellent' :
-      averageScore >= 65 ? 'good' :
-        averageScore >= 50 ? 'average' : 'needs-improvement';
+    const progressLevel = averageScore >= 80 ? 'excellent' : 
+                         averageScore >= 65 ? 'good' : 
+                         averageScore >= 50 ? 'average' : 'needs-improvement';
 
     const report: SmartReport = {
       id: `monthly_${studentId}_${monthYear}`,
@@ -1176,7 +1186,7 @@ export const generateMonthlyReport = async (studentId: string, monthYear: string
         improvementRate: Math.round((averageScore - 50) * 2), // Mock improvement
         bestSubject: mostStudiedSubject,
         weakSubject: Object.entries(subjectFrequency)
-          .sort(([, a], [, b]) => a - b)[0]?.[0] || 'Belirsiz',
+          .sort(([,a], [,b]) => a - b)[0]?.[0] || 'Belirsiz',
         studyTime: Math.floor(Math.random() * 120) + 80, // Mock study time
         progressLevel
       },
@@ -1215,7 +1225,7 @@ export const generateMonthlyReport = async (studentId: string, monthYear: string
 // Ders bazında analiz hesaplama
 const calculateSubjectAnalysis = (results: Result[]) => {
   const analysis: { [key: string]: { average: number; improvement: number; trend: 'up' | 'down' | 'stable' } } = {};
-
+  
   results.forEach(result => {
     Object.keys(result.nets).forEach(subject => {
       if (subject !== 'total' && typeof result.nets[subject] === 'number') {
@@ -1231,11 +1241,11 @@ const calculateSubjectAnalysis = (results: Result[]) => {
   Object.keys(analysis).forEach(subject => {
     const subjectResults = results.filter(r => r.nets[subject]).length;
     analysis[subject].average = subjectResults > 0 ? analysis[subject].average / subjectResults : 0;
-
+    
     // İyileştirme ve trend hesaplama (mock)
     analysis[subject].improvement = Math.round((Math.random() - 0.5) * 20);
-    analysis[subject].trend = analysis[subject].improvement > 5 ? 'up' :
-      analysis[subject].improvement < -5 ? 'down' : 'stable';
+    analysis[subject].trend = analysis[subject].improvement > 5 ? 'up' : 
+                             analysis[subject].improvement < -5 ? 'down' : 'stable';
   });
 
   return analysis;
@@ -1244,25 +1254,25 @@ const calculateSubjectAnalysis = (results: Result[]) => {
 // İyileştirme oranı hesaplama
 const calculateImprovementRate = (results: Result[]): number => {
   if (results.length < 2) return 0;
-
+  
   const scores = results.map(r => calculateTotalScore(r.nets));
   const firstScore = scores[0];
   const lastScore = scores[scores.length - 1];
-
+  
   return ((lastScore - firstScore) / firstScore) * 100;
 };
 
 // Toplam skor hesaplama
 const calculateTotalScore = (nets: any): number => {
   if (!nets || typeof nets !== 'object') return 0;
-  return Object.values(nets).reduce((sum: number, net: any) =>
+  return Object.values(nets).reduce((sum: number, net: any) => 
     sum + (typeof net === 'number' ? net : 0), 0) as number;
 };
 
 // Ders sıklığı hesaplama
 const calculateSubjectFrequency = (results: Result[]): { [key: string]: number } => {
   const frequency: { [key: string]: number } = {};
-
+  
   results.forEach(result => {
     Object.keys(result.nets).forEach(subject => {
       if (subject !== 'total') {
@@ -1270,42 +1280,42 @@ const calculateSubjectFrequency = (results: Result[]): { [key: string]: number }
       }
     });
   });
-
+  
   return frequency;
 };
 
 // Başarılar üretme
 const generateAchievements = (results: Result[], progressLevel: string): string[] => {
   const achievements = [];
-
+  
   if (progressLevel === 'excellent') {
     achievements.push('🌟 Mükemmel Performans');
     achievements.push('📚 Düzenli Çalışma');
   }
-
+  
   if (results.length >= 3) {
     achievements.push('📈 Süreklilik Ödülü');
   }
-
+  
   const avgScore = results.reduce((sum, r) => sum + calculateTotalScore(r.nets), 0) / results.length;
   if (avgScore > 70) {
     achievements.push('🎯 Hedef Tutturma');
   }
-
+  
   return achievements;
 };
 
 // Sonraki hedefler üretme
 const generateNextGoals = (subjectAnalysis: any, progressLevel: string): string[] => {
   const goals = [];
-
+  
   const weakestSubject = Object.entries(subjectAnalysis)
-    .sort(([, a], [, b]) => (a as any).average - (b as any).average)[0];
-
+    .sort(([,a], [,b]) => (a as any).average - (b as any).average)[0];
+  
   if (weakestSubject) {
     goals.push(`${weakestSubject[0]} konularında %10 iyileştirme`);
   }
-
+  
   if (progressLevel === 'needs-improvement') {
     goals.push('Haftalık 5 saat ek çalışma');
     goals.push('Günde 2 model sınav çözme');
@@ -1313,14 +1323,14 @@ const generateNextGoals = (subjectAnalysis: any, progressLevel: string): string[
     goals.push('Haftalık 3 saat ek çalışma');
     goals.push('LGS hedef netlerine ulaşma');
   }
-
+  
   return goals;
 };
 
 // Ders özel tavsiyeler üretme
 const generateSubjectRecommendations = (subject: string, averageScore: number): string[] => {
   const recommendations = [];
-
+  
   if (averageScore < 60) {
     recommendations.push('Temel kavramları tekrar edin');
     recommendations.push('Günde 30 dakika ek çalışma');
@@ -1331,33 +1341,33 @@ const generateSubjectRecommendations = (subject: string, averageScore: number): 
     recommendations.push('İleri seviye problemler çözün');
     recommendations.push('Yarışmalara katılın');
   }
-
+  
   return recommendations;
 };
 
 // Aylık başarılar üretme
 const generateMonthlyAchievements = (weeklyReportsCount: number, averageScore: number): string[] => {
   const achievements = [];
-
+  
   if (weeklyReportsCount >= 4) {
     achievements.push('📅 Aylık Süreklilik');
   }
-
+  
   if (averageScore > 75) {
     achievements.push('🏆 Aylık Yıldız Öğrenci');
   }
-
+  
   if (averageScore > 70) {
     achievements.push('📊 Hedef Başarısı');
   }
-
+  
   return achievements;
 };
 
 // Aylık hedefler üretme
 const generateMonthlyGoals = (averageScore: number, progressLevel: string): string[] => {
   const goals = [];
-
+  
   if (progressLevel === 'needs-improvement') {
     goals.push('Aylık ortalama 60+ net');
     goals.push('4 hafta düzenli çalışma');
@@ -1368,7 +1378,7 @@ const generateMonthlyGoals = (averageScore: number, progressLevel: string): stri
     goals.push('Aylık ortalama 80+ net');
     goals.push('Tüm derslerde mükemmellik');
   }
-
+  
   return goals;
 };
 
@@ -1382,17 +1392,17 @@ export const generateLeaderboard = async (
   try {
     const students = await getStudents();
     const results = await getResults();
-
+    
     // Öğrenci skorlarını hesapla
     const studentScores = students.map(student => {
       const studentResults = results.filter(r => r.studentId === student.id);
-
+      
       let score = 0;
       if (type === 'weekly') {
         // Son 7 gün
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
-        const recentResults = studentResults.filter(r =>
+        const recentResults = studentResults.filter(r => 
           new Date(r.createdAt) >= weekAgo
         );
         score = recentResults.reduce((sum, r) => sum + calculateTotalScore(r.nets), 0) / Math.max(recentResults.length, 1);
@@ -1400,7 +1410,7 @@ export const generateLeaderboard = async (
         // Son 30 gün
         const monthAgo = new Date();
         monthAgo.setDate(monthAgo.getDate() - 30);
-        const recentResults = studentResults.filter(r =>
+        const recentResults = studentResults.filter(r => 
           new Date(r.createdAt) >= monthAgo
         );
         score = recentResults.reduce((sum, r) => sum + calculateTotalScore(r.nets), 0) / Math.max(recentResults.length, 1);
@@ -1408,17 +1418,17 @@ export const generateLeaderboard = async (
         // Tüm zamanlar
         score = studentResults.reduce((sum, r) => sum + calculateTotalScore(r.nets), 0) / Math.max(studentResults.length, 1);
       }
-
+      
       // Ders filtreleme
       if (subject) {
-        const subjectResults = studentResults.filter(r =>
+        const subjectResults = studentResults.filter(r => 
           r.nets[subject] && typeof r.nets[subject] === 'number'
         );
-        score = subjectResults.length > 0 ?
-          subjectResults.reduce((sum, r) => sum + (r.nets[subject] as number), 0) / subjectResults.length :
+        score = subjectResults.length > 0 ? 
+          subjectResults.reduce((sum, r) => sum + (r.nets[subject] as number), 0) / subjectResults.length : 
           0;
       }
-
+      
       return {
         studentId: student.id,
         name: student.name,
@@ -1429,15 +1439,15 @@ export const generateLeaderboard = async (
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random`
       };
     });
-
+    
     // Sıralama
     studentScores.sort((a, b) => b.score - a.score);
-
+    
     // Rank atama
     studentScores.forEach((student, index) => {
       student.rank = index + 1;
     });
-
+    
     return {
       id: `leaderboard_${type}${subject ? `_${subject}` : ''}`,
       type,
@@ -1445,7 +1455,7 @@ export const generateLeaderboard = async (
       students: studentScores.slice(0, 50), // İlk 50
       lastUpdated: new Date().toISOString()
     };
-
+    
   } catch (error) {
     console.error('Liderlik tablosu oluşturma hatası:', error);
     throw error;
@@ -1464,12 +1474,12 @@ export const createSocialChallenge = async (challengeData: {
 }): Promise<SocialChallenge> => {
   try {
     const students = await getStudents();
-
+    
     // Katılımcıları seç (rastgele 20 öğrenci)
     const selectedStudents = students
       .sort(() => Math.random() - 0.5)
       .slice(0, 20);
-
+    
     const challenge: SocialChallenge = {
       id: `challenge_${Date.now()}`,
       title: challengeData.title,
@@ -1488,9 +1498,9 @@ export const createSocialChallenge = async (challengeData: {
       reward: challengeData.reward,
       status: 'upcoming' as const
     };
-
+    
     return challenge;
-
+    
   } catch (error) {
     console.error('Sosyal meydan okuma oluşturma hatası:', error);
     throw error;
@@ -1507,22 +1517,142 @@ export const getStudentRanking = async (studentId: string, type: 'weekly' | 'mon
   try {
     const leaderboard = await generateLeaderboard(type);
     const studentEntry = leaderboard.students.find(s => s.studentId === studentId);
-
+    
     if (!studentEntry) {
       return { rank: 0, totalStudents: leaderboard.students.length, percentile: 0, change: 0 };
     }
-
+    
     const percentile = Math.round(((leaderboard.students.length - studentEntry.rank) / leaderboard.students.length) * 100);
-
+    
     return {
       rank: studentEntry.rank,
       totalStudents: leaderboard.students.length,
       percentile,
       change: studentEntry.change
     };
-
+    
   } catch (error) {
     console.error('Öğrenci sıralama hatası:', error);
     throw error;
+  }
+};
+
+// 🎯 HEDEF YÖNETİM FONKSİYONLARI
+
+// Panel key'lerini dashboard key'lerine dönüştürme fonksiyonu
+const mapPanelKeysToDashboard = (panelTargets: {[key: string]: number}): {[key: string]: number} => {
+  // Panel'de kullanılan key'ler zaten dashboard formatında (turkce, matematik, vs.)
+  // Bu yüzden direkt kopyalama yapıyoruz
+  return { ...panelTargets };
+};
+
+// Dashboard key'lerini panel key'lerine dönüştürme fonksiyonu  
+const mapDashboardKeysToPanel = (dashboardTargets: {[key: string]: number}): {[key: string]: number} => {
+  // Dashboard'da da İngilizce key'ler kullanılıyor, panel ile aynı format
+  // Bu yüzden direkt kopyalama yapıyoruz
+  return { ...dashboardTargets };
+};
+
+// Export dönüştürücü fonksiyonlar
+export { mapPanelKeysToDashboard, mapDashboardKeysToPanel };
+
+// Öğrenci hedeflerini kaydet (Dashboard formatında saklanır)
+export const saveStudentTargets = async (studentId: string, targets: {[subject: string]: number}, targetScore?: number) => {
+  try {
+    // Panel key'lerini dashboard key'lerine dönüştür
+    const dashboardTargets = mapPanelKeysToDashboard(targets);
+    
+    const targetsRef = doc(db, 'targets', studentId);
+    await setDoc(targetsRef, {
+      studentId,
+      targets: dashboardTargets, // Dashboard formatında sakla
+      targetScore: targetScore || 450, // Puan hedefi
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    console.log('🎯 Hedefler kaydedildi (Dashboard formatında):', studentId, dashboardTargets);
+    console.log('🎯 Puan hedefi kaydedildi:', targetScore || 450);
+  } catch (error) {
+    console.error('Hedef kaydetme hatası:', error);
+    throw error;
+  }
+};
+
+// Öğrenci sadece puan hedefini güncelle
+export const updateStudentScoreTarget = async (studentId: string, targetScore: number) => {
+  try {
+    const targetsRef = doc(db, 'targets', studentId);
+    await updateDoc(targetsRef, {
+      targetScore: targetScore,
+      updatedAt: new Date().toISOString()
+    });
+    console.log(`🎯 Puan hedefi güncellendi (${studentId}):`, targetScore);
+  } catch (error) {
+    console.error('Puan hedefi güncelleme hatası:', error);
+    throw error;
+  }
+};
+
+// Öğrenci hedeflerini getir (Dashboard formatında döner)
+export const getStudentTargets = async (studentId: string): Promise<{[subject: string]: number} | null> => {
+  try {
+    const targetsRef = doc(db, 'targets', studentId);
+    const targetsSnapshot = await getDoc(targetsRef);
+    
+    console.log(`📋 Hedef arama - Öğrenci ID: ${studentId}`);
+    console.log('📋 Doc mevcut mu:', targetsSnapshot.exists());
+    
+    if (targetsSnapshot.exists()) {
+      const data = targetsSnapshot.data();
+      const targets = data.targets || {};
+      console.log('📋 Bulunan net hedefleri (Dashboard formatı):', targets);
+      console.log('🎯 Puan hedefi:', data.targetScore || 450);
+      console.log('🔄 Panel için dönüştürülmüş:', mapDashboardKeysToPanel(targets));
+      return targets; // Zaten dashboard formatında saklı
+    }
+    console.log('📋 Hedef bulunamadı');
+    return null;
+  } catch (error) {
+    console.error('Hedef getirme hatası:', error);
+    return null;
+  }
+};
+
+// Öğrenci puan hedefini getir
+export const getStudentScoreTarget = async (studentId: string): Promise<number | null> => {
+  try {
+    const targetsRef = doc(db, 'targets', studentId);
+    const targetsSnapshot = await getDoc(targetsRef);
+    
+    if (targetsSnapshot.exists()) {
+      const targetScore = targetsSnapshot.data().targetScore;
+      console.log(`🎯 Puan hedefi bulundu (${studentId}):`, targetScore || 450);
+      return targetScore || 450; // Varsayılan 450
+    }
+    console.log(`📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450`);
+    return 450; // Varsayılan puan hedefi
+  } catch (error) {
+    console.error('Puan hedefi getirme hatası:', error);
+    return 450; // Varsayılan puan hedefi
+  }
+};
+
+// Tüm hedefleri getir
+export const getAllTargets = async (): Promise<{[studentId: string]: {[subject: string]: number}}> => {
+  try {
+    const targetsSnapshot = await getDocs(collection(db, 'targets'));
+    const allTargets: {[studentId: string]: {[subject: string]: number}} = {};
+    
+    targetsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.studentId && data.targets) {
+        allTargets[data.studentId] = data.targets;
+      }
+    });
+    
+    return allTargets;
+  } catch (error) {
+    console.error('Tüm hedefleri getirme hatası:', error);
+    return {};
   }
 };
