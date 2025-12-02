@@ -22,7 +22,7 @@ export default function Dashboard({ onShowMain, onGoToTab }: DashboardProps) {
           getStudents(),
           getExams()
         ]);
-
+        
         setStudents(studentsData);
         setExams(examsData);
       } catch (error) {
@@ -31,20 +31,20 @@ export default function Dashboard({ onShowMain, onGoToTab }: DashboardProps) {
         setLoading(false);
       }
     };
-
+    
     loadData();
   }, []);
 
   // İstatistikler - Gelişmiş
   const totalStudents = students.length;
   const totalExams = exams.length;
-
+  
   // Sınıf bazlı detaylı istatistikler
   const detailedClassStats = students.reduce((acc, student) => {
     if (!acc[student.class]) {
-      acc[student.class] = {
-        studentCount: 0,
-        activeStudents: 0,
+      acc[student.class] = { 
+        studentCount: 0, 
+        activeStudents: 0, 
         totalViewCount: 0,
         totalExams: 0
       };
@@ -56,12 +56,12 @@ export default function Dashboard({ onShowMain, onGoToTab }: DashboardProps) {
     acc[student.class].totalViewCount += student.viewCount || 0;
     return acc;
   }, {} as Record<string, { studentCount: number; activeStudents: number; totalViewCount: number; totalExams: number }>);
-
+  
   // Sınıf bazlı deneme sayılarını ekle
   Object.keys(detailedClassStats).forEach(className => {
     detailedClassStats[className].totalExams = exams.filter(exam => exam.classes.includes(className)).length;
   });
-
+  
   // En aktif 10 öğrenci (en çok rapor görüntüleyen)
   const topActiveStudents = [...students]
     .filter(s => (s.viewCount || 0) > 0)
@@ -72,9 +72,9 @@ export default function Dashboard({ onShowMain, onGoToTab }: DashboardProps) {
       viewCount: student.viewCount || 0,
       lastViewDate: student.lastViewDate ? new Date(student.lastViewDate).toLocaleDateString('tr-TR') : 'Hiç görüntüleme yok'
     }));
-
+  
   const totalClasses = Object.keys(detailedClassStats).length;
-
+  
   // Genel sistem istatistikleri
   const totalViews = students.reduce((sum, s) => sum + (s.viewCount || 0), 0);
   const avgViewsPerStudent = totalStudents > 0 ? (totalViews / totalStudents).toFixed(1) : '0';
