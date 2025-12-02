@@ -742,7 +742,7 @@ function StudentDashboardContent() {
                                     }
                                     return sum;
                                   }, 0);
-                                  return totalCorrect;
+                                  return String(totalCorrect);
                                 })()}
                               </td>
                               <td className="px-2 py-2 text-center text-red-600">
@@ -756,7 +756,7 @@ function StudentDashboardContent() {
                                     }
                                     return sum;
                                   }, 0);
-                                  return Math.round(totalCorrect * 0.3);
+                                  return String(Math.round(totalCorrect * 0.3));
                                 })()}
                               </td>
                               <td className="px-2 py-2 text-center text-gray-500">
