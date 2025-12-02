@@ -6,9 +6,9 @@ import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Başarı Takip ve Raporlama Sistemi",
-  description: "Öğrenci başarı takip sistemi - HeatMap ve Akıllı Raporlar",
-  applicationName: "Başarı Takip",
+  title: "Köprüler LGS Portalı",
+  description: "Modern LGS öğrenci başarı takip sistemi",
+  applicationName: "Köprüler LGS Portalı",
   appleWebApp: {
     capable: true,
     title: "Başarı Takip",
@@ -21,15 +21,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "tr_TR",
     url: "https://example.com",
-    siteName: "Başarı Takip Sistemi",
-    title: "Başarı Takip ve Raporlama Sistemi",
-    description: "Öğrenci başarı takip sistemi - HeatMap ve Akıllı Raporlar",
+    siteName: "Köprüler LGS Portalı",
+    title: "Köprüler LGS Portalı",
+    description: "Modern LGS öğrenci başarı takip sistemi",
     images: [
       {
         url: "/icon-512.png",
         width: 512,
         height: 512,
-        alt: "Başarı Takip Sistemi"
+        alt: "Köprüler LGS Portalı"
       }
     ]
   },
@@ -38,8 +38,8 @@ export const metadata: Metadata = {
     icon: "/icon-192.png",
     apple: "/icon-192.png"
   },
-  keywords: ["eğitim", "başarı takip", "LGS", "öğrenci", "rapor", "analiz", "heatmap"],
-  authors: [{ name: "MiniMax Agent" }],
+  keywords: ["eğitim", "LGS", "öğrenci", "başarı", "portal", "köprüler"],
+  authors: [{ name: "Murat UYSAL" }],
   robots: "index, follow"
 };
 
