@@ -112,6 +112,8 @@ export default function HomePage() {
           </h1>
           <p className="text-center text-xs text-gray-600 leading-relaxed max-w-lg mx-auto mb-6">
             Öğrenciler başarılarını takip edebilir, öğretmenler sınıf performanslarını anlık olarak görebilir.
+            <br />
+            <span className="text-blue-600 font-medium">🎯 UI sorunu çözüldü - Deployment test</span>
           </p>
 
 
