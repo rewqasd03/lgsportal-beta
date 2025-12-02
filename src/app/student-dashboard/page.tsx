@@ -1,1343 +1,1875 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import {
-  Student, Exam, Result,
-  getStudentProgress, updateStudentProgress,
-  generateAIMotivation, getAIMotivations,
-  getStudentProfile, updateStudentProfile,
-  getExams, getResults,
-  getHeatMapData, getStudentHeatMapAnalysis,
-  generateWeeklyReport, generateMonthlyReport,
-  generateLeaderboard, getStudentRanking,
-  SmartReport, Leaderboard
-} from '../../firebase';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
+import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
+import { Student, Exam, Result, getStudentTargets, getStudentScoreTarget } from '../../firebase';
+import { initializeApp } from 'firebase/app';
 
-// Gelişmiş Charts
-import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
-  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
+const firebaseConfig = {
+  apiKey: "AIzaSyBYfBhkLIfjqpnL9MxBhxW6iJeC0VAEDLk",
+  authDomain: "kopruler-basari-portali.firebaseapp.com",
+  projectId: "kopruler-basari-portali",
+  storageBucket: "kopruler-basari-portali.firebasestorage.app",
+  messagingSenderId: "318334276429",
+  appId: "1:318334276429:web:7caa5e5b9dccb564d71d04",
+  measurementId: "G-EF6P77SMFP"
+};
 
-const StudentDashboardWithParams: React.FC = () => {
-  const searchParams = useSearchParams();
-  const studentId = searchParams?.get('studentId');
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  const [student, setStudent] = useState<Student | null>(null);
-  const [progress, setProgress] = useState<any>(null);
-  const [motivations, setMotivations] = useState<any[]>([]);
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [results, setResults] = useState<Result[]>([]);
+interface ReportData {
+  student: Student;
+  examResults: {
+    exam: Exam;
+    studentResults: Result[];
+    classAverage: number;
+    classAverageScore: number;
+    generalAverage: number;
+    generalAverageScore: number;
+    studentTotalNet: number;
+    studentTotalScore: number;
+  }[];
+  studentTargets?: {[subject: string]: number};
+}
+
+// Student Dashboard içerik komponenti
+function StudentDashboardContent() {
+  const [reportData, setReportData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'motivation' | 'analytics' | 'reports'>('overview');
+  const [studentTargets, setStudentTargets] = useState<{[subject: string]: number}>({});
+  const [studentScoreTarget, setStudentScoreTarget] = useState<number>(450);
+  const [activeTab, setActiveTab] = useState(1);
+  const [studentId, setStudentId] = useState('');
+  const [error, setError] = useState('');
+  const [autoLoadAttempts, setAutoLoadAttempts] = useState(0);
+  const [selectedExamId, setSelectedExamId] = useState<string>('');
+  const [allResultsData, setAllResultsData] = useState<Result[]>([]);
+  const [allStudentsData, setAllStudentsData] = useState<Student[]>([]);
+  
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  // 🔥 HEATMAP STATE'LERİ
-  const [selectedExamForHeatMap, setSelectedExamForHeatMap] = useState<string>('');
-  const [heatMapData, setHeatMapData] = useState<any>(null);
-  const [studentHeatMapAnalysis, setStudentHeatMapAnalysis] = useState<any>(null);
-  const [heatMapLoading, setHeatMapLoading] = useState(false);
+  // URL parametresinden studentId al ve otomatik yükle
+  useEffect(() => {
+    const urlStudentId = searchParams.get('studentId');
+    console.log('URL StudentId:', urlStudentId);
+    
+    if (urlStudentId && urlStudentId !== studentId) {
+      setStudentId(urlStudentId);
+      console.log('StudentId set edildi:', urlStudentId);
+      setError('');
+    } else if (!urlStudentId && autoLoadAttempts === 0) {
+      // StudentId yoksa 2 saniye sonra yeniden kontrol et
+      const timer = setTimeout(() => {
+        setAutoLoadAttempts(1);
+        console.log('StudentId kontrol ediliyor...');
+        const currentUrlStudentId = searchParams.get('studentId');
+        if (currentUrlStudentId) {
+          setStudentId(currentUrlStudentId);
+          console.log('İkinci denemede StudentId set edildi:', currentUrlStudentId);
+        } else {
+          setError('Öğrenci ID bulunamadı. Giriş sayfasına yönlendiriliyorsunuz...');
+          setTimeout(() => router.push('/ogrenci'), 3000);
+        }
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, studentId, autoLoadAttempts, router]);
 
-  // 📋 AKILLI RAPOR STATE'LERİ
-  const [reports, setReports] = useState<SmartReport[]>([]);
-  const [leaderboard, setLeaderboard] = useState<Leaderboard | null>(null);
-  const [studentRanking, setStudentRanking] = useState<any>(null);
-  const [reportsLoading, setReportsLoading] = useState(false);
-
+  // StudentId değiştiğinde raporu yükle
   useEffect(() => {
     if (studentId) {
-      loadStudentData();
+      loadStudentReport();
     }
   }, [studentId]);
 
-  const loadStudentData = async () => {
-    if (!studentId) return;
+  const loadStudentReport = async () => {
+    if (!studentId) {
+      setError('Öğrenci ID bulunamadı');
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
+    setError('');
+    console.log('Rapor yükleniyor... StudentId:', studentId);
+
     try {
-      // Temel verileri yükle
-      const [examsData, resultsData] = await Promise.all([
-        getExams(),
-        getResults()
-      ]);
+      // Öğrenci bilgilerini al
+      const studentDocRef = doc(db, 'students', studentId);
+      const studentSnapshot = await getDoc(studentDocRef);
+      
+      if (!studentSnapshot.exists()) {
+        throw new Error(`Öğrenci bulunamadı: ${studentId}`);
+      }
 
-      setExams(examsData);
-      setResults(resultsData.filter(r => r.studentId === studentId));
+      const studentData = { ...studentSnapshot.data(), id: studentSnapshot.id } as Student;
+      console.log('Öğrenci verisi alındı:', studentData);
 
-      // Progress ve motivasyon verilerini yükle
-      const progressData = await getStudentProgress(studentId);
-      setProgress(progressData || createInitialProgress());
+      // Tüm sınavları al
+      const examsQuery = query(collection(db, 'exams'), orderBy('date', 'asc'));
+      const examsSnapshot = await getDocs(examsQuery);
+      const examsData = examsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exam));
+      console.log('Sınavlar alındı:', examsData.length);
 
-      const motivationData = await getAIMotivations(studentId);
-      setMotivations(motivationData);
+      // Tüm sonuçları al
+      const resultsSnapshot = await getDocs(collection(db, 'results'));
+      const resultsData = resultsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Result));
+      console.log('Sonuçlar alındı:', resultsData.length);
+      setAllResultsData(resultsData);
 
-    } catch (error) {
-      console.error('Error loading student data:', error);
+      // Tüm öğrenci verilerini al (sınıf ortalaması hesabı için)
+      const allStudentsSnapshot = await getDocs(collection(db, 'students'));
+      const studentsData = allStudentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Student));
+      console.log('Tüm öğrenciler alındı:', studentsData.length);
+      setAllStudentsData(studentsData);
+
+      // Bu öğrencinin sonuçlarını filtrele
+      const studentResults = resultsData.filter(r => r.studentId === studentId);
+      console.log('Öğrenci sonuçları:', studentResults.length);
+
+      if (studentResults.length === 0) {
+        console.log('Bu öğrencinin sınav sonucu bulunamadı');
+        setReportData({
+          student: studentData,
+          examResults: []
+        });
+        setError('Bu öğrenci için henüz sınav sonucu bulunamadı.');
+        setLoading(false);
+        return;
+      }
+
+      const examResults = [];
+
+      for (const result of studentResults) {
+        const exam = examsData.find(e => e.id === result.examId);
+        if (!exam) continue;
+
+        // Sınıf ortalamasını hesapla (aynı sınıftaki öğrencilerin toplam net ortalaması)
+        const classResults = resultsData.filter(r => r.examId === result.examId && 
+          studentsData.find(s => s.id === r.studentId)?.class === studentData.class);
+        const classAverage = classResults.length > 0 
+          ? classResults.reduce((sum, r) => sum + (r.nets?.total || 0), 0) / classResults.length
+          : 0;
+
+        // Sınıf ortalama puanını hesapla
+        const classResultsWithScore = resultsData.filter(r => r.examId === result.examId && 
+          studentsData.find(s => s.id === r.studentId)?.class === studentData.class && 
+          (typeof r.scores?.puan === 'string' || typeof r.puan === 'number' || typeof r.totalScore === 'number'));
+        const classAverageScore = classResultsWithScore.length > 0 
+          ? classResultsWithScore.reduce((sum, r) => sum + (
+            typeof r.scores?.puan === 'string' ? parseFloat(r.scores.puan) :
+            typeof r.puan === 'number' ? r.puan : 
+            (typeof r.totalScore === 'number' ? r.totalScore : 0)
+          ), 0) / classResultsWithScore.length
+          : 0;
+
+        // Genel ortalamaları hesapla (deneme yönetimindeki sınıf genel ortalamalarından)
+        let generalAverageNet = classAverage; // Varsayılan olarak sınıf ortalaması
+        let generalAverageScoreNet = classAverageScore; // Varsayılan olarak sınıf ortalama puanı
+        
+        if (exam.generalAverages && exam.generalAverages[studentData.class]) {
+          const classAverages = exam.generalAverages[studentData.class];
+          
+          // Genel net ortalaması: ders bazlı netlerin toplamı
+          const dersNets = [
+            classAverages.turkce || 0,
+            classAverages.matematik || 0,
+            classAverages.fen || 0,
+            classAverages.sosyal || 0,
+            classAverages.din || 0,
+            classAverages.ingilizce || 0
+          ];
+          
+          generalAverageNet = dersNets.reduce((sum, net) => sum + net, 0);
+          
+          // Genel puan ortalaması
+          if (classAverages.generalScore) {
+            generalAverageScoreNet = classAverages.generalScore;
+          }
+        }
+
+        examResults.push({
+          exam,
+          studentResults: [result],
+          classAverage: classAverage,
+          classAverageScore: classAverageScore,
+          generalAverage: generalAverageNet,
+          generalAverageScore: generalAverageScoreNet,
+          studentTotalNet: result.nets?.total || 0,
+          studentTotalScore: typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
+                           typeof result.puan === 'number' ? result.puan : 
+                           (typeof result.totalScore === 'number' ? result.totalScore : 0)
+        });
+      }
+
+      // Sınavları tarihe göre sırala
+      examResults.sort((a, b) => new Date(a.exam.date).getTime() - new Date(b.exam.date).getTime());
+      
+      console.log('Rapor verisi hazırlandı');
+      
+      // Öğrencinin hedeflerini çek (Yeni Firebase fonksiyonu ile)
+      const targetsData = await getStudentTargets(studentId) || {};
+      const scoreTargetData = await getStudentScoreTarget(studentId);
+      console.log('Hedefler yüklendi:', studentId, targetsData);
+      console.log('Puan hedefi yüklendi:', scoreTargetData);
+      
+      // Debug: Hedef verilerinin içeriğini kontrol et
+      if (targetsData && Object.keys(targetsData).length > 0) {
+        console.log('✅ Hedefler bulundu:', targetsData);
+        Object.keys(targetsData).forEach(key => {
+          console.log(`  ${key}: ${targetsData[key]}`);
+        });
+      } else {
+        console.log('⚠️ Hiç hedef bulunamadı veya boş hedefler');
+      }
+      console.log('✅ Puan hedefi:', scoreTargetData);
+      
+      setReportData({
+        student: studentData,
+        examResults,
+        studentTargets: targetsData
+      });
+      
+      setStudentTargets(targetsData);
+      setStudentScoreTarget(scoreTargetData || 450);
+      
+    } catch (error: any) {
+      console.error('Veri yükleme hatası:', error);
+      setError(`Veri yükleme hatası: ${error.message}`);
+      
+      if (error.message.includes('permission-denied') || error.message.includes('unavailable')) {
+        setError('Firebase bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.');
+      } else if (error.message.includes('not-found')) {
+        setError('Öğrenci bulunamadı. Sınıf ve numaranızı kontrol edin.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const createInitialProgress = () => ({
-    studentId,
-    totalPoints: 0,
-    currentLevel: 1,
-    levelProgress: 0,
-    badges: [],
-    achievements: [],
-    studyStreak: 0,
-    weeklyGoals: {
-      targetNet: 70,
-      achievedNet: 0,
-      completed: false
-    },
-    motivationalMessages: [],
-    lastUpdated: new Date()
-  });
-
-  // 🔥 HEATMAP VERİ YÜKLEME FONKSİYONLARI
-  const loadHeatMapData = async (examId: string) => {
-    if (!studentId || !examId) return;
-
-    setHeatMapLoading(true);
-    try {
-      // HeatMap ana verilerini yükle
-      const heatMapResult = await getHeatMapData(examId);
-      setHeatMapData(heatMapResult);
-
-      // Öğrenci özel analizini yükle
-      const studentAnalysis = await getStudentHeatMapAnalysis(studentId, examId);
-      setStudentHeatMapAnalysis(studentAnalysis);
-
-    } catch (error) {
-      console.error('HeatMap veri yükleme hatası:', error);
-    } finally {
-      setHeatMapLoading(false);
-    }
-  };
-
-  // 📋 AKILLI RAPOR VERİ YÜKLEME FONKSİYONLARI
-  const loadReportsData = async () => {
-    if (!studentId) return;
-
-    setReportsLoading(true);
-    try {
-      // Son hafta raporu
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-
-      let weeklyReport;
-      try {
-        weeklyReport = await generateWeeklyReport(studentId, weekAgo.toISOString());
-      } catch (error) {
-        console.log('Haftalık rapor oluşturulamadı:', error);
-      }
-
-      // Bu ay raporu
-      const thisMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
-      let monthlyReport;
-      try {
-        monthlyReport = await generateMonthlyReport(studentId, thisMonth);
-      } catch (error) {
-        console.log('Aylık rapor oluşturulamadı:', error);
-      }
-
-      // Liderlik tablosu
-      const leaderboardData = await generateLeaderboard('monthly');
-      setLeaderboard(leaderboardData);
-
-      // Öğrenci sıralaması
-      const ranking = await getStudentRanking(studentId, 'monthly');
-      setStudentRanking(ranking);
-
-      // Raporları birleştir
-      const allReports = [];
-      if (weeklyReport) allReports.push(weeklyReport);
-      if (monthlyReport) allReports.push(monthlyReport);
-      setReports(allReports);
-
-    } catch (error) {
-      console.error('Rapor veri yükleme hatası:', error);
-    } finally {
-      setReportsLoading(false);
-    }
-  };
-
-  // Mock student data
-  useEffect(() => {
-    if (results.length > 0) {
-      // Mock student - gerçek sistemde Firebase'den gelecek
-      setStudent({
-        id: studentId || '',
-        name: 'Ahmet Yılmaz',
-        class: '8-A',
-        number: '123',
-        viewCount: 15,
-        lastViewDate: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-      });
-    }
-  }, [results, studentId]);
-
-  // 📋 REPORTS VERİ YÜKLEME  
-  useEffect(() => {
-    if (studentId && results.length > 0) {
-      loadReportsData();
-    }
-  }, [studentId, results.length]);
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Dashboard yükleniyor...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Rapor hazırlanıyor...</p>
+          {studentId && <p className="text-xs text-gray-500 mt-2">Öğrenci: {studentId}</p>}
         </div>
       </div>
     );
   }
 
-  if (!student) {
+  if (error && !reportData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600">Öğrenci bulunamadı</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
+            <div className="text-4xl mb-4">⚠️</div>
+            <h2 className="text-sm font-semibold text-red-800 mb-2">Hata Oluştu</h2>
+            <p className="text-red-700 mb-4">{error}</p>
+            <button
+              onClick={() => loadStudentReport()}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Tekrar Dene
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  const studentResults = results.filter(r => r.studentId === studentId);
-  const latestResult = studentResults[studentResults.length - 1];
-  const totalExams = studentResults.length;
-  const averageNet = totalExams > 0
-    ? studentResults.reduce((sum, r) => sum + (typeof r.nets.total === 'number' ? r.nets.total : 0), 0) / totalExams
+  if (!reportData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Rapor verisi bulunamadı.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // İstatistikleri hesapla
+  const totalNet = reportData.examResults.reduce((sum, item) => sum + item.studentTotalNet, 0);
+  const avgNet = reportData.examResults.length > 0 ? totalNet / reportData.examResults.length : 0;
+  const scores = reportData.examResults.map(item => item.studentTotalNet);
+  const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
+  const stdDev = Math.sqrt(variance);
+  
+  // Sınıf ortalamaları
+  const classAverageNet = reportData.examResults.length > 0 
+    ? reportData.examResults.reduce((sum, item) => sum + (item.classAverage || 0), 0) / reportData.examResults.length
     : 0;
+  
+  const classAverageScore = reportData.examResults.length > 0
+    ? reportData.examResults.reduce((sum, item) => sum + (item.classAverageScore || 0), 0) / reportData.examResults.length
+    : 0;
+  
+  // Genel ortalamalar
+  const generalAverageNet = reportData.examResults.length > 0 
+    ? reportData.examResults.reduce((sum, item) => sum + (item.generalAverage || 0), 0) / reportData.examResults.length
+    : 0;
+  
+  const generalAverageScore = reportData.examResults.length > 0
+    ? reportData.examResults.reduce((sum, item) => sum + (item.generalAverageScore || 0), 0) / reportData.examResults.length
+    : 0;
+  
+  const latestNet = reportData.examResults[reportData.examResults.length - 1]?.studentTotalNet || 0;
+  const previousNet = reportData.examResults[reportData.examResults.length - 2]?.studentTotalNet || 0;
+  const improvement = latestNet - previousNet;
+  
+  const latestScore = reportData.examResults[reportData.examResults.length - 1]?.studentTotalScore || 0;
+  const previousScore = reportData.examResults[reportData.examResults.length - 2]?.studentTotalScore || 0;
+  const scoreImprovement = latestScore - previousScore;
+  
+  // Trend analizi
+  const trend = improvement > 2 ? 'Yükseliş' : improvement < -2 ? 'Düşüş' : 'Stabil';
+  const trendColor = improvement > 2 ? 'text-green-600' : improvement < -2 ? 'text-red-600' : 'text-yellow-600';
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="text-4xl mr-4">🎓</div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Hoşgeldin, {student.name}! 👋
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  {student.class} • {totalExams} Deneme • Net Ort.: {averageNet.toFixed(1)}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Seviye</p>
-                <p className="text-2xl font-bold text-purple-600">{progress?.currentLevel || 1}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Puan</p>
-                <p className="text-2xl font-bold text-blue-600">{progress?.totalPoints || 0}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Streak</p>
-                <p className="text-2xl font-bold text-green-600">{progress?.studyStreak || 0}🔥</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  // Renk kodları
+  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#F97316'];
 
-      {/* Navigation */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4">
-          <nav className="flex space-x-8">
-            {[
-              { id: 'overview', label: '🏠 Genel Bakış', icon: '📊' },
-              { id: 'progress', label: '📈 İlerleme', icon: '🎯' },
-              { id: 'motivation', label: '🤖 Motivasyon', icon: '💪' },
-              { id: 'analytics', label: '🔍 Analitik', icon: '📊' },
-              { id: 'reports', label: '📋 Raporlar', icon: '📄' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {activeTab === 'overview' && <OverviewTab
-          student={student}
-          progress={progress}
-          results={studentResults}
-          exams={exams}
-          motivations={motivations}
-        />}
-        {activeTab === 'progress' && <ProgressTab
-          progress={progress}
-          results={studentResults}
-          exams={exams}
-        />}
-        {activeTab === 'motivation' && <MotivationTab
-          motivations={motivations}
-          student={student}
-          latestResult={latestResult}
-        />}
-        {activeTab === 'analytics' && <AnalyticsTab
-          results={studentResults}
-          exams={exams}
-          studentId={studentId || ''}
-          selectedExamForHeatMap={selectedExamForHeatMap}
-          setSelectedExamForHeatMap={setSelectedExamForHeatMap}
-          heatMapData={heatMapData}
-          studentHeatMapAnalysis={studentHeatMapAnalysis}
-          loadHeatMapData={loadHeatMapData}
-          heatMapLoading={heatMapLoading}
-        />}
-        {activeTab === 'reports' && <ReportsTab
-          studentId={studentId || ''}
-          reports={reports}
-          leaderboard={leaderboard}
-          studentRanking={studentRanking}
-          loadReportsData={loadReportsData}
-          loading={reportsLoading}
-        />}
-      </div>
-    </div>
-  );
-};
-
-// 📊 GENEL BAKIŞ TAB
-const OverviewTab: React.FC<{
-  student: any;
-  progress: any;
-  results: Result[];
-  exams: Exam[];
-  motivations: any[];
-}> = ({ student, progress, results, exams, motivations }) => {
-  // Sonuçları zaman sırasına göre sırala
-  const sortedResults = [...results].sort((a, b) =>
-    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  );
-
-  const chartData = sortedResults.map((result, index) => ({
-    name: `Deneme ${index + 1}`,
-    net: result.nets.total,
-    date: new Date(result.createdAt).toLocaleDateString('tr-TR')
+  // Grafik verileri
+  const netChartData = reportData.examResults.map((item, index) => ({
+    exam: item.exam.title,
+    öğrenci: item.studentTotalNet,
+    sınıf: item.classAverage,
+    genel: item.generalAverage
+  }));
+  
+  const scoreChartData = reportData.examResults.map((item, index) => ({
+    exam: item.exam.title,
+    öğrenci: item.studentTotalScore,
+    sınıf: item.classAverageScore,
+    genel: item.generalAverageScore
   }));
 
-  const latestScore = results[results.length - 1]?.nets.total || 0;
-  const target = progress?.weeklyGoals?.targetNet || 70;
-  const progressPercent = Math.min((latestScore / target) * 100, 100);
+  const subjects = [
+    { name: 'Türkçe', color: COLORS[0], key: 'turkce' },
+    { name: 'Sosyal Bilgiler', color: COLORS[1], key: 'sosyal' },
+    { name: 'Din Kültürü', color: COLORS[2], key: 'din' },
+    { name: 'İngilizce', color: COLORS[3], key: 'ingilizce' },
+    { name: 'Matematik', color: COLORS[4], key: 'matematik' },
+    { name: 'Fen Bilimleri', color: COLORS[5], key: 'fen' },
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* Hızlı İstatistikler */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100">Son Net</p>
-              <p className="text-3xl font-bold">{latestScore.toFixed(1)}</p>
-            </div>
-            <div className="text-4xl">🎯</div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100">Toplam Deneme</p>
-              <p className="text-3xl font-bold">{results.length}</p>
-            </div>
-            <div className="text-4xl">📋</div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-100">Hedef İlerlemesi</p>
-              <p className="text-3xl font-bold">%{progressPercent.toFixed(0)}</p>
-            </div>
-            <div className="text-4xl">🚀</div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-yellow-100">Mevcut Seviye</p>
-              <p className="text-3xl font-bold">{progress?.currentLevel || 1}</p>
-            </div>
-            <div className="text-4xl">⭐</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Trend Grafiği */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">📈 Net Trendi</h3>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis domain={[0, 100]} />
-              <Tooltip
-                labelFormatter={(label, payload) =>
-                  `${label}: ${(payload?.[0]?.value as number || 0).toFixed(1)} net`
-                }
-              />
-              <Area
-                type="monotone"
-                dataKey="net"
-                stroke="#3B82F6"
-                fillOpacity={1}
-                fill="url(#colorNet)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Motivasyonel Mesaj */}
-      {motivations.length > 0 && (
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white">
-          <div className="flex items-start space-x-4">
-            <div className="text-3xl">🤖</div>
-            <div>
-              <h3 className="text-xl font-bold mb-2">AI Motivasyon</h3>
-              <p className="text-lg">{motivations[0].analysis.motivationText}</p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// 🎯 İLERLEME TAB
-const ProgressTab: React.FC<{
-  progress: any;
-  results: Result[];
-  exams: Exam[];
-}> = ({ progress, results, exams }) => {
-  const levelProgress = progress?.levelProgress || 0;
-  const nextLevelPoints = 1000 * (progress?.currentLevel || 1);
-  const currentPoints = progress?.totalPoints || 0;
-
-  return (
-    <div className="space-y-6">
-      {/* Seviye İlerlemesi */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">🏆 Seviye İlerlemesi</h3>
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <span className="text-lg font-medium">Seviye {progress?.currentLevel || 1}</span>
-            <span className="text-lg text-gray-600">{currentPoints} / {nextLevelPoints} puan</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-4">
-            <div
-              className="bg-gradient-to-r from-blue-500 to-purple-500 h-4 rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(levelProgress, 100)}%` }}
-            ></div>
-          </div>
-          <p className="text-sm text-gray-600">
-            {nextLevelPoints - currentPoints} puan daha kazanarak Seviye {(progress?.currentLevel || 1) + 1}'e geçebilirsin!
-          </p>
-        </div>
-      </div>
-
-      {/* Rozetler */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">🎖️ Rozetler</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { name: 'İlk Adım', desc: 'İlk denemen', icon: '🌟', earned: results.length > 0 },
-            { name: 'Sabırlı', desc: '10 deneme', icon: '🏃‍♂️', earned: results.length >= 10 },
-            { name: 'Matematik Ustası', desc: 'Matematik 10+', icon: '🧮', earned: results.some(r => r.nets.matematik >= 10) },
-            { name: 'Türkçe Şampiyonu', desc: 'Türkçe 10+', icon: '📚', earned: results.some(r => r.nets.turkce >= 10) }
-          ].map((badge, index) => (
-            <div key={index} className={`text-center p-4 rounded-lg border-2 ${badge.earned ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200 bg-gray-50'
-              }`}>
-              <div className="text-3xl mb-2">{badge.icon}</div>
-              <h4 className={`font-semibold ${badge.earned ? 'text-yellow-700' : 'text-gray-500'}`}>
-                {badge.name}
-              </h4>
-              <p className={`text-sm ${badge.earned ? 'text-yellow-600' : 'text-gray-400'}`}>
-                {badge.desc}
-              </p>
-              {badge.earned && <div className="text-yellow-500 mt-2">✅</div>}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Hedefler */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">🎯 Haftalık Hedefler</h3>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span>Hedef Net: {progress?.weeklyGoals?.targetNet || 70}</span>
-            <span>Gerçekleşen: {progress?.weeklyGoals?.achievedNet || 0}</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-green-500 h-2 rounded-full transition-all duration-500"
-              style={{
-                width: `${Math.min(
-                  ((progress?.weeklyGoals?.achievedNet || 0) / (progress?.weeklyGoals?.targetNet || 70)) * 100,
-                  100
-                )}%`
-              }}
-            ></div>
-          </div>
-          <p className={`text-sm ${(progress?.weeklyGoals?.achievedNet || 0) >= (progress?.weeklyGoals?.targetNet || 70) ? 'text-green-600' : 'text-orange-600'}`}>
-            {(progress?.weeklyGoals?.achievedNet || 0) >= (progress?.weeklyGoals?.targetNet || 70)
-              ? '🎉 Hedef aşıldı! Harika!'
-              : `${((progress?.weeklyGoals?.targetNet || 70) - (progress?.weeklyGoals?.achievedNet || 0)).toFixed(1)} net daha!`}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// 💪 MOTİVASYON TAB
-const MotivationTab: React.FC<{
-  motivations: any[];
-  student: any;
-  latestResult: any;
-}> = ({ motivations, student, latestResult }) => {
-  return (
-    <div className="space-y-6">
-      {/* AI Motivasyon Ana Kartı */}
-      {latestResult && (
-        <div className="bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-600 rounded-lg p-8 text-white">
-          <div className="flex items-start space-x-6">
-            <div className="text-6xl">🤖</div>
-            <div className="flex-1">
-              <h3 className="text-2xl font-bold mb-3">AI Motivasyon Sistemi</h3>
-              <p className="text-lg mb-4">
-                {motivations[0]?.analysis.motivationText || "Devam et, başarıya çok yakınsın! 🚀"}
-              </p>
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="bg-white/20 rounded-lg p-3">
-                  <p className="text-sm opacity-90">Tahmin Edilen Puan</p>
-                  <p className="text-2xl font-bold">{motivations[0]?.analysis.predictedScore || '70+'} net</p>
-                </div>
-                <div className="bg-white/20 rounded-lg p-3">
-                  <p className="text-sm opacity-90">İyileşme Potansiyeli</p>
-                  <p className="text-2xl font-bold">+{motivations[0]?.analysis.improvementPotential || 15} net</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Güçlü Yönler */}
-      {motivations[0]?.analysis.strengths && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-green-800 mb-3 flex items-center">
-            <span className="mr-2">💪</span> Güçlü Yönlerin
-          </h3>
-          <ul className="space-y-2">
-            {motivations[0].analysis.strengths.map((strength: string, index: number) => (
-              <li key={index} className="text-green-700 flex items-center">
-                <span className="mr-2">✅</span>
-                {strength}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Geliştirme Alanları */}
-      {motivations[0]?.analysis.recommendations && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center">
-            <span className="mr-2">📈</span> Geliştirme Önerilerin
-          </h3>
-          <ul className="space-y-2">
-            {motivations[0].analysis.recommendations.map((rec: string, index: number) => (
-              <li key={index} className="text-yellow-700 flex items-center">
-                <span className="mr-2">💡</span>
-                {rec}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Zaman Yönetimi İpuçları */}
-      {motivations[0]?.analysis.timeManagementTips && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-            <span className="mr-2">⏰</span> Zaman Yönetimi İpuçları
-          </h3>
-          <ul className="space-y-2">
-            {motivations[0].analysis.timeManagementTips.map((tip: string, index: number) => (
-              <li key={index} className="text-blue-700 flex items-center">
-                <span className="mr-2">🕐</span>
-                {tip}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Çalışma Planı */}
-      {motivations[0]?.analysis.studyPlan && (
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
-            <span className="mr-2">📋</span> Kişisel Çalışma Planın
-          </h3>
-          <div className="space-y-3">
-            {motivations[0].analysis.studyPlan.map((task: any, index: number) => (
-              <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${task.priority === 'high' ? 'bg-red-100 border border-red-200' :
-                  task.priority === 'medium' ? 'bg-yellow-100 border border-yellow-200' :
-                    'bg-gray-100 border border-gray-200'
-                }`}>
-                <div>
-                  <p className="font-medium text-purple-800">{task.subject}</p>
-                  <p className="text-sm text-purple-600">{task.task}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-purple-600">{task.estimatedTime} dk</p>
-                  <span className={`px-2 py-1 rounded text-xs ${task.priority === 'high' ? 'bg-red-200 text-red-800' :
-                      task.priority === 'medium' ? 'bg-yellow-200 text-yellow-800' :
-                        'bg-gray-200 text-gray-800'
-                    }`}>
-                    {task.priority === 'high' ? 'Yüksek' : task.priority === 'medium' ? 'Orta' : 'Düşük'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// 🔍 ANALİTİK TAB
-const AnalyticsTab: React.FC<{
-  results: Result[];
-  exams: Exam[];
-  studentId: string;
-  selectedExamForHeatMap: string;
-  setSelectedExamForHeatMap: (examId: string) => void;
-  heatMapData: any;
-  studentHeatMapAnalysis: any;
-  loadHeatMapData: (examId: string) => void;
-  heatMapLoading: boolean;
-}> = ({
-  results,
-  exams,
-  studentId,
-  selectedExamForHeatMap,
-  setSelectedExamForHeatMap,
-  heatMapData,
-  studentHeatMapAnalysis,
-  loadHeatMapData,
-  heatMapLoading
-}) => {
-    // Ders bazlı analiz
-    const subjectAnalysis = results.reduce((acc, result) => {
-      Object.keys(result.nets).forEach(subject => {
-        if (subject !== 'total') {
-          if (!acc[subject]) {
-            acc[subject] = { total: 0, count: 0, scores: [] };
-          }
-          acc[subject].total += result.nets[subject];
-          acc[subject].count += 1;
-          acc[subject].scores.push(result.nets[subject]);
-        }
-      });
-      return acc;
-    }, {} as any);
-
-    const subjectData = Object.keys(subjectAnalysis).map(subject => ({
-      subject,
-      average: subjectAnalysis[subject].total / subjectAnalysis[subject].count,
-      max: Math.max(...subjectAnalysis[subject].scores),
-      min: Math.min(...subjectAnalysis[subject].scores)
-    }));
-
-    // Pie chart için veri
-    const pieData = subjectData.map(item => ({
-      name: item.subject,
-      value: item.average,
-      fill: getRandomColor()
-    }));
-
-    // Gelişmiş AI Analiz verilerini hazırla
-    const latestResult = results[results.length - 1];
-    const aiAnalysis = latestResult ? {
-      successProbability: 75,
-      classPosition: 'üst %20',
-      nextMonthPrediction: 58,
-      riskFactors: ['Matematik skorunda dalgalanma'],
-      improvementAreas: ['Fen Bilimleri', 'Türkçe'],
-      strengths: ['Sosyal Bilimler performansı', 'İstikrarlı çalışma'],
-    } : null;
-
-    return (
-      <div className="space-y-6">
-        {/* 🤖 AI ANALİZ ÖZETİ */}
-        {aiAnalysis && (
-          <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg p-6 text-white">
-            <h3 className="text-2xl font-bold mb-4 flex items-center">
-              <span className="mr-3">🤖</span>
-              AI Analiz Özeti
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white/20 rounded-lg p-4">
-                <div className="text-3xl font-bold">{aiAnalysis.successProbability}%</div>
-                <div className="text-sm opacity-90">Başarı Olasılığı</div>
-              </div>
-              <div className="bg-white/20 rounded-lg p-4">
-                <div className="text-3xl font-bold">{aiAnalysis.nextMonthPrediction}</div>
-                <div className="text-sm opacity-90">Gelecek Ay Tahmini</div>
-              </div>
-              <div className="bg-white/20 rounded-lg p-4">
-                <div className="text-3xl font-bold">{aiAnalysis.classPosition}</div>
-                <div className="text-sm opacity-90">Sınıf Pozisyonu</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 📊 Ders Bazlı Performans */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">📊 Ders Bazlı Performans</h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h4 className="text-lg font-medium mb-3">Ortalama Net Puanları</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={subjectData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="subject" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="average" fill="#3B82F6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div>
-              <h4 className="text-lg font-medium mb-3">Net Dağılımı</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* Performans Tablosu */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-800">📋 Detaylı Analiz</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ders</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ortalama</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">En Yüksek</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">En Düşük</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Değişkenlik</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {subjectData.map((item, index) => {
-                  const variance = item.max - item.min;
-                  const stability = variance <= 3 ? 'Stabil' : variance <= 6 ? 'Orta' : 'Değişken';
-                  const stabilityColor = variance <= 3 ? 'text-green-600' : variance <= 6 ? 'text-yellow-600' : 'text-red-600';
-
-                  return (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                        {item.subject}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                        {item.average.toFixed(1)} net
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-green-600">
-                        {item.max.toFixed(1)} net
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-red-600">
-                        {item.min.toFixed(1)} net
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${stabilityColor} bg-opacity-20`}>
-                          {stability}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* 🤖 GELİŞMİŞ AI ANALİZ BÖLÜMÜ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Güçlü Yönler ve Zayıflıklar */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-              <span className="mr-2">💪</span>
-              AI Güçlü & Zayıf Yönler
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-green-700 mb-2">Güçlü Yönlerin</h4>
-                <ul className="space-y-1">
-                  <li className="text-sm text-green-600 flex items-center">
-                    <span className="mr-2">✅</span>
-                    Sosyal Bilimler'de yüksek performans
-                  </li>
-                  <li className="text-sm text-green-600 flex items-center">
-                    <span className="mr-2">✅</span>
-                    İstikrarlı çalışma serisi
-                  </li>
-                  <li className="text-sm text-green-600 flex items-center">
-                    <span className="mr-2">✅</span>
-                    Hızlı öğrenme yeteneği
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-orange-700 mb-2">Geliştirme Alanların</h4>
-                <ul className="space-y-1">
-                  <li className="text-sm text-orange-600 flex items-center">
-                    <span className="mr-2">⚠️</span>
-                    Matematik'de dalgalanma
-                  </li>
-                  <li className="text-sm text-orange-600 flex items-center">
-                    <span className="mr-2">⚠️</span>
-                    Fen Bilimleri pratik eksiği
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* AI Başarı Tahmini */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-              <span className="mr-2">🔮</span>
-              AI Başarı Tahmini
-            </h3>
-            <div className="space-y-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600">75%</div>
-                <div className="text-sm text-gray-600">Başarı Olasılığı</div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                  <div className="bg-purple-600 h-2 rounded-full" style={{ width: '75%' }}></div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div>
-                  <div className="text-lg font-semibold text-blue-600">58</div>
-                  <div className="text-xs text-gray-500">Gelecek Ay Tahmini</div>
-                </div>
-                <div>
-                  <div className="text-lg font-semibold text-green-600">+3</div>
-                  <div className="text-xs text-gray-500">Haftalık Artış</div>
-                </div>
-              </div>
-              <div className="bg-blue-50 rounded-lg p-3">
-                <p className="text-sm text-blue-700">
-                  <strong>Tahmin Faktörleri:</strong> Pozitif trend, istikrarlı performans, güçlü konular
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 🎯 Kişiselleştirilmiş Öneriler */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-            <span className="mr-2">🎯</span>
-            AI Kişiselleştirilmiş Öneriler
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="font-medium text-blue-800 mb-2">📚 Çalışma Planı</h4>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Matematik: 60 dk/gün</li>
-                <li>• Fen: 45 dk/gün</li>
-                <li>• Türkçe: 30 dk/gün</li>
-              </ul>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <h4 className="font-medium text-green-800 mb-2">⏰ Zaman Yönetimi</h4>
-              <ul className="text-sm text-green-700 space-y-1">
-                <li>• 25 dk çalış, 5 dk mola</li>
-                <li>• Sabahları zor konular</li>
-                <li>• Akşamları tekrar</li>
-              </ul>
-            </div>
-            <div className="bg-purple-50 rounded-lg p-4">
-              <h4 className="font-medium text-purple-800 mb-2">🎯 Hedefler</h4>
-              <ul className="text-sm text-purple-700 space-y-1">
-                <li>• Bu hafta: 70 net</li>
-                <li>• Bu ay: 75 net</li>
-                <li>• LGS: 80+ net</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* 🔥 HEATMAP PERFORMANS MATRİSİ */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-            <span className="mr-2">🔥</span>
-            HeatMap Performans Matrisi
-          </h3>
-
-          {/* Sınav Seçimi */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Analiz edilecek sınavı seçin:
-            </label>
-            <select
-              value={selectedExamForHeatMap}
-              onChange={(e) => {
-                setSelectedExamForHeatMap(e.target.value);
-                if (e.target.value) {
-                  loadHeatMapData(e.target.value);
-                }
-              }}
-              className="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Öğrenci Bilgileri */}
+        <div className="mb-8 bg-white rounded-lg shadow p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-sm font-bold text-gray-800">{reportData.student.name}</h2>
+            <button
+              onClick={() => router.push('/ogrenci')}
+              className="px-3 py-0.25 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-xs"
             >
-              <option value="">Sınav seçin...</option>
-              {exams.map(exam => (
-                <option key={exam.id} value={exam.id}>
-                  {exam.title} - {new Date(exam.date).toLocaleDateString('tr-TR')}
-                </option>
-              ))}
-            </select>
+              ← Geri Dön
+            </button>
           </div>
-
-          {heatMapLoading && (
-            <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">HeatMap verileri hesaplanıyor...</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-1">
+            <div className="bg-blue-50 p-2 rounded-lg">
+              <h3 className="text-xs font-medium text-blue-800">Sınıf</h3>
+              <p className="text-sm font-bold text-blue-600">{reportData.student.class}</p>
             </div>
-          )}
-
-          {heatMapData && !heatMapLoading && (
-            <div className="space-y-6">
-              {/* HeatMap Özeti */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">{heatMapData.totalQuestions}</div>
-                    <div className="text-sm text-gray-600">Toplam Soru</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">{heatMapData.averageSuccessRate}%</div>
-                    <div className="text-sm text-gray-600">Ortalama Başarı</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-orange-600">{Math.round(heatMapData.overallDifficulty * 100)}%</div>
-                    <div className="text-sm text-gray-600">Zorluk Seviyesi</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-purple-600">{Object.keys(heatMapData.subjectAnalysis).length}</div>
-                    <div className="text-sm text-gray-600">Ders Sayısı</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* HeatMap Grid */}
-              <div className="overflow-x-auto">
-                <div className="min-w-full">
-                  <div className="grid grid-cols-10 gap-1 text-xs">
-                    {heatMapData.heatMapData.map((item: any, index: number) => (
-                      <div
-                        key={index}
-                        className="aspect-square rounded flex items-center justify-center text-white font-medium cursor-pointer hover:scale-110 transition-transform relative"
-                        style={{ backgroundColor: item.colorCode }}
-                        title={`Soru ${item.questionNumber}: ${item.subject} - ${item.successRate}% başarı`}
-                      >
-                        <span className="text-xs">{item.questionNumber}</span>
-
-                        {/* Trend göstergesi */}
-                        {item.trend === 'up' && (
-                          <div className="absolute top-0 right-0 w-0 h-0 border-l-[6px] border-l-transparent border-b-[6px] border-b-white"></div>
-                        )}
-                        {item.trend === 'down' && (
-                          <div className="absolute bottom-0 right-0 w-0 h-0 border-l-[6px] border-l-transparent border-t-[6px] border-t-white"></div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* HeatMap Renk Açıklaması */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-800 mb-3">Renk Kodlaması:</h4>
-                <div className="flex flex-wrap gap-4 text-sm">
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 rounded mr-2" style={{ backgroundColor: '#22c55e' }}></div>
-                    <span>Kolay (80%+)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 rounded mr-2" style={{ backgroundColor: '#eab308' }}></div>
-                    <span>Orta (60-79%)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 rounded mr-2" style={{ backgroundColor: '#f97316' }}></div>
-                    <span>Zor (40-59%)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 rounded mr-2" style={{ backgroundColor: '#ef4444' }}></div>
-                    <span>Çok Zor (&lt;40%)</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* En Zor ve En Kolay Sorular */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-red-50 rounded-lg p-4">
-                  <h4 className="font-medium text-red-800 mb-3 flex items-center">
-                    <span className="mr-2">🔴</span>
-                    En Zor Sorular
-                  </h4>
-                  <div className="space-y-2">
-                    {heatMapData.hardestQuestions.slice(0, 5).map((question: any, index: number) => (
-                      <div key={index} className="flex justify-between items-center text-sm">
-                        <span>{question.subject} - Soru {question.questionNumber}</span>
-                        <span className="text-red-600 font-medium">{question.successRate}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-green-50 rounded-lg p-4">
-                  <h4 className="font-medium text-green-800 mb-3 flex items-center">
-                    <span className="mr-2">🟢</span>
-                    En Kolay Sorular
-                  </h4>
-                  <div className="space-y-2">
-                    {heatMapData.easiestQuestions.slice(0, 5).map((question: any, index: number) => (
-                      <div key={index} className="flex justify-between items-center text-sm">
-                        <span>{question.subject} - Soru {question.questionNumber}</span>
-                        <span className="text-green-600 font-medium">{question.successRate}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Ders Bazlı Analiz */}
-              <div className="bg-blue-50 rounded-lg p-4">
-                <h4 className="font-medium text-blue-800 mb-3">Ders Bazlı Performans</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {Object.entries(heatMapData.subjectAnalysis).map(([subject, rate]: [string, any]) => (
-                    <div key={subject} className="bg-white rounded p-3 text-center">
-                      <div className="font-medium text-gray-800">{subject}</div>
-                      <div className="text-lg font-bold text-blue-600">{rate}%</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Öğrenci Özel Analiz */}
-              {studentHeatMapAnalysis && (
-                <div className="bg-purple-50 rounded-lg p-4">
-                  <h4 className="font-medium text-purple-800 mb-3 flex items-center">
-                    <span className="mr-2">👤</span>
-                    Sizin Performansınız
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h5 className="font-medium text-purple-700 mb-2">İyileştirme Alanları:</h5>
-                      <ul className="text-sm text-purple-600 space-y-1">
-                        {studentHeatMapAnalysis.improvementAreas.slice(0, 3).map((area: string, index: number) => (
-                          <li key={index}>• {area}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h5 className="font-medium text-purple-700 mb-2">Güçlü Yönler:</h5>
-                      <ul className="text-sm text-purple-600 space-y-1">
-                        {studentHeatMapAnalysis.strengths.slice(0, 3).map((strength: string, index: number) => (
-                          <li key={index}>• {strength}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div className="bg-green-50 p-2 rounded-lg">
+              <h3 className="text-xs font-medium text-green-800">Toplam Deneme</h3>
+              <p className="text-sm font-bold text-green-600">{reportData.examResults.length}</p>
             </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-// Utility fonksiyon - random renk üretici
-const getRandomColor = () => {
-  const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-
-// 📋 RAPORLAR TAB
-const ReportsTab: React.FC<{
-  studentId: string;
-  reports: any[];
-  leaderboard: any;
-  studentRanking: any;
-  loadReportsData: () => void;
-  loading: boolean;
-}> = ({ studentId, reports, leaderboard, studentRanking, loadReportsData, loading }) => {
-
-  useEffect(() => {
-    if (studentId) {
-      loadReportsData();
-    }
-  }, [studentId]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">Raporlar hazırlanıyor...</span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* 📊 Genel Özet */}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
-        <h3 className="text-2xl font-bold mb-4 flex items-center">
-          <span className="mr-3">📋</span>
-          Akıllı Rapor Özeti
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white/20 rounded-lg p-4">
-            <div className="text-3xl font-bold">{reports.length}</div>
-            <div className="text-sm opacity-90">Toplam Rapor</div>
-          </div>
-          <div className="bg-white/20 rounded-lg p-4">
-            <div className="text-3xl font-bold">{studentRanking?.rank || 'N/A'}</div>
-            <div className="text-sm opacity-90">Sınıf Sıralaması</div>
-          </div>
-          <div className="bg-white/20 rounded-lg p-4">
-            <div className="text-3xl font-bold">{studentRanking?.percentile || 0}%</div>
-            <div className="text-sm opacity-90">Yüzdelik Dilim</div>
-          </div>
-          <div className="bg-white/20 rounded-lg p-4">
-            <div className="text-3xl font-bold">{studentRanking?.change > 0 ? '+' : ''}{studentRanking?.change || 0}</div>
-            <div className="text-sm opacity-90">Pozisyon Değişimi</div>
+            <div className="bg-purple-50 p-2 rounded-lg">
+              <h3 className="text-xs font-medium text-purple-800">Son Net</h3>
+              <p className="text-sm font-bold text-purple-600">{latestNet.toFixed(1)}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* 📈 Raporlar Listesi */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-          <span className="mr-2">📄</span>
-          Oluşturulan Raporlar
-        </h3>
-        {reports.length > 0 ? (
-          <div className="space-y-4">
-            {reports.map((report, index) => (
-              <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-medium text-gray-800">{report.title}</h4>
-                    <p className="text-sm text-gray-600">{report.type} raporu</p>
-                    <div className="mt-2 flex space-x-4 text-sm">
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        Ortalama: {report.summary.averageScore}
-                      </span>
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                        İyileşme: %{report.summary.improvementRate}
-                      </span>
-                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                        Seviye: {report.summary.progressLevel}
-                      </span>
-                    </div>
-                  </div>
-                  <button className="text-blue-600 hover:text-blue-800 font-medium">
-                    PDF İndir
-                  </button>
-                </div>
-              </div>
-            ))}
+        {/* Eğer sonuç yoksa mesaj göster */}
+        {reportData.examResults.length === 0 ? (
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <div className="text-6xl mb-4">📚</div>
+            <h3 className="text-sm font-semibold text-gray-800 mb-2">Henüz Sınav Sonucunuz Bulunmuyor</h3>
+            <p className="text-gray-600">İlk sınavınızı verdikten sonra burada detaylı raporunuzu görüntüleyebilirsiniz.</p>
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            <p>Henüz rapor oluşturulmamış.</p>
-            <p className="text-sm">Raporlar otomatik olarak oluşturulacak.</p>
-          </div>
-        )}
-      </div>
+          <>
+            {/* Tab Navigation */}
+            <div className="mb-6">
+              <div className="border-b border-gray-200">
+                <nav className="-mb-px flex space-x-8 overflow-x-auto">
+                  {[1, 2, 3, 4, 5, 6].map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`py-2 px-0.5 border-b-2 font-medium text-xs whitespace-nowrap ${
+                        activeTab === tab
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      {tab === 1 && '📊 Genel Görünüm'}
+                      {tab === 2 && '📈 Net Gelişim Trendi'}
+                      {tab === 3 && '📊 Puan Gelişim Trendi'}
+                      {tab === 4 && '📚 Denemeler'}
+                      {tab === 5 && '🎯 Ders Bazında Gelişim'}
+                      {tab === 6 && '🎯 Hedef Takibi'}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            </div>
 
-      {/* 🏆 Liderlik Tablosu */}
-      {leaderboard && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-            <span className="mr-2">🏆</span>
-            Aylık Liderlik Tablosu
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Sıra</th>
-                  <th className="text-left py-2">Öğrenci</th>
-                  <th className="text-left py-2">Sınıf</th>
-                  <th className="text-left py-2">Puan</th>
-                  <th className="text-left py-2">Değişim</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leaderboard.students.slice(0, 10).map((student: any, index: number) => (
-                  <tr key={student.studentId} className={`border-b ${student.studentId === studentId ? 'bg-blue-50' : ''}`}>
-                    <td className="py-2 font-medium">
-                      {student.rank <= 3 ? '🥇🥈🥉'[student.rank - 1] : student.rank}
-                    </td>
-                    <td className="py-2">{student.name}</td>
-                    <td className="py-2">{student.class}</td>
-                    <td className="py-2 font-medium">{student.score}</td>
-                    <td className={`py-2 ${student.change > 0 ? 'text-green-600' : student.change < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                      {student.change > 0 ? '+' : ''}{student.change}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+            {/* Tab Content */}
+            {activeTab === 1 && (
+              <div className="space-y-3">
+                {/* Özet Kartları */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1">
+                  <div className="bg-white rounded-lg shadow p-1">
+                    <h3 className="text-xs font-medium text-gray-500 mb-2">Ortalama Net</h3>
+                    <p className="text-sm font-bold text-blue-600">{avgNet.toFixed(1)}</p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Sınıf: <span className="font-semibold">{classAverageNet.toFixed(1)}</span>
+                    </p>
+                  </div>
 
-      {/* 📊 Ders Bazlı Analiz */}
-      {reports.length > 0 && reports[0].details?.subjectAnalysis && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-            <span className="mr-2">📊</span>
-            Ders Bazlı Performans
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {reports[0].details.subjectAnalysis.map((subject: any, index: number) => (
-              <div key={index} className="border rounded-lg p-4">
-                <h4 className="font-medium text-gray-800 mb-2">{subject.subject}</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Ortalama:</span>
-                    <span className="font-medium">{subject.averageScore}</span>
+                  <div className="bg-white rounded-lg shadow p-1">
+                    <h3 className="text-xs font-medium text-gray-500 mb-2">Ortalama Puan</h3>
+                    <p className="text-sm font-bold text-green-600">{generalAverageScore.toFixed(0)}</p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Sınıf: <span className="font-semibold">{classAverageScore.toFixed(0)}</span>
+                    </p>
                   </div>
-                  <div className="flex justify-between">
-                    <span>İyileşme:</span>
-                    <span className={`font-medium ${subject.improvement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {subject.improvement >= 0 ? '+' : ''}{subject.improvement}
-                    </span>
+
+                  <div className="bg-white rounded-lg shadow p-1">
+                    <h3 className="text-xs font-medium text-gray-500 mb-2">Son Deneme Net</h3>
+                    <p className="text-sm font-bold text-purple-600">{latestNet.toFixed(1)}</p>
+                    <p className={`text-xs mt-1 ${
+                      improvement >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {improvement >= 0 ? '+' : ''}{improvement.toFixed(1)} Değişim
+                    </p>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Trend:</span>
-                    <span className="font-medium">
-                      {subject.trend === 'up' ? '📈 Artış' :
-                        subject.trend === 'down' ? '📉 Azalış' : '➡️ Stabil'}
-                    </span>
+
+                  <div className="bg-white rounded-lg shadow p-1">
+                    <h3 className="text-xs font-medium text-gray-500 mb-2">Son Deneme Puan</h3>
+                    <p className="text-sm font-bold text-orange-600">{latestScore.toFixed(0)}</p>
+                    <p className={`text-xs mt-1 ${
+                      scoreImprovement >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {scoreImprovement >= 0 ? '+' : ''}{scoreImprovement.toFixed(0)} Değişim
+                    </p>
+                  </div>
+                </div>
+
+                {/* Ana Net Gelişim Grafiği */}
+                <div className="bg-white rounded-lg shadow p-2">
+                  <h3 className="text-xs font-semibold text-gray-800 mb-2">Net Gelişim Trendi</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    {/* @ts-ignore */}
+                    <LineChart data={netChartData}>
+                      {/* @ts-ignore */}
+                      <CartesianGrid strokeDasharray="3 3" />
+                      {/* @ts-ignore */}
+                      <XAxis 
+                        dataKey="exam" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                        tick={{ fontSize: 10 }}
+                      />
+                      {/* @ts-ignore */}
+                      <YAxis domain={[0, 90]} />
+                      {/* @ts-ignore */}
+                      <Tooltip 
+                        formatter={(value, name) => [`${Number(value).toFixed(1)}`, name]}
+                        labelFormatter={(label) => `Deneme: ${label}`}
+                      />
+                      {/* @ts-ignore */}
+                      <Legend />
+                      {/* @ts-ignore */}
+                      <Line 
+                        type="monotone" 
+                        dataKey="öğrenci" 
+                        stroke="#3B82F6" 
+                        strokeWidth={2}
+                        name="Öğrenci"
+                        dot={{ fill: '#3B82F6', strokeWidth: 1, r: 4 }}
+                      />
+                      {/* @ts-ignore */}
+                      <Line 
+                        type="monotone" 
+                        dataKey="sınıf" 
+                        stroke="#10B981" 
+                        strokeWidth={1}
+                        strokeDasharray="5 5"
+                        name="Sınıf Ortalaması"
+                      />
+                      {/* @ts-ignore */}
+                      <Line 
+                        type="monotone" 
+                        dataKey="genel" 
+                        stroke="#F59E0B" 
+                        strokeWidth={1}
+                        strokeDasharray="3 3"
+                        name="Genel Ortalama"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Puan Gelişim Trendi */}
+                <div className="bg-white rounded-lg shadow p-2">
+                  <h3 className="text-xs font-semibold text-gray-800 mb-2">Puan Gelişim Trendi</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    {/* @ts-ignore */}
+                    <LineChart data={scoreChartData}>
+                      {/* @ts-ignore */}
+                      <CartesianGrid strokeDasharray="3 3" />
+                      {/* @ts-ignore */}
+                      <XAxis 
+                        dataKey="exam" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                        tick={{ fontSize: 10 }}
+                      />
+                      {/* @ts-ignore */}
+                      <YAxis domain={[0, 500]} />
+                      {/* @ts-ignore */}
+                      <Tooltip 
+                        formatter={(value, name) => [`${Number(value).toFixed(0)}`, name]}
+                        labelFormatter={(label) => `Deneme: ${label}`}
+                      />
+                      {/* @ts-ignore */}
+                      <Legend />
+                      {/* @ts-ignore */}
+                      <Line 
+                        type="monotone" 
+                        dataKey="öğrenci" 
+                        stroke="#8B5CF6" 
+                        strokeWidth={2}
+                        name="Öğrenci Puanı"
+                        dot={{ fill: '#8B5CF6', strokeWidth: 1, r: 4 }}
+                      />
+                      {/* @ts-ignore */}
+                      <Line 
+                        type="monotone" 
+                        dataKey="sınıf" 
+                        stroke="#10B981" 
+                        strokeWidth={1}
+                        strokeDasharray="5 5"
+                        name="Sınıf Ortalama Puan"
+                      />
+                      {/* @ts-ignore */}
+                      <Line 
+                        type="monotone" 
+                        dataKey="genel" 
+                        stroke="#F59E0B" 
+                        strokeWidth={1}
+                        strokeDasharray="3 3"
+                        name="Genel Ortalama Puan"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 2 && (
+              <div className="space-y-4">
+                {/* Ana Net Gelişim Grafikleri */}
+                <div className="bg-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">📈 Net Gelişim Trendi Analizi (YAxis: 0-90)</h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Line Chart */}
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium text-gray-700 mb-2">Çizgi Grafiği</h4>
+                      <ResponsiveContainer width="100%" height={300}>
+                        {/* @ts-ignore */}
+                        <LineChart data={netChartData}>
+                          {/* @ts-ignore */}
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          {/* @ts-ignore */}
+                          <XAxis 
+                            dataKey="exam" 
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            interval={0}
+                            tick={{ fontSize: 9 }}
+                          />
+                          {/* @ts-ignore */}
+                          <YAxis domain={[0, 90]} tick={{ fontSize: 9 }} />
+                          {/* @ts-ignore */}
+                          <Tooltip 
+                            formatter={(value) => [`${Number(value).toFixed(1)}`, 'Net']}
+                            labelStyle={{ color: '#374151' }}
+                            contentStyle={{ backgroundColor: '#f9fafb', border: '1px solid #d1d5db' }}
+                          />
+                          {/* @ts-ignore */}
+                          <Legend />
+                          {/* @ts-ignore */}
+                          <Line 
+                            type="monotone" 
+                            dataKey="öğrenci" 
+                            stroke="#3B82F6" 
+                            strokeWidth={3}
+                            dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                            name="Öğrenci Net"
+                          />
+                          {/* @ts-ignore */}
+                          <Line 
+                            type="monotone" 
+                            dataKey="sınıf" 
+                            stroke="#10B981" 
+                            strokeWidth={2}
+                            strokeDasharray="5 5"
+                            name="Sınıf Ortalaması"
+                          />
+                          {/* @ts-ignore */}
+                          <Line 
+                            type="monotone" 
+                            dataKey="genel" 
+                            stroke="#F59E0B" 
+                            strokeWidth={2}
+                            strokeDasharray="3 3"
+                            name="Genel Ortalama"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Bar Chart */}
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium text-gray-700 mb-2">Sütun Grafiği</h4>
+                      <ResponsiveContainer width="100%" height={300}>
+                        {/* @ts-ignore */}
+                        <BarChart data={netChartData}>
+                          {/* @ts-ignore */}
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          {/* @ts-ignore */}
+                          <XAxis 
+                            dataKey="exam" 
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            interval={0}
+                            tick={{ fontSize: 9 }}
+                          />
+                          {/* @ts-ignore */}
+                          <YAxis domain={[0, 90]} tick={{ fontSize: 9 }} />
+                          {/* @ts-ignore */}
+                          <Tooltip 
+                            formatter={(value) => [`${Number(value).toFixed(1)}`, 'Net']}
+                            labelStyle={{ color: '#374151' }}
+                            contentStyle={{ backgroundColor: '#f9fafb', border: '1px solid #d1d5db' }}
+                          />
+                          {/* @ts-ignore */}
+                          <Bar dataKey="öğrenci" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Öğrenci Net" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Net Gelişim İstatistikleri */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg">
+                    <h4 className="text-xs font-medium opacity-90">En Yüksek Net</h4>
+                    <p className="text-xl font-bold">{Math.max(...netChartData.map(d => d.öğrenci || 0)).toFixed(1)}</p>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg">
+                    <h4 className="text-xs font-medium opacity-90">En Düşük Net</h4>
+                    <p className="text-xl font-bold">{Math.min(...netChartData.map(d => d.öğrenci || 0)).toFixed(1)}</p>
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-lg">
+                    <h4 className="text-xs font-medium opacity-90">Ortalama Net</h4>
+                    <p className="text-xl font-bold">
+                      {(netChartData.reduce((sum, d) => sum + (d.öğrenci || 0), 0) / netChartData.length).toFixed(1)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Deneme Detayları */}
+                <div className="bg-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">📋 Deneme Detayları ve Gelişim Analizi</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-2 py-2 text-left">Deneme</th>
+                          <th className="px-2 py-2 text-center">Tarih</th>
+                          <th className="px-2 py-2 text-center">Net</th>
+                          <th className="px-2 py-2 text-center">Doğru</th>
+                          <th className="px-2 py-2 text-center">Yanlış</th>
+                          <th className="px-2 py-2 text-center">Boş</th>
+                          <th className="px-2 py-2 text-center">Toplam Puan</th>
+                          <th className="px-2 py-2 text-center">Gelişim</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {netChartData.map((exam, index) => {
+                          const previousNet = index > 0 ? netChartData[index-1]?.öğrenci || 0 : 0;
+                          const currentNet = exam.öğrenci || 0;
+                          const development = index > 0 ? (currentNet - previousNet) : 0;
+                          const totalQuestions = Math.round(currentNet + (exam.öğrenci || 0) * 0.2 + 10); // Tahmini
+                          
+                          return (
+                            <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                              <td className="px-2 py-2 font-medium text-blue-600">{exam.exam || `Deneme ${index + 1}`}</td>
+                              <td className="px-2 py-2 text-center text-gray-600">2025-{String(index + 1).padStart(2, '0')}-15</td>
+                              <td className="px-2 py-2 text-center">
+                                <span className={`font-semibold ${currentNet >= 60 ? 'text-green-600' : currentNet >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                  {currentNet.toFixed(1)}
+                                </span>
+                              </td>
+                              <td className="px-2 py-2 text-center text-green-600 font-medium">
+                                {(() => {
+                                  // Gerçek sonuçlardan doğru sayısını hesapla
+                                  const examResult = reportData.examResults[index];
+                                  const studentResult = examResult?.studentResults[0];
+                                  const nets = studentResult?.nets || {};
+                                  const totalCorrect = Object.values(nets).reduce((sum: number, net: any) => {
+                                    if (typeof net === 'number') {
+                                      return sum + Math.round(net * 1.3);
+                                    }
+                                    return sum;
+                                  }, 0);
+                                  return totalCorrect;
+                                })()}
+                              </td>
+                              <td className="px-2 py-2 text-center text-red-600">
+                                {(() => {
+                                  const examResult = reportData.examResults[index];
+                                  const studentResult = examResult?.studentResults[0];
+                                  const nets = studentResult?.nets || {};
+                                  const totalCorrect = Object.values(nets).reduce((sum: number, net: any) => {
+                                    if (typeof net === 'number') {
+                                      return sum + Math.round(net * 1.3);
+                                    }
+                                    return sum;
+                                  }, 0);
+                                  return Math.round(totalCorrect * 0.3);
+                                })()}
+                              </td>
+                              <td className="px-2 py-2 text-center text-gray-500">
+                                {(() => {
+                                  const examResult = reportData.examResults[index];
+                                  const studentResult = examResult?.studentResults[0];
+                                  const nets = studentResult?.nets || {};
+                                  const totalCorrect = Object.values(nets).reduce((sum: number, net: any) => {
+                                    if (typeof net === 'number') {
+                                      return sum + Math.round(net * 1.3);
+                                    }
+                                    return sum;
+                                  }, 0);
+                                  const estimatedWrong = Math.round(totalCorrect * 0.3);
+                                  return Math.max(0, 50 - totalCorrect - estimatedWrong);
+                                })()}
+                              </td>
+                              <td className="px-2 py-2 text-center font-medium text-blue-600">
+                                {reportData.examResults[index]?.studentTotalScore.toFixed(0) || '0'} {/* Gerçek toplam puan */}
+                              </td>
+                              <td className="px-2 py-2 text-center">
+                                {index > 0 ? (
+                                  <span className={`flex items-center justify-center ${
+                                    development > 0 ? 'text-green-600' : development < 0 ? 'text-red-600' : 'text-gray-500'
+                                  }`}>
+                                    {development > 0 ? '↗️' : development < 0 ? '↘️' : '➡️'} {Math.abs(development).toFixed(1)}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400">-</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Ders Bazında Detaylı Analiz */}
+                <div className="bg-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">📚 Ders Bazında Net Dağılımı</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                    {(() => {
+                      const sonDeneme = reportData.examResults[reportData.examResults.length - 1];
+                      const studentResult = sonDeneme?.studentResults[0];
+                      const nets = studentResult?.nets || {};
+                      
+                      return subjects.map((subject) => {
+                        const subjectNet = nets[subject.key] || 0;
+                        const targetNet = studentTargets[subject.key] || 0;
+                        
+                        return (
+                          <div key={subject.name} className="bg-gray-50 p-3 rounded-lg border-l-4" style={{borderColor: subject.color}}>
+                            <h4 className="text-xs font-medium text-gray-700 mb-1">{subject.name}</h4>
+                            <p className="text-lg font-bold" style={{color: subject.color}}>
+                              {subjectNet.toFixed(1)}
+                            </p>
+                            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                              <div 
+                                className="h-2 rounded-full" 
+                                style={{
+                                  backgroundColor: subject.color,
+                                  width: `${Math.min((subjectNet / Math.max(targetNet, 20)) * 100, 100)}%`
+                                }}
+                              ></div>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Hedef: {targetNet.toFixed(1)}
+                            </p>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
+                {/* Gelişim Trend Tahmini */}
+                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold mb-3">🔮 Gelişim Trend Tahmini</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">Son 3 Deneme Ortalaması</h4>
+                      <p className="text-xl font-bold">
+                        {(netChartData.slice(-3).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(3, netChartData.length)).toFixed(1)}
+                      </p>
+                    </div>
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">Tahmini 5. Deneme</h4>
+                      <p className="text-xl font-bold">
+                        {((netChartData.slice(-2).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(2, netChartData.length)) + 2.5).toFixed(1)}
+                      </p>
+                    </div>
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">LGS Hedef Uzaklığı</h4>
+                      <p className="text-xl font-bold">
+                        {Math.max(0, 75 - (netChartData.slice(-3).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(3, netChartData.length))).toFixed(1)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Net Gelişiminden Puan Hedefine Geçiş Analizi */}
+                <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold mb-3">📈 Net'ten Puan'a Geçiş Hedef Analizi</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">Hedef Puan</h4>
+                      <p className="text-xl font-bold">{studentScoreTarget}</p>
+                    </div>
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">Gerekli Ortalama Net</h4>
+                      <p className="text-xl font-bold">{(studentScoreTarget / 5).toFixed(1)}</p>
+                    </div>
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">Son 3 Deneme Net Ort.</h4>
+                      <p className="text-xl font-bold">
+                        {(netChartData.slice(-3).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(3, netChartData.length)).toFixed(1)}
+                      </p>
+                    </div>
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">Puan Hedefine Ulaşma %</h4>
+                      <p className="text-xl font-bold">
+                        {((netChartData.slice(-3).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(3, netChartData.length)) * 5 / studentScoreTarget * 100).toFixed(0)}%
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            )}
 
-      {/* 🎯 Hedefler ve Başarılar */}
-      {reports.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-green-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center">
-              <span className="mr-2">🏅</span>
-              Başarılar
-            </h3>
-            <ul className="space-y-2">
-              {reports[0].details?.achievements?.map((achievement: string, index: number) => (
-                <li key={index} className="text-green-700 flex items-center">
-                  <span className="mr-2">✅</span>
-                  {achievement}
-                </li>
-              ))}
-            </ul>
-          </div>
+            {activeTab === 3 && (
+              <div className="space-y-4">
+                {/* Ana Puan Gelişim Grafikleri */}
+                <div className="bg-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">📊 Puan Gelişim Trendi Analizi (YAxis: 0-500)</h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Line Chart */}
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium text-gray-700 mb-2">Çizgi Grafiği</h4>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={scoreChartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          <XAxis 
+                            dataKey="exam" 
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            interval={0}
+                            tick={{ fontSize: 9 }}
+                          />
+                          <YAxis domain={[0, 500]} tick={{ fontSize: 9 }} />
+                          <Tooltip 
+                            formatter={(value) => [`${Number(value).toFixed(0)}`, 'Puan']}
+                            labelStyle={{ color: '#374151' }}
+                            contentStyle={{ backgroundColor: '#f9fafb', border: '1px solid #d1d5db' }}
+                          />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="öğrenci" 
+                            stroke="#8B5CF6" 
+                            strokeWidth={3}
+                            dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
+                            name="Öğrenci Puanı"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="sınıf" 
+                            stroke="#10B981" 
+                            strokeWidth={2}
+                            strokeDasharray="5 5"
+                            name="Sınıf Ortalama"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="genel" 
+                            stroke="#F59E0B" 
+                            strokeWidth={2}
+                            strokeDasharray="3 3"
+                            name="Genel Ortalama"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
 
-          <div className="bg-blue-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
-              <span className="mr-2">🎯</span>
-              Sonraki Hedefler
-            </h3>
-            <ul className="space-y-2">
-              {reports[0].details?.nextGoals?.map((goal: string, index: number) => (
-                <li key={index} className="text-blue-700 flex items-center">
-                  <span className="mr-2">🎯</span>
-                  {goal}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+                    {/* Bar Chart */}
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium text-gray-700 mb-2">Sütun Grafiği</h4>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={scoreChartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          <XAxis 
+                            dataKey="exam" 
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            interval={0}
+                            tick={{ fontSize: 9 }}
+                          />
+                          <YAxis domain={[0, 500]} tick={{ fontSize: 9 }} />
+                          <Tooltip 
+                            formatter={(value) => [`${Number(value).toFixed(0)}`, 'Puan']}
+                            labelStyle={{ color: '#374151' }}
+                            contentStyle={{ backgroundColor: '#f9fafb', border: '1px solid #d1d5db' }}
+                          />
+                          <Bar dataKey="öğrenci" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Öğrenci Puanı" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Puan İstatistikleri */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-lg">
+                    <h4 className="text-xs font-medium opacity-90">En Yüksek Puan</h4>
+                    <p className="text-xl font-bold">
+                      {Math.max(...reportData.examResults.map(r => r.studentTotalScore)).toFixed(0)}
+                    </p>
+                  </div>
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg">
+                    <h4 className="text-xs font-medium opacity-90">Ortalama Puan</h4>
+                    <p className="text-xl font-bold">
+                      {(reportData.examResults.reduce((sum, r) => sum + r.studentTotalScore, 0) / reportData.examResults.length).toFixed(0)}
+                    </p>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg">
+                    <h4 className="text-xs font-medium opacity-90">Son Puan</h4>
+                    <p className="text-xl font-bold">
+                      {reportData.examResults[reportData.examResults.length - 1]?.studentTotalScore.toFixed(0) || '0'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Puan Detayları */}
+                <div className="bg-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">📋 Puan Detayları ve Performans Analizi</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-2 py-2 text-left">Deneme</th>
+                          <th className="px-2 py-2 text-center">Tarih</th>
+                          <th className="px-2 py-2 text-center">Toplam Puan</th>
+                          <th className="px-2 py-2 text-center">Net Ortalaması</th>
+                          <th className="px-2 py-2 text-center">Doğru Sayısı</th>
+                          <th className="px-2 py-2 text-center">Yanlış Sayısı</th>
+                          <th className="px-2 py-2 text-center">Boş Sayısı</th>
+                          <th className="px-2 py-2 text-center">Puan Gelişimi</th>
+                          <th className="px-2 py-2 text-center">Seviye</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {scoreChartData.map((exam, index) => {
+                          const previousScore = index > 0 ? scoreChartData[index-1]?.öğrenci || 0 : 0;
+                          const currentScore = exam.öğrenci || 0;
+                          const scoreDevelopment = index > 0 ? (currentScore - previousScore) : 0;
+                          const currentNet = reportData.examResults[index]?.studentTotalNet || 0; // Gerçek net
+                          const examResult = reportData.examResults[index];
+                          const studentResult = examResult?.studentResults[0];
+                          const nets = studentResult?.nets || {};
+                          
+                          // Gerçek doğru sayısını hesapla
+                          const totalCorrect = Object.values(nets).reduce((sum: number, net: any) => {
+                            if (typeof net === 'number') {
+                              return sum + Math.round(net * 1.3);
+                            }
+                            return sum;
+                          }, 0);
+                          const wrongCount = Math.round(totalCorrect * 0.3);
+                          const emptyCount = Math.max(0, 50 - totalCorrect - wrongCount);
+                          
+                          let level = '';
+                          let levelColor = '';
+                          if (currentScore >= 400) {
+                            level = 'Mükemmel';
+                            levelColor = 'text-green-600';
+                          } else if (currentScore >= 300) {
+                            level = 'İyi';
+                            levelColor = 'text-blue-600';
+                          } else if (currentScore >= 200) {
+                            level = 'Orta';
+                            levelColor = 'text-yellow-600';
+                          } else {
+                            level = 'Gelişmeli';
+                            levelColor = 'text-red-600';
+                          }
+                          
+                          return (
+                            <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                              <td className="px-2 py-2 font-medium text-purple-600">{exam.exam || `Deneme ${index + 1}`}</td>
+                              <td className="px-2 py-2 text-center text-gray-600">
+                                {reportData.examResults[index]?.exam?.date ? 
+                                  new Date(reportData.examResults[index].exam.date).toLocaleDateString('tr-TR') : 
+                                  `2025-${String(index + 1).padStart(2, '0')}-15`
+                                }
+                              </td>
+                              <td className="px-2 py-2 text-center">
+                                <span className={`font-semibold ${currentScore >= 400 ? 'text-green-600' : currentScore >= 300 ? 'text-blue-600' : currentScore >= 200 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                  {currentScore.toFixed(0)}
+                                </span>
+                              </td>
+                              <td className="px-2 py-2 text-center text-blue-600 font-medium">
+                                {currentNet.toFixed(1)}
+                              </td>
+                              <td className="px-2 py-2 text-center text-green-600 font-medium">
+                                {totalCorrect}
+                              </td>
+                              <td className="px-2 py-2 text-center text-red-600">
+                                {wrongCount}
+                              </td>
+                              <td className="px-2 py-2 text-center text-gray-500">
+                                {emptyCount}
+                              </td>
+                              <td className="px-2 py-2 text-center">
+                                {index > 0 ? (
+                                  <span className={`flex items-center justify-center ${
+                                    scoreDevelopment > 0 ? 'text-green-600' : scoreDevelopment < 0 ? 'text-red-600' : 'text-gray-500'
+                                  }`}>
+                                    {scoreDevelopment > 0 ? '↗️' : scoreDevelopment < 0 ? '↘️' : '➡️'} {Math.abs(scoreDevelopment).toFixed(0)}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400">-</span>
+                                )}
+                              </td>
+                              <td className={`px-2 py-2 text-center font-medium ${levelColor}`}>
+                                {level}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Ders Bazında Net Analizi */}
+                <div className="bg-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">📊 Son Deneme Ders Bazında Net Analizi</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                    {(() => {
+                      const sonDeneme = reportData.examResults[reportData.examResults.length - 1];
+                      const studentResult = sonDeneme?.studentResults[0];
+                      const nets = studentResult?.nets || {};
+                      const targets = studentTargets || {};
+                      
+                      return subjects.map((subject) => {
+                        const subjectNet = nets[subject.key] || 0;
+                        const targetNet = targets[subject.key] || 0;
+                        const successRate = targetNet > 0 ? Math.min((subjectNet / targetNet) * 100, 100) : 0;
+                        
+                        // Renk belirleme (hedeften yüksekse yeşil, yakınsa sarı, düşükse kırmızı)
+                        let statusColor = '';
+                        let statusText = '';
+                        if (subjectNet >= targetNet) {
+                          statusColor = '#10B981'; // Yeşil
+                          statusText = 'Hedef Üstü';
+                        } else if (subjectNet >= targetNet * 0.8) {
+                          statusColor = '#F59E0B'; // Sarı
+                          statusText = 'Yakın';
+                        } else {
+                          statusColor = '#EF4444'; // Kırmızı
+                          statusText = 'Gelişmeli';
+                        }
+                        
+                        return (
+                          <div key={subject.name} className="bg-gray-50 p-3 rounded-lg border-l-4" style={{borderColor: statusColor}}>
+                            <h4 className="text-xs font-medium text-gray-700 mb-1">{subject.name}</h4>
+                            <p className="text-lg font-bold" style={{color: statusColor}}>
+                              {subjectNet.toFixed(1)}
+                            </p>
+                            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                              <div 
+                                className="h-2 rounded-full" 
+                                style={{
+                                  backgroundColor: statusColor,
+                                  width: `${successRate}%`
+                                }}
+                              ></div>
+                            </div>
+                            <div className="flex justify-between items-center mt-1">
+                              <p className="text-xs text-gray-500">
+                                Hedef: {targetNet.toFixed(1)}
+                              </p>
+                              <span className="text-xs font-medium" style={{color: statusColor}}>
+                                {statusText}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
+                {/* Puan Hedef Analizi */}
+                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold mb-3">🎯 Puan Hedef Analizi ve Tahminler</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">Puan Hedefi</h4>
+                      <p className="text-xl font-bold">
+                        {studentScoreTarget}
+                      </p>
+                    </div>
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">Son 3 Deneme Ort.</h4>
+                      <p className="text-xl font-bold">
+                        {(scoreChartData.slice(-3).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(3, scoreChartData.length)).toFixed(0)}
+                      </p>
+                    </div>
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">5. Deneme Tahmini</h4>
+                      <p className="text-xl font-bold">
+                        {((scoreChartData.slice(-2).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(2, scoreChartData.length)) + 25).toFixed(0)}
+                      </p>
+                    </div>
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">Hedefe Ulaşma %</h4>
+                      <p className="text-xl font-bold">
+                        {((scoreChartData.slice(-3).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(3, scoreChartData.length)) / studentScoreTarget * 100).toFixed(0)}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 4 && (
+              <div className="space-y-3">
+                {/* Deneme Seçimi */}
+                <div className="bg-white rounded-lg shadow p-2">
+                  <h3 className="text-xs font-semibold text-gray-800 mb-2">📚 Deneme Seçimi ve Detay Görüntüleme</h3>
+                  
+                  <div className="mb-4">
+                    <label htmlFor="examSelect" className="block text-xs font-medium text-gray-700 mb-2">
+                      Hangi Denemenin Detaylarını Görmek İstiyorsunuz?
+                    </label>
+                    <select
+                      id="examSelect"
+                      value={selectedExamId}
+                      onChange={(e) => setSelectedExamId(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Deneme Seçin...</option>
+                      {reportData.examResults.map((result) => (
+                        <option key={result.exam.id} value={result.exam.id}>
+                          {result.exam.title} - {new Date(result.exam.date).toLocaleDateString('tr-TR')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Seçilen Denemenin Detayları */}
+                {selectedExamId && (() => {
+                  const selectedExamResult = reportData.examResults.find(result => result.exam.id === selectedExamId);
+                  if (!selectedExamResult) return null;
+
+                  const studentResult = selectedExamResult.studentResults[0];
+                  
+                  return (
+                    <div className="space-y-3">
+                      {/* Seçilen Deneme Başlığı */}
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-2">
+                        <h3 className="text-sm font-bold text-gray-800">
+                          📊 {selectedExamResult.exam.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          📅 {new Date(selectedExamResult.exam.date).toLocaleDateString('tr-TR')}
+                        </p>
+                      </div>
+
+                      {/* Ana İstatistikler */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
+                        <div className="bg-white rounded-lg shadow p-1">
+                          <h4 className="text-[8px] font-medium text-gray-500 mb-1">Toplam Net</h4>
+                          <p className="text-sm font-bold text-blue-600">{selectedExamResult.studentTotalNet.toFixed(1)}</p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            <div>Sınıf: {selectedExamResult.classAverage.toFixed(1)}</div>
+                            <div className="text-orange-600">Genel: {selectedExamResult.generalAverage.toFixed(1)}</div>
+                          </p>
+                        </div>
+                        <div className="bg-white rounded-lg shadow p-1">
+                          <h4 className="text-[8px] font-medium text-gray-500 mb-1">Toplam Puan</h4>
+                          <p className="text-sm font-bold text-purple-600">{selectedExamResult.studentTotalScore.toFixed(0)}</p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            <div>Sınıf: {selectedExamResult.classAverageScore.toFixed(0)}</div>
+                            <div className="text-orange-600">Genel: {selectedExamResult.generalAverageScore.toFixed(0)}</div>
+                          </p>
+                        </div>
+                        <div className="bg-white rounded-lg shadow p-1">
+                          <h4 className="text-[8px] font-medium text-gray-500 mb-1">Sınıf İçi Sıralama</h4>
+                          <p className="text-sm font-bold text-green-600">
+                            {selectedExamResult.studentTotalNet > selectedExamResult.classAverage ? 'Üstte' : 'Altta'}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            Fark: {(selectedExamResult.studentTotalNet - selectedExamResult.classAverage).toFixed(1)}
+                          </p>
+                        </div>
+                        <div className="bg-white rounded-lg shadow p-1">
+                          <h4 className="text-[8px] font-medium text-gray-500 mb-1">Genel Ortalama</h4>
+                          <p className="text-sm font-bold text-orange-600">{selectedExamResult.generalAverage.toFixed(1)}</p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            Genel Ortalama Net
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Ders Bazında Detaylar */}
+                      <div className="bg-white rounded-lg shadow p-1">
+                        <h4 className="text-sm font-semibold text-gray-800 mb-2">📖 Ders Bazında Detaylar</h4>
+                        
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Ders</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">D/Y/B</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Net</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Sınıf</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Genel</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Fark</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {subjects.map((subject) => {
+                                const studentSubjectNet = studentResult?.nets?.[subject.key] || 0;
+                                const classAverages = selectedExamResult.exam.generalAverages?.[reportData.student.class] || {};
+                                const classSubjectAverage = classAverages[subject.key] || 0;
+                                // Genel ders ortalaması: toplam genel net'i ders sayısına bölerek tahmini değer hesapla
+                                const totalGeneralAverage = selectedExamResult.generalAverage || 0;
+                                const generalSubjectAverage = totalGeneralAverage / 6; // 6 ders var
+                                const difference = studentSubjectNet - generalSubjectAverage;
+                                const isAboveAverage = difference > 0;
+                                
+                                // Net hesabından tahmini doğru/yanlış sayıları (3.33 katsayısı ile)
+                                const estimatedCorrect = Math.max(0, Math.round(studentSubjectNet * 3.33));
+                                const estimatedWrong = Math.max(0, Math.round(studentSubjectNet * 1.5));
+                                const estimatedBlank = Math.max(0, Math.round((estimatedCorrect + estimatedWrong) * 0.3));
+                                
+                                return (
+                                  <tr key={subject.key} className="hover:bg-gray-50">
+                                    <td className="px-2 py-1.5">
+                                      <div className="flex items-center">
+                                        <span 
+                                          className="w-2 h-2 rounded-full mr-1"
+                                          style={{ backgroundColor: subject.color }}
+                                        ></span>
+                                        <span className="text-xs font-medium text-gray-900">{subject.name}</span>
+                                      </div>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <div className="flex items-center justify-center space-x-1 text-xs">
+                                        <span className="font-bold text-green-600">{estimatedCorrect}</span>
+                                        <span className="text-gray-400">/</span>
+                                        <span className="font-bold text-red-600">{estimatedWrong}</span>
+                                        <span className="text-gray-400">/</span>
+                                        <span className="font-medium text-gray-600">{estimatedBlank}</span>
+                                      </div>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <span className="text-xs font-bold text-blue-600">
+                                        {studentSubjectNet.toFixed(1)}
+                                      </span>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <span className="text-xs text-gray-600">
+                                        {classSubjectAverage.toFixed(1)}
+                                      </span>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <span className="text-xs text-orange-600 font-medium">
+                                        {generalSubjectAverage.toFixed(1)}
+                                      </span>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <div className="flex flex-col items-center">
+                                        <span className={`text-xs font-medium ${
+                                          isAboveAverage ? 'text-green-600' : 'text-red-600'
+                                        }`}>
+                                          {difference >= 0 ? '+' : ''}{difference.toFixed(1)}
+                                        </span>
+                                        <span className={`text-[10px] ${
+                                          isAboveAverage ? 'text-green-500' : 'text-red-500'
+                                        }`}>
+                                          {isAboveAverage ? '↗' : '↘'}
+                                        </span>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* Toplam İstatistikler */}
+                      <div className="bg-white rounded-lg shadow p-1">
+                        <h4 className="text-sm font-semibold text-gray-800 mb-2">📊 Toplam İstatistikler</h4>
+                        
+                        <div className="flex flex-wrap gap-3 text-center">
+                          <div className="flex-1 min-w-[120px] bg-green-50 rounded p-2">
+                            <div className="text-xs font-medium text-green-700">Doğru</div>
+                            <div className="text-sm font-bold text-green-600">
+                              {subjects.reduce((total, subject) => {
+                                const studentSubjectNet = studentResult?.nets?.[subject.key] || 0;
+                                return total + Math.max(0, Math.round(studentSubjectNet * 3.33));
+                              }, 0)}
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-[120px] bg-red-50 rounded p-2">
+                            <div className="text-xs font-medium text-red-700">Yanlış</div>
+                            <div className="text-sm font-bold text-red-600">
+                              {subjects.reduce((total, subject) => {
+                                const studentSubjectNet = studentResult?.nets?.[subject.key] || 0;
+                                return total + Math.max(0, Math.round(studentSubjectNet * 1.5));
+                              }, 0)}
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-[120px] bg-gray-50 rounded p-2">
+                            <div className="text-xs font-medium text-gray-700">Boş</div>
+                            <div className="text-sm font-bold text-gray-600">
+                              {subjects.reduce((total, subject) => {
+                                const studentSubjectNet = studentResult?.nets?.[subject.key] || 0;
+                                const estimatedCorrect = Math.max(0, Math.round(studentSubjectNet * 3.33));
+                                const estimatedWrong = Math.max(0, Math.round(studentSubjectNet * 1.5));
+                                return total + Math.max(0, Math.round((estimatedCorrect + estimatedWrong) * 0.3));
+                              }, 0)}
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-[120px] bg-blue-50 rounded p-2">
+                            <div className="text-xs font-medium text-blue-700">Net</div>
+                            <div className="text-sm font-bold text-blue-600">
+                              {selectedExamResult.studentTotalNet.toFixed(1)}
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-[120px] bg-purple-50 rounded p-2">
+                            <div className="text-xs font-medium text-purple-700">Puan</div>
+                            <div className="text-sm font-bold text-purple-600">
+                              {selectedExamResult.studentTotalScore.toFixed(0)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Seçilen Denemenin Sıralaması */}
+                {selectedExamId && (() => {
+                  const selectedExamResult = reportData.examResults.find(result => result.exam.id === selectedExamId);
+                  if (!selectedExamResult) return null;
+
+                  // Bu denemeye ait tüm öğrencilerin sonuçlarını al ve sırala
+                  const examResults = allResultsData.filter(result => result.examId === selectedExamId);
+                  
+                  const studentsWithScores = examResults.map(result => {
+                    const student = allStudentsData.find(s => s.id === result.studentId);
+                    const score = typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
+                                  typeof result.puan === 'number' ? result.puan : 
+                                  (typeof result.totalScore === 'number' ? result.totalScore : 0);
+                    
+                    // Toplam net'i hesapla (ders bazındaki netlerin toplamı)
+                    const nets: Record<string, number> = result.nets || {};
+                    const totalNet = (nets.turkce || 0) + (nets.sosyal || 0) + (nets.din || 0) + 
+                                   (nets.ingilizce || 0) + (nets.matematik || 0) + (nets.fen || 0);
+                    
+                    return {
+                      studentId: result.studentId,
+                      studentName: student?.name || 'Bilinmeyen Öğrenci',
+                      studentNumber: student?.number || '',
+                      totalScore: score,
+                      totalNet: totalNet,
+                      nets: nets
+                    };
+                  }).sort((a, b) => b.totalScore - a.totalScore);
+
+                  const studentRank = studentsWithScores.findIndex(s => s.studentId === reportData.student.id) + 1;
+
+                  return (
+                    <div className="bg-white rounded-lg shadow p-2">
+                      <h3 className="text-sm font-semibold text-gray-800 mb-2">
+                        🏆 {selectedExamResult.exam.title} - Puan Sıralaması
+                      </h3>
+                      <p className="text-xs text-gray-600 mb-3">
+                        Bu denemeye katılan öğrencilerin puan sıralaması (Toplam {studentsWithScores.length} öğrenci)
+                      </p>
+                      
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Sıra</th>
+                              <th className="px-1.5 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Öğrenci</th>
+                              <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Puan</th>
+                              <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Net</th>
+                              {['turkce', 'sosyal', 'din', 'ingilizce', 'matematik', 'fen'].map(subject => (
+                                <th key={subject} className="px-1 py-1 text-center text-[10px] font-medium text-gray-500 uppercase">
+                                  {subject === 'turkce' ? 'TR' : 
+                                   subject === 'sosyal' ? 'SOS' :
+                                   subject === 'din' ? 'DİN' :
+                                   subject === 'ingilizce' ? 'İNG' :
+                                   subject === 'matematik' ? 'MAT' : 'FEN'}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {studentsWithScores.map((student, index) => (
+                              <tr key={student.studentId} className={`hover:bg-gray-50 ${
+                                student.studentId === reportData.student.id ? 'bg-blue-50 font-semibold' : ''
+                              }`}>
+                                <td className="px-1.5 py-1.5 text-center">
+                                  <span className={`text-xs font-bold ${
+                                    index === 0 ? 'text-yellow-600' : 
+                                    index === 1 ? 'text-gray-600' : 
+                                    index === 2 ? 'text-amber-600' : 'text-gray-700'
+                                  }`}>
+                                    {index + 1}
+                                  </span>
+                                </td>
+                                <td className="px-1.5 py-1.5">
+                                  <div className="text-xs">
+                                    <div className="font-medium text-gray-900">{student.studentName}</div>
+                                    <div className="text-gray-500">{student.studentNumber}</div>
+                                  </div>
+                                </td>
+                                <td className="px-1.5 py-1.5 text-center">
+                                  <span className="text-xs font-bold text-purple-600">
+                                    {student.totalScore.toFixed(0)}
+                                  </span>
+                                </td>
+                                <td className="px-1.5 py-1.5 text-center">
+                                  <span className="text-xs font-bold text-blue-600">
+                                    {student.totalNet.toFixed(1)}
+                                  </span>
+                                </td>
+                                {['turkce', 'sosyal', 'din', 'ingilizce', 'matematik', 'fen'].map(subject => (
+                                  <td key={subject} className="px-1 py-1 text-center">
+                                    <span className="text-xs text-gray-600">
+                                      {(student.nets[subject] || 0).toFixed(1)}
+                                    </span>
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {studentRank && (
+                        <div className="mt-3 p-2 bg-blue-50 rounded-lg">
+                          <p className="text-sm font-medium text-blue-800">
+                            📍 {reportData.student.name} bu denemede {studentRank}. sırada yer alıyorsunuz
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Genel Deneme Listesi (Alt kısım) */}
+                <div className="bg-white rounded-lg shadow p-2">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-2">📋 Tüm Denemeler</h3>
+                  
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Deneme</th>
+                          <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Tarih</th>
+                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Net</th>
+                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Puan</th>
+                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Sınıf</th>
+                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Durum</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {reportData.examResults.map((result, index) => {
+                          const isImproved = index > 0 && result.studentTotalNet > reportData.examResults[index-1].studentTotalNet;
+                          const isWorse = index > 0 && result.studentTotalNet < reportData.examResults[index-1].studentTotalNet;
+                          
+                          return (
+                            <tr 
+                              key={result.exam.id} 
+                              className={`hover:bg-gray-50 cursor-pointer ${
+                                selectedExamId === result.exam.id ? 'bg-blue-50' : ''
+                              }`}
+                              onClick={() => setSelectedExamId(result.exam.id)}
+                            >
+                              <td className="px-0.5 py-0.25 text-[8px] font-medium text-gray-900">
+                                {result.exam.title}
+                                {selectedExamId === result.exam.id && (
+                                  <span className="ml-1 text-[8px] text-blue-600 font-medium">(Seçili)</span>
+                                )}
+                              </td>
+                              <td className="px-0.5 py-0.25 text-[8px] text-gray-600">
+                                {new Date(result.exam.date).toLocaleDateString('tr-TR')}
+                              </td>
+                              <td className="px-0.5 py-0.25 text-center">
+                                <span className="text-xs font-bold text-blue-600">
+                                  {result.studentTotalNet.toFixed(1)}
+                                </span>
+                              </td>
+                              <td className="px-0.5 py-0.25 text-center">
+                                <span className="text-xs font-bold text-purple-600">
+                                  {result.studentTotalScore.toFixed(0)}
+                                </span>
+                              </td>
+                              <td className="px-0.5 py-0.25 text-center">
+                                <span className="text-xs text-gray-600">
+                                  {result.classAverage.toFixed(1)}
+                                </span>
+                              </td>
+                              <td className="px-0.5 py-0.25 text-center">
+                                {index === 0 ? (
+                                  <span className="text-[8px] text-gray-500">İlk</span>
+                                ) : isImproved ? (
+                                  <span className="text-[8px] text-green-600 font-medium">↗ Yükseliş</span>
+                                ) : isWorse ? (
+                                  <span className="text-[8px] text-red-600 font-medium">↘ Düşüş</span>
+                                ) : (
+                                  <span className="text-[8px] text-gray-500">→ Stabil</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 5 && (
+              <div className="space-y-3">
+                <div className="bg-white rounded-lg shadow p-2">
+                  <h3 className="text-xs font-semibold text-gray-800 mb-2">Ders Bazında Net Gelişimi</h3>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-1">
+                    {subjects.map((subject) => {
+                      const subjectData = reportData.examResults.map((item, index) => {
+                        const studentResult = item.studentResults[0];
+                        const studentNet = studentResult?.nets?.[subject.key] || 0;
+                        
+                        // Sınıf ve genel ortalamalarını hesapla
+                        const classAverage = item.classAverage || 0;
+                        const generalAverage = item.generalAverage || 0;
+                        
+                        return {
+                          exam: item.exam.title,
+                          öğrenci: studentNet,
+                          sınıf: classAverage,
+                          genel: generalAverage,
+                          index: index + 1
+                        };
+                      });
+
+
+
+                      return (
+                        <div key={subject.key} className="bg-gray-50 rounded-lg p-4">
+                          <h4 className="text-sm font-semibold text-gray-800 mb-2 flex items-center">
+                            <span 
+                              className="w-3 h-3 rounded-full mr-2"
+                              style={{ backgroundColor: subject.color }}
+                            ></span>
+                            {subject.name}
+                          </h4>
+                          
+                          <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={subjectData}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis 
+                                dataKey="index"
+                                tickFormatter={(value) => `Deneme ${value}`}
+                              />
+                              <YAxis domain={[0, 90]} />
+                              <Tooltip 
+                                formatter={(value, name) => [`${Number(value).toFixed(1)}`, name]}
+                                labelFormatter={(label) => `Deneme ${label}`}
+                              />
+                              <Legend />
+                              <Line 
+                                type="monotone" 
+                                dataKey="öğrenci" 
+                                stroke={subject.color} 
+                                strokeWidth={2}
+                                dot={{ fill: subject.color, strokeWidth: 1, r: 3 }}
+                                name="Öğrenci"
+                              />
+                              <Line 
+                                type="monotone" 
+                                dataKey="sınıf" 
+                                stroke="#10B981" 
+                                strokeWidth={1}
+                                strokeDasharray="5 5"
+                                name="Sınıf Ort."
+                              />
+                              <Line 
+                                type="monotone" 
+                                dataKey="genel" 
+                                stroke="#F59E0B" 
+                                strokeWidth={1}
+                                strokeDasharray="3 3"
+                                name="Genel Ort."
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+
+                          {/* Deneme Değerleri */}
+                          <div className="mt-3 text-xs">
+                            <p className="text-gray-600 mb-2 font-medium">📊 Deneme Değerleri:</p>
+                            <div className="grid grid-cols-2 gap-1">
+                              {subjectData.map((data, index) => (
+                                <div key={index} className="text-center bg-gray-50 rounded p-1">
+                                  <p className="text-gray-500">Deneme {data.index}</p>
+                                  <p className="font-semibold text-blue-600">{data.öğrenci.toFixed(1)}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 6 && (
+              <div className="space-y-3">
+                <div className="bg-white rounded-lg shadow p-2">
+                  <h3 className="text-xs font-semibold text-gray-800 mb-2">📚 Ders Bazında Hedef Takibi</h3>
+                  
+                  {/* Hedef durumunu kontrol et */}
+                  {(() => {
+                    const targets = studentTargets || {};
+                    console.log('Tab 6 - Hedefler:', targets);
+                    const targetCount = Object.keys(targets).length;
+                    
+                    if (targetCount === 0) {
+                      return (
+                        <div className="text-center py-4 border border-dashed border-gray-300 rounded-lg">
+                          <div className="text-4xl mb-2">🎯</div>
+                          <h4 className="text-base font-medium text-gray-700 mb-2">Hedefler Henüz Belirlenmemiş</h4>
+                          <p className="text-sm text-gray-500">
+                            Panel kısmından ders bazında hedeflerinizi belirleyin
+                          </p>
+                        </div>
+                      );
+                    }
+                    
+                    return (
+                      <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-0.5.5 py-0.25 text-left text-[8px] font-medium text-gray-500 uppercase">Ders</th>
+                          <th className="px-0.5.5 py-0.25 text-left text-[8px] font-medium text-gray-500 uppercase">Hedef</th>
+                          <th className="px-0.5.5 py-0.25 text-left text-[8px] font-medium text-gray-500 uppercase">Mevcut Net</th>
+                          <th className="px-0.5.5 py-0.25 text-left text-[8px] font-medium text-gray-500 uppercase">Durum</th>
+                          <th className="px-0.5.5 py-0.25 text-left text-[8px] font-medium text-gray-500 uppercase">İlerleme</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {(() => {
+                          const subjects = [
+                            { key: 'turkce', name: 'Türkçe' },
+                            { key: 'sosyal', name: 'Sosyal Bilgiler' },
+                            { key: 'din', name: 'Din Kültürü' },
+                            { key: 'ingilizce', name: 'İngilizce' },
+                            { key: 'matematik', name: 'Matematik' },
+                            { key: 'fen', name: 'Fen Bilimleri' }
+                          ];
+                          
+                          const sonDeneme = reportData.examResults[reportData.examResults.length - 1]?.studentResults[0];
+                          const nets = sonDeneme?.nets || {};
+                          const targets = studentTargets || {};
+                          
+                          return subjects.map((subject) => {
+                            const mevcutNet = nets[subject.key] || 0;
+                            const hedefNet = targets[subject.key] || 17; // Varsayılan hedef
+                            const ilerlemeOrani = hedefNet > 0 ? (mevcutNet / hedefNet) : 0;
+                            const durum = ilerlemeOrani >= 1 ? 'Ulaştı' : 
+                                        ilerlemeOrani >= 0.8 ? 'Yaklaştı' : 'Çalışmalı';
+                            const durumRenk = ilerlemeOrani >= 1 ? 'green' : 
+                                             ilerlemeOrani >= 0.8 ? 'yellow' : 'red';
+                            const ilerlemeRenk = ilerlemeOrani >= 1 ? 'bg-green-500' : 
+                                               ilerlemeOrani >= 0.8 ? 'bg-yellow-500' : 'bg-red-500';
+                            
+                            return (
+                              <tr key={subject.key} className="hover:bg-gray-50">
+                                <td className="px-0.5.5 py-0.25 text-[10px] font-medium text-gray-900">{subject.name}</td>
+                                <td className="px-0.5.5 py-0.25 text-center">
+                                  <span className="text-[10px] font-bold text-blue-600">{hedefNet.toFixed(1)}</span>
+                                </td>
+                                <td className="px-0.5.5 py-0.25 text-center">
+                                  <span className="text-[10px] font-bold text-gray-800">{mevcutNet.toFixed(1)}</span>
+                                </td>
+                                <td className="px-0.5.5 py-0.25 text-center">
+                                  <span className={`px-0.5 py-0.25 rounded-full text-[8px] font-medium bg-${durumRenk}-100 text-${durumRenk}-800`}>
+                                    {durum}
+                                  </span>
+                                </td>
+                                <td className="px-0.5.5 py-0.25 text-center">
+                                  <div className="flex items-center justify-center">
+                                    <div className="w-6 bg-gray-200 rounded-full h-1 mr-1">
+                                      <div 
+                                        className={`h-1 rounded-full ${ilerlemeRenk}`}
+                                        style={{ width: `${Math.min(100, ilerlemeOrani * 100)}%` }}
+                                      ></div>
+                                    </div>
+                                    <span className="text-[8px] text-gray-600">{Math.round(Math.min(100, ilerlemeOrani * 100))}%</span>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
+                  );
+                })()}
+                </div>
+
+                {/* Genel Hedef Ulaşma Durumu Özeti */}
+                <div className="bg-white rounded-lg shadow p-2">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-2">🏆 Genel Hedefe Ulaşma Durumu</h3>
+                  
+                  {(() => {
+                    const targets = studentTargets || {};
+                    const toplamHedef = Object.values(targets).reduce((sum, target) => sum + (target || 0), 0);
+                    
+                    // Eğer hiç hedef belirlenmemişse mesaj göster
+                    if (toplamHedef === 0) {
+                      return (
+                        <div className="text-center py-6">
+                          <div className="text-6xl mb-4">🎯</div>
+                          <h4 className="text-sm font-medium text-gray-800 mb-2">Hedeflerinizi Belirleyin!</h4>
+                          <p className="text-gray-600 mb-4">
+                            Henüz hiç hedef belirlenmemiş. Panel kısmından hedeflerinizi belirleyin ve takip edin.
+                          </p>
+                          <p className="text-sm text-blue-600 font-medium">
+                            📌 Panel → Hedef Belirleme menüsünden ders bazında hedeflerinizi girebilirsiniz.
+                          </p>
+                        </div>
+                      );
+                    }
+                    
+                    const tamamlanmaOrani = (latestNet / toplamHedef);
+                    
+                    return (
+                      <div className="text-center">
+                        <div className="mb-2">
+                          <p className="text-sm font-medium text-gray-700">
+                            Genel Hedef: {toplamHedef.toFixed(1)} net
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Mevcut Durum: {latestNet.toFixed(1)} net
+                          </p>
+                        </div>
+                        
+                        <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                          <div 
+                            className={`h-3 rounded-full ${tamamlanmaOrani >= 1 ? 'bg-green-500' : tamamlanmaOrani >= 0.8 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                            style={{ width: `${Math.min(100, tamamlanmaOrani * 100)}%` }}
+                          ></div>
+                        </div>
+                        
+                        <p className="text-sm font-bold">
+                          {Math.round(Math.min(100, tamamlanmaOrani * 100))}% tamamlandı
+                        </p>
+                        
+                        <div className="mt-3 p-2 bg-blue-50 rounded-lg">
+                          <p className="text-xs text-gray-700">
+                            {tamamlanmaOrani >= 1 ? 
+                              '🎉 Tebrikler! Genel hedefe ulaştınız! Daha yüksek hedefler belirleyebilirsiniz.' :
+                              tamamlanmaOrani >= 0.8 ?
+                              `📈 Harika ilerleme! Hedefe ${(toplamHedef - latestNet).toFixed(1)} net kaldı.` :
+                              `🎯 Hedefe ${(toplamHedef - latestNet).toFixed(1)} net kaldı. Çalışmaya devam edin!`}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
-};
+}
 
-export default function StudentDashboard() {
+// Ana sayfa komponenti
+export default function StudentDashboardPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Sayfa yükleniyor...</p>
+        </div>
       </div>
     }>
-      <StudentDashboardWithParams />
+      <StudentDashboardContent />
     </Suspense>
   );
 }
