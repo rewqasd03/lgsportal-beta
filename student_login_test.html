@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Öğrenci Giriş Sistemi Test</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group { margin: 15px 0; }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold;
+            color: #333;
+        }
+        select, input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            font-size: 16px;
+        }
+        button { 
+            background: #2196F3; 
+            color: white; 
+            padding: 15px 30px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover { background: #1976D2; }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin: 10px 0;
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin: 10px 0;
+        }
+        .info { 
+            background: #d1ecf1; 
+            color: #0c5460; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin: 10px 0;
+        }
+        h1, h2 { color: #333; }
+        .student-info { 
+            background: #e8f5e8; 
+            padding: 20px; 
+            border-radius: 5px; 
+            margin: 15px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        .link-button {
+            background: #4CAF50;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+        .link-button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Öğrenci Giriş Sistemi Test</h1>
+        
+        <div class="info">
+            <strong>Bu sayfa öğrenci giriş sistemini test eder.</strong><br>
+            Firebase Firestore'daki test verilerini kullanarak giriş yapabilirsiniz.
+        </div>
+
+        <div class="form-group">
+            <label for="studentClass">Sınıf:</label>
+            <select id="studentClass">
+                <option value="">Sınıf Seçin</option>
+                <option value="8-A">8-A</option>
+                <option value="8-B">8-B</option>
+                <option value="8-C">8-C</option>
+                <option value="8-D">8-D</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="schoolNumber">Okul Numarası:</label>
+            <input type="text" id="schoolNumber" placeholder="Okul numaranızı girin">
+        </div>
+
+        <button onclick="authenticateStudent()">🔐 Giriş Yap</button>
+        <button onclick="clearMessages()">🗑️ Temizle</button>
+        <button onclick="loadAllStudents()">📋 Tüm Öğrencileri Listele</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYfBhkLIfjqpnL9MxBhxW6iJeC0VAEDLk",
+            authDomain: "kopruler-basari-portali.firebaseapp.com",
+            projectId: "kopruler-basari-portali",
+            storageBucket: "kopruler-basari-portali.firebasestorage.app",
+            messagingSenderId: "318334276429",
+            appId: "1:318334276429:web:7caa5e5b9dccb564d71d04",
+            measurementId: "G-EF6P77SMFP"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function showMessage(message, type = 'success') {
+            const resultDiv = document.getElementById('result');
+            const messageClass = type === 'error' ? 'error' : type === 'info' ? 'info' : 'success';
+            resultDiv.innerHTML += `<div class="${messageClass}">${message}</div>`;
+        }
+
+        function clearMessages() {
+            document.getElementById('result').innerHTML = '';
+        }
+
+        async function authenticateStudent() {
+            const studentClass = document.getElementById('studentClass').value;
+            const schoolNumber = document.getElementById('schoolNumber').value;
+
+            if (!studentClass || !schoolNumber) {
+                showMessage('❌ Lütfen sınıf ve okul numarası girin!', 'error');
+                return;
+            }
+
+            try {
+                showMessage(`🔍 ${studentClass} sınıfında ${schoolNumber} numaralı öğrenci aranıyor...`, 'info');
+
+                // Firestore'da öğrenci ara
+                const studentsQuery = db.collection('students')
+                    .where('class', '==', studentClass)
+                    .where('number', '==', schoolNumber);
+
+                const studentSnap = await studentsQuery.get();
+
+                if (!studentSnap.empty) {
+                    const studentDoc = studentSnap.docs[0];
+                    const studentData = studentDoc.data();
+                    
+                    showMessage('✅ Giriş başarılı!', 'success');
+                    showMessage(`👤 Öğrenci: ${studentData.name}`, 'success');
+                    showMessage(`🏫 Sınıf: ${studentData.class}`, 'success');
+                    showMessage(`📚 Okul Numarası: ${studentData.number}`, 'success');
+                    showMessage(`👁️ Görüntülenme Sayısı: ${studentData.viewCount}`, 'success');
+
+                    // Dashboard linki oluştur
+                    const dashboardUrl = `/student-dashboard?studentId=${studentData.id}`;
+                    showMessage(`🔗 Dashboard: <a href="${dashboardUrl}" target="_blank">${dashboardUrl}</a>`, 'info');
+
+                    // Örnek dashboard linki
+                    showMessage('📌 <strong>Student Dashboard Test URL:</strong>', 'info');
+                    showMessage('https://basari-takip-oytcy4mm8-rewqasd03s-projects.vercel.app/student-dashboard?studentId=' + studentData.id, 'info');
+
+                } else {
+                    showMessage('❌ Bu sınıf ve okul numarasında öğrenci bulunamadı!', 'error');
+                    showMessage('📋 Mevcut test verilerini kontrol edin.', 'info');
+                }
+
+            } catch (error) {
+                console.error('Hata:', error);
+                showMessage(`❌ Hata oluştu: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadAllStudents() {
+            try {
+                showMessage('📋 Tüm öğrenciler yükleniyor...', 'info');
+
+                const studentsSnapshot = await db.collection('students').get();
+                
+                if (studentsSnapshot.empty) {
+                    showMessage('❌ Hiç öğrenci bulunamadı! Firebase test verilerini ekleyin.', 'error');
+                    return;
+                }
+
+                showMessage(`✅ ${studentsSnapshot.size} öğrenci bulundu:`, 'success');
+
+                studentsSnapshot.forEach((doc) => {
+                    const student = doc.data();
+                    showMessage(`👤 ${student.name} - ${student.class}/${student.number}`, 'info');
+                });
+
+            } catch (error) {
+                console.error('Hata:', error);
+                showMessage(`❌ Hata oluştu: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
