@@ -1,12 +1,6 @@
 {
-<<<<<<< HEAD
-  "create_time": 1765131416.3815148,
-  "size_bytes": 1080186880,
-  "file_count": 44438,
-=======
-  "create_time": 1765102658.5330875,
-  "size_bytes": 628775936,
-  "file_count": 4930,
->>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
-  "is_init_acl": true
+  "create_time": 1765141414.5744245,
+  "size_bytes": 1433866240,
+  "file_count": 44833,
+  "is_init_acl": false
 }
