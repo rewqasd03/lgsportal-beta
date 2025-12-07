@@ -225,7 +225,7 @@ export default function FoncsDataEntry() {
             }, 0) / totalExams
           : 0;
         
-        // 🔍 DEBUG: Şükrüye için final hesaplama
+        // Son hesaplama
         if (student.name === 'Şükrüye Akpınar') {
           console.log(`✅ ŞÜKRÜYE FINAL (Ders Bazında): avgNet = ${avgNet.toFixed(2)}`);
         }
@@ -1586,12 +1586,7 @@ export default function FoncsDataEntry() {
     // Öğrencinin mevcut ortalamalarını hesapla
     const getStudentCurrentAverages = () => {
       
-      console.log('📊 DEBUG - getStudentCurrentAverages başlıyor');
-      console.log('📊 DEBUG - selectedStudent:', selectedStudent);
-      console.log('📊 DEBUG - results.length:', results.length);
-      
       if (!selectedStudent || results.length === 0) {
-        console.log('📊 DEBUG - Early return: selectedStudent veya results yok');
         return lgsSubjects.reduce((acc, subject) => {
           acc[subject.key] = 0;
           return acc;
@@ -1600,10 +1595,8 @@ export default function FoncsDataEntry() {
 
       // Seçili öğrencinin tüm deneme sonuçlarını al
       const studentResults = results.filter(r => r.studentId === selectedStudent);
-      console.log('📊 DEBUG - studentResults.length:', studentResults.length);
       
       if (studentResults.length === 0) {
-        console.log('📊 DEBUG - studentResults boş');
         return lgsSubjects.reduce((acc, subject) => {
           acc[subject.key] = 0;
           return acc;
@@ -1612,60 +1605,59 @@ export default function FoncsDataEntry() {
 
       // İlk sonucun örnek yapısını göster
       if (studentResults.length > 0) {
-        console.log('📊 DEBUG - İlk sonuç örneği:', JSON.stringify(studentResults[0], null, 2));
-        console.log('📊 DEBUG - İlk sonucun scores:', JSON.stringify(studentResults[0].scores, null, 2));
+
       }
 
       // Her ders için ortalama hesapla
       const averages: {[key: string]: number} = {};
       
       lgsSubjects.forEach(subject => {
-        console.log(`📊 DEBUG - ${subject.key} dersi için hesaplama başlıyor`);
+
         const subjectScores: number[] = [];
         
         studentResults.forEach((result, index) => {
-          console.log(`📊 DEBUG - Deneme ${index + 1} kontrol ediliyor`);
+
           
           // Scores objesinden D-Y değerlerini alıp net hesapla
           if (result.scores && result.scores[subject.key]) {
             const subjectData = result.scores[subject.key];
-            console.log(`📊 DEBUG - ${subject.key} subjectData:`, subjectData);
+
             
             const d = parseInt(subjectData.D) || 0;
             const y = parseInt(subjectData.Y) || 0;
             const net = calcNet(d, y);
             
-            console.log(`📊 DEBUG - ${subject.key} d:${d}, y:${y}, net:${net}`);
+
             
             if (net > 0) {
               subjectScores.push(net);
             }
           } else {
-            console.log(`📊 DEBUG - ${subject.key} için scores[subject.key] bulunamadı`);
+
           }
         });
         
-        console.log(`📊 DEBUG - ${subject.key} subjectScores:`, subjectScores);
+
         
         // Ortalama hesapla (eğer veri varsa)
         const average = subjectScores.length > 0 
           ? subjectScores.reduce((sum, net) => sum + net, 0) / subjectScores.length 
           : 0;
         
-        console.log(`📊 DEBUG - ${subject.key} ortalama:`, average);
+
         averages[subject.key] = average;
       });
       
-      console.log('📊 DEBUG - averages sonuç:', averages);
+
       return averages;
     };
 
     // Son deneme netlerini al
     const getStudentLastExamNets = () => {
-      console.log('📊 DEBUG - getStudentLastExamNets başlıyor');
+
       
       if (!selectedStudent || results.length === 0) {
-        console.log('📊 DEBUG - getStudentLastExamNets: Early return');
+
         return lgsSubjects.reduce((acc, subject) => {
           acc[subject.key] = 0;
           return acc;
@@ -1673,10 +1665,10 @@ export default function FoncsDataEntry() {
       }
 
       const studentResults = results.filter(r => r.studentId === selectedStudent);
-      console.log('📊 DEBUG - getStudentLastExamNets - studentResults.length:', studentResults.length);
+
       
       if (studentResults.length === 0) {
-        console.log('📊 DEBUG - getStudentLastExamNets - studentResults boş');
+
         return lgsSubjects.reduce((acc, subject) => {
           acc[subject.key] = 0;
           return acc;
@@ -1685,27 +1677,27 @@ export default function FoncsDataEntry() {
 
       // En son denemeyi al (sonuçlar tarih sırasına göre düzenlenmiş olmalı)
       const lastResult = studentResults[studentResults.length - 1];
-      console.log('📊 DEBUG - getStudentLastExamNets - lastResult:', JSON.stringify(lastResult, null, 2));
+
       
       const lastNets: {[key: string]: number} = {};
       
       lgsSubjects.forEach(subject => {
-        console.log(`📊 DEBUG - getStudentLastExamNets - ${subject.key} kontrol ediliyor`);
+
         
         if (lastResult.scores && lastResult.scores[subject.key]) {
           const d = parseInt(lastResult.scores[subject.key].D) || 0;
           const y = parseInt(lastResult.scores[subject.key].Y) || 0;
           const net = calcNet(d, y);
           
-          console.log(`📊 DEBUG - getStudentLastExamNets - ${subject.key} d:${d}, y:${y}, net:${net}`);
+
           lastNets[subject.key] = net;
         } else {
-          console.log(`📊 DEBUG - getStudentLastExamNets - ${subject.key} için veri bulunamadı`);
+
           lastNets[subject.key] = 0;
         }
       });
 
-      console.log('📊 DEBUG - getStudentLastExamNets - lastNets:', lastNets);
+
       return lastNets;
     };
 

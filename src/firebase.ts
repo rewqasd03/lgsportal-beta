@@ -1336,7 +1336,7 @@ const generateSubjectRecommendations = (subject: string, averageScore: number): 
     recommendations.push('Günde 30 dakika ek çalışma');
   } else if (averageScore < 80) {
     recommendations.push('Orta seviye sorular çözün');
-    recommendations.push('Haftada 2 test çözün');
+    recommendations.push('Düzenli deneme çözün');
   } else {
     recommendations.push('İleri seviye problemler çözün');
     recommendations.push('Yarışmalara katılın');
