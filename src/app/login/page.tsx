@@ -43,7 +43,7 @@ export default function LoginPage() {
       {/* HEADER - LOGO KÜÇÜLTÜLDÜ */}
       <header className="border-b bg-white/90 backdrop-blur shadow-sm">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-4">
-          <img src="/logo.png" alt="Okul Logosu" className="h-10 w-10 rounded-full shadow-md" />
+          <img src="/projelogo.png" alt="LGS Portalı" className="h-12 w-12 rounded-full shadow-md" />
           <h1 className="text-lg font-bold text-gray-800">Öğretmen Girişi</h1>
         </div>
       </header>
@@ -92,7 +92,7 @@ export default function LoginPage() {
       {/* FOOTER */}
       <footer className="border-t bg-white/70 backdrop-blur py-3">
         <div className="mx-auto max-w-5xl px-4 text-center text-xs text-gray-500">
-          © {new Date().getFullYear()} Köprüler LGS | Developed by Murat UYSAL
+          © {new Date().getFullYear()} LGS Portalı | Developed by MiniMax Agent
         </div>
       </footer>
     </main>

@@ -103,12 +103,12 @@ export default function HomePage() {
         {/* Başlık ve Logo */}
         <div className="text-center mb-8">
           <img
-            src="/logo.png"
-            alt="Köprüler Ortaokulu"
-            className="w-12 h-12 mx-auto mb-4 hover:scale-110 transition-transform duration-300 drop-shadow-xl"
+            src="/projelogo.png"
+            alt="LGS Portalı"
+            className="w-20 h-20 mx-auto mb-4 hover:scale-110 transition-transform duration-300 drop-shadow-xl"
           />
           <h1 className="text-xs sm:text-sm font-black tracking-tight text-center mb-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Köprüler LGS Portalı
+            LGS Portalı
           </h1>
           <p className="text-center text-xs text-gray-600 leading-relaxed max-w-lg mx-auto mb-6">
             Öğrenciler başarılarını takip edebilir, öğretmenler sınıf performanslarını anlık olarak görebilir.
@@ -279,7 +279,7 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer className="text-center text-xs text-gray-500 mt-6">
-          © {new Date().getFullYear()} Köprüler LGS | Developed by Murat UYSAL
+          © {new Date().getFullYear()} LGS Portalı | Developed by MiniMax Agent
         </footer>
       </div>
     </main>
