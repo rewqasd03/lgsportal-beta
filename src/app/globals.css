@@ -33,7 +33,7 @@ body {
 }
 
 .animate-progressBar {
-  animation: progressBar 4s linear;
+  animation: progressBar 2s linear;
 }
 
 /* Enhanced fade-in-up animation */
