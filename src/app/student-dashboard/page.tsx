@@ -2360,7 +2360,8 @@ function LGSHesaplamaTab() {
         
         {/* Hesaplama Formu */}
         <div className="space-y-4">
-          {Object.keys(scores).map(subject => (
+          {/* İstenen ders sıralaması: Türkçe, Sosyal, Din, İngilizce, Matematik, Fen */}
+          {['turkce', 'sosyal', 'din', 'ingilizce', 'matematik', 'fen'].map(subject => (
             <div key={subject} className="border rounded-lg p-4 bg-gray-50">
               <h4 className="font-semibold text-gray-800 mb-3 flex items-center justify-between">
                 <div className="flex items-center">
@@ -2439,7 +2440,9 @@ function LGSHesaplamaTab() {
             <div className="border rounded-lg p-4">
               <h5 className="font-semibold text-gray-800 mb-3">📊 Ders Bazında Detaylar</h5>
               <div className="space-y-3">
-                {Object.entries(subjectNames).map(([subject, name]) => {
+                {/* İstenen ders sıralaması: Türkçe, Sosyal, Din, İngilizce, Matematik, Fen */}
+                {['turkce', 'sosyal', 'din', 'ingilizce', 'matematik', 'fen'].map(subject => {
+                  const name = subjectNames[subject];
                   const subjectData = result.subjects[subject] || { dogru: 0, yanlis: 0, net: 0, points: 0 };
                   return (
                   <div key={subject} className="flex items-center justify-between p-3 bg-gray-50 rounded">
