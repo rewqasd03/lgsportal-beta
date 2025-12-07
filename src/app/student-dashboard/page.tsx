@@ -736,7 +736,7 @@ function StudentDashboardContent() {
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
                                   const nets = studentResult?.nets || {};
-                                  const totalCorrect = Object.values(nets).reduce((sum: number, net: any) => {
+                                  const totalCorrect: number = Object.values(nets).reduce((sum: number, net: any) => {
                                     if (typeof net === 'number') {
                                       return sum + Math.round(net * 1.3);
                                     }
@@ -750,7 +750,7 @@ function StudentDashboardContent() {
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
                                   const nets = studentResult?.nets || {};
-                                  const totalCorrect = Object.values(nets).reduce((sum: number, net: any) => {
+                                  const totalCorrect: number = Object.values(nets).reduce((sum: number, net: any) => {
                                     if (typeof net === 'number') {
                                       return sum + Math.round(net * 1.3);
                                     }
@@ -764,7 +764,7 @@ function StudentDashboardContent() {
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
                                   const nets = studentResult?.nets || {};
-                                  const totalCorrect = Object.values(nets).reduce((sum: number, net: any) => {
+                                  const totalCorrect: number = Object.values(nets).reduce((sum: number, net: any) => {
                                     if (typeof net === 'number') {
                                       return sum + Math.round(net * 1.3);
                                     }
