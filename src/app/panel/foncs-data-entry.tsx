@@ -3418,11 +3418,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
           </table>
         </div>
 
-        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-800">
-            <strong>Not:</strong> Bu puanlar 2024 LGS sonuçlarıdır. 2025 puanları MEB tarafından açıklandığında güncellenecektir.
-          </p>
-        </div>
+
       </div>
     </div>
   );
