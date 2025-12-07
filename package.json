@@ -28,6 +28,7 @@
     "eslint-config-next": "14.2.5",
     "postcss": "8.4.38",
     "tailwindcss": "3.4.6"
+<<<<<<< HEAD
   },
   "main": "clean_database.js",
   "repository": {
@@ -42,4 +43,7 @@
   },
   "homepage": "https://github.com/rewqasd03/lgsportal-beta#readme",
   "description": ""
+=======
+  }
+>>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
 }
