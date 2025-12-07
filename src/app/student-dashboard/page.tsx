@@ -419,7 +419,7 @@ function StudentDashboardContent() {
                       {tab === 5 && '🎯 Ders Bazında Gelişim'}
                       {tab === 6 && '🎯 Hedef Takibi'}
                       {tab === 7 && '🧮 LGS Puan Hesaplama'}
-                      {tab === 8 && '🎓 Van LGS Taban Puanları'}
+                      {tab === 8 && '🎓 Lise Taban Puanları'}
                     </button>
                   ))}
                 </nav>
@@ -2121,29 +2121,148 @@ function StudentDashboardContent() {
               <LGSHesaplamaTab />
             )}
 
-            {/* Tab 8: Van 2025 LGS Lise Taban Puanları */}
+            {/* Tab 8: Lise Taban Puanları */}
             {activeTab === 8 && (
-              <div className="space-y-3">
-                <div className="bg-white rounded-lg shadow p-4">
-                  <h3 className="text-sm font-semibold text-gray-800 mb-4">🎓 Van 2025 LGS Lise Taban Puanları</h3>
-                  <p className="text-gray-600 mb-4">Van ilindeki liselerin 2025 LGS taban puanları burada yayınlanacak.</p>
-                  
-                  {/* Yakında eklenecek mesajı */}
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🚧</div>
-                    <h4 className="text-lg font-medium text-gray-800 mb-2">İçerik Hazırlanıyor</h4>
-                    <p className="text-gray-600 mb-4">
-                      Van ilindeki liselerin 2025 LGS taban puanları yakında burada yayınlanacak.
-                    </p>
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-md mx-auto">
-                      <p className="text-yellow-800 text-sm">
-                        <strong>Bilgi:</strong> Taban puanlar MEB tarafından açıklandığında bu sayfa güncellenecektir.
-                      </p>
-                    </div>
-                  </div>
+              <LiseTabanPuanlariTab />
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Lise Taban Puanları Tab Komponenti
+function LiseTabanPuanlariTab() {
+  const [selectedType, setSelectedType] = useState<'lgs' | 'obp' | null>(null);
+
+  return (
+    <div className="space-y-3">
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="text-sm font-semibold text-gray-800 mb-4">🎓 Lise Taban Puanları</h3>
+        
+        {!selectedType ? (
+          <>
+            {/* LGS ve OBP Yerleştirme Bilgilendirme */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h4 className="text-lg font-semibold text-blue-900 mb-3">📚 Lise Yerleştirme Sistemi</h4>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg p-4 border">
+                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center">
+                    <span className="text-blue-600 mr-2">🎯</span>
+                    LGS (Liselere Geçiş Sınavı)
+                  </h5>
+                  <p className="text-sm text-gray-600 mb-2">
+                    <strong>Amacı:</strong> Anadolu ve Fen liselerine yerleştirme
+                  </p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    <strong>Puan Hesabı:</strong> Net sayıları × 3.33 katsayısı
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <strong>Önemli:</strong> Sadece puan sıralaması değil, tercih sırası da önemlidir
+                  </p>
+                </div>
+                
+                <div className="bg-white rounded-lg p-4 border">
+                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center">
+                    <span className="text-green-600 mr-2">📖</span>
+                    OBP (Ortaokul Başarı Puanı)
+                  </h5>
+                  <p className="text-sm text-gray-600 mb-2">
+                    <strong>Amacı:</strong> İmam hatip ve meslek liselerine yerleştirme
+                  </p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    <strong>Puan Hesabı:</strong> 6., 7., 8. sınıf not ortalaması
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <strong>Önemli:</strong> Tüm ortaokul yıllarının performansı etkiler
+                  </p>
                 </div>
               </div>
-            )}
+              
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800 text-sm">
+                  <strong>💡 İpucu:</strong> LGS ile OBP puanları farklı sistemlerde hesaplanır. 
+                  LGS puanınız ile Anadolu/Fen liselerine, OBP puanınız ile diğer liselere başvurabilirsiniz.
+                </p>
+              </div>
+            </div>
+
+            {/* Seçim Kartları */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <button
+                onClick={() => setSelectedType('lgs')}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg p-6 text-left transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                <div className="flex items-center mb-3">
+                  <div className="bg-white bg-opacity-20 rounded-full p-2 mr-3">
+                    <span className="text-2xl">🎯</span>
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold">LGS Taban Puanları</h4>
+                    <p className="text-blue-100 text-sm">Anadolu & Fen Liseleri</p>
+                  </div>
+                </div>
+                <p className="text-blue-100 text-sm">
+                  2025 LGS puanları ile Van ilindeki Anadolu ve Fen liselerinin taban puanlarını görüntüleyin.
+                </p>
+              </button>
+
+              <button
+                onClick={() => setSelectedType('obp')}
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg p-6 text-left transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                <div className="flex items-center mb-3">
+                  <div className="bg-white bg-opacity-20 rounded-full p-2 mr-3">
+                    <span className="text-2xl">📖</span>
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold">OBP Taban Puanları</h4>
+                    <p className="text-green-100 text-sm">İmam Hatip & Meslek Liseleri</p>
+                  </div>
+                </div>
+                <p className="text-green-100 text-sm">
+                  2025 OBP puanları ile Van ilindeki İmam hatip ve meslek liselerinin taban puanlarını görüntüleyin.
+                </p>
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Geri Dönüş Butonu */}
+            <div className="mb-4">
+              <button
+                onClick={() => setSelectedType(null)}
+                className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Geri Dön
+              </button>
+            </div>
+
+            {/* Seçilen İçerik */}
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">
+                {selectedType === 'lgs' ? '🎯' : '📖'}
+              </div>
+              <h4 className="text-lg font-medium text-gray-800 mb-2">
+                {selectedType === 'lgs' ? 'LGS Taban Puanları' : 'OBP Taban Puanları'}
+              </h4>
+              <p className="text-gray-600 mb-4">
+                {selectedType === 'lgs' 
+                  ? 'Van ilindeki Anadolu ve Fen liselerinin 2025 LGS taban puanları yakında burada yayınlanacak.'
+                  : 'Van ilindeki İmam hatip ve meslek liselerinin 2025 OBP taban puanları yakında burada yayınlanacak.'
+                }
+              </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-md mx-auto">
+                <p className="text-yellow-800 text-sm">
+                  <strong>Bilgi:</strong> Taban puanlar MEB tarafından açıklandığında bu sayfa güncellenecektir.
+                </p>
+              </div>
+            </div>
           </>
         )}
       </div>
