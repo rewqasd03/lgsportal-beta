@@ -745,12 +745,11 @@ function StudentDashboardContent() {
                                 {(() => {
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
-                                  const nets = studentResult?.nets || {};
-                                  const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
-                                    if (typeof net === 'number') {
-                                      return sum + Math.round(net * 3.33);
-                                    }
-                                    return sum;
+                                  const scores = studentResult?.scores || {};
+                                  const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
+                                  const totalCorrect = subjects.reduce((sum, subject) => {
+                                    const subjectScore = scores[subject];
+                                    return sum + (subjectScore?.D ? parseInt(subjectScore.D) : 0);
                                   }, 0);
                                   return String(totalCorrect);
                                 })()}
@@ -759,33 +758,26 @@ function StudentDashboardContent() {
                                 {(() => {
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
-                                  const nets = studentResult?.nets || {};
-                                  const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
-                                    if (typeof net === 'number') {
-                                      return sum + Math.round(net * 3.33);
-                                    }
-                                    return sum;
+                                  const scores = studentResult?.scores || {};
+                                  const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
+                                  const totalWrong = subjects.reduce((sum, subject) => {
+                                    const subjectScore = scores[subject];
+                                    return sum + (subjectScore?.Y ? parseInt(subjectScore.Y) : 0);
                                   }, 0);
-                                  // Gerçek yanlış sayısını tahmin et: (Net * 3.33) * 0.2
-                                  const wrongCount = Math.round(totalCorrect * 0.2);
-                                  return String(wrongCount);
+                                  return String(totalWrong);
                                 })()}
                               </td>
                               <td className="px-2 py-2 text-center text-gray-500">
                                 {(() => {
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
-                                  const nets = studentResult?.nets || {};
-                                  const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
-                                    if (typeof net === 'number') {
-                                      return sum + Math.round(net * 3.33);
-                                    }
-                                    return sum;
+                                  const scores = studentResult?.scores || {};
+                                  const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
+                                  const totalEmpty = subjects.reduce((sum, subject) => {
+                                    const subjectScore = scores[subject];
+                                    return sum + (subjectScore?.B ? parseInt(subjectScore.B) : 0);
                                   }, 0);
-                                  const wrongCount = Math.round(totalCorrect * 0.2);
-                                  // Boş sayısı = 90 - Doğru - Yanlış
-                                  const emptyCount = Math.max(0, 90 - totalCorrect - wrongCount);
-                                  return String(emptyCount);
+                                  return String(totalEmpty);
                                 })()}
                               </td>
                               <td className="px-2 py-2 text-center font-medium text-blue-600">
@@ -1025,17 +1017,21 @@ function StudentDashboardContent() {
                           const studentResult = examResult?.studentResults[0];
                           const nets = studentResult?.nets || {};
                           
-                          // Gerçek doğru sayısını hesapla
-                          const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
-                            if (typeof net === 'number') {
-                              return sum + Math.round(net * 3.33);
-                            }
-                            return sum;
+                          // Firebase'den gerçek doğru/yanlış/boş sayılarını al
+                          const scores = studentResult?.scores || {};
+                          const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
+                          const totalCorrect = subjects.reduce((sum, subject) => {
+                            const subjectScore = scores[subject];
+                            return sum + (subjectScore?.D ? parseInt(subjectScore.D) : 0);
                           }, 0);
-                          // Yanlış sayısı = Doğru sayısı * 0.2
-                          const wrongCount = Math.round(totalCorrect * 0.2);
-                          // Boş sayısı = 90 - Doğru - Yanlış
-                          const emptyCount = Math.max(0, 90 - totalCorrect - wrongCount);
+                          const wrongCount = subjects.reduce((sum, subject) => {
+                            const subjectScore = scores[subject];
+                            return sum + (subjectScore?.Y ? parseInt(subjectScore.Y) : 0);
+                          }, 0);
+                          const emptyCount = subjects.reduce((sum, subject) => {
+                            const subjectScore = scores[subject];
+                            return sum + (subjectScore?.B ? parseInt(subjectScore.B) : 0);
+                          }, 0);
                           
                           let level = '';
                           let levelColor = '';
@@ -1071,13 +1067,37 @@ function StudentDashboardContent() {
                                 {currentNet.toFixed(1)}
                               </td>
                               <td className="px-2 py-2 text-center text-green-600 font-medium">
-                                {totalCorrect}
+                                {(() => {
+                                  const scores = studentResult?.scores || {};
+                                  const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
+                                  const totalCorrect = subjects.reduce((sum, subject) => {
+                                    const subjectScore = scores[subject];
+                                    return sum + (subjectScore?.D ? parseInt(subjectScore.D) : 0);
+                                  }, 0);
+                                  return totalCorrect;
+                                })()}
                               </td>
                               <td className="px-2 py-2 text-center text-red-600">
-                                {wrongCount}
+                                {(() => {
+                                  const scores = studentResult?.scores || {};
+                                  const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
+                                  const totalWrong = subjects.reduce((sum, subject) => {
+                                    const subjectScore = scores[subject];
+                                    return sum + (subjectScore?.Y ? parseInt(subjectScore.Y) : 0);
+                                  }, 0);
+                                  return totalWrong;
+                                })()}
                               </td>
                               <td className="px-2 py-2 text-center text-gray-500">
-                                {emptyCount}
+                                {(() => {
+                                  const scores = studentResult?.scores || {};
+                                  const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
+                                  const totalEmpty = subjects.reduce((sum, subject) => {
+                                    const subjectScore = scores[subject];
+                                    return sum + (subjectScore?.B ? parseInt(subjectScore.B) : 0);
+                                  }, 0);
+                                  return totalEmpty;
+                                })()}
                               </td>
                               <td className="px-2 py-2 text-center">
                                 {index > 0 ? (
