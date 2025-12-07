@@ -1906,20 +1906,20 @@ export default function FoncsDataEntry() {
                 📚 {students.find(s => s.id === selectedStudent)?.name} - LGS Ders Hedefleri
               </h3>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {lgsSubjects.map((subject) => (
-                  <div key={subject.key} className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
-                    <h4 className="font-semibold text-gray-800 mb-3 flex items-center text-xs">
+                  <div key={subject.key} className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200 min-h-[280px] flex flex-col">
+                    <h4 className="font-semibold text-gray-800 mb-3 flex items-center text-sm">
                       <span className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold mr-2">
                         {subject.label.charAt(0)}
                       </span>
                       {subject.label}
                     </h4>
                     
-                    <div className="space-y-3">
+                    <div className="space-y-3 flex-grow">
                       {/* Mevcut Durum */}
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Mevcut Durum</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Mevcut Durum</label>
                         <div className="bg-gray-100 p-2 rounded-lg space-y-1">
                           <div className="flex justify-between">
                             <span className="text-xs text-gray-500">Ortalama:</span>
@@ -1938,34 +1938,11 @@ export default function FoncsDataEntry() {
                       
                       {/* Mevcut Hedef */}
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Mevcut Hedef</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Mevcut Hedef</label>
                         <div className="bg-purple-100 p-2 rounded-lg">
                           <div className="flex justify-between">
                             <span className="text-xs text-purple-600">Belirlenen:</span>
                             <span className="text-xs font-bold text-purple-700">
-                      {/* Mevcut Hedef */}
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">Mevcut Hedef</label>
-                        <div className="bg-purple-100 p-2 rounded-lg">
-                          <div className="flex justify-between">
-                            <span className="text-xs text-purple-600">Belirlenen:</span>
-                            <span className="text-xs font-bold text-purple-700">
-                              {studentTargetForm[subject.key]?.toFixed(1) || subject.target}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-xs text-purple-600">Fark:</span>
-                            <span className={`text-xs font-bold ${
-                              (studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0) >= 0 
-                                ? 'text-green-600' 
-                                : 'text-red-600'
-                            }`}>
-                              {((studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0)) >= 0 ? '+' : ''}
-                              {((studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0)).toFixed(1)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
                               {studentTargetForm[subject.key]?.toFixed(1) || subject.target}
                             </span>
                           </div>
@@ -1985,7 +1962,7 @@ export default function FoncsDataEntry() {
                       
                       {/* Hedef Net */}
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
                           Yeni Hedef Net
                         </label>
                         <input 
@@ -1994,7 +1971,7 @@ export default function FoncsDataEntry() {
                           step="0.5"
                           value={studentTargetForm[subject.key] || subject.target}
                           onChange={(e) => updateTarget(subject.key, Number(e.target.value))}
-                          className="w-full p-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs font-semibold"
+                          className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-semibold"
                           placeholder={`Varsayılan: ${subject.target}`}
                         />
                       </div>
