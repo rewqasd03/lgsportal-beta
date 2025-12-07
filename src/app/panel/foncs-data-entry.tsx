@@ -2925,7 +2925,7 @@ const VanTabanPuanTab = () => {
                         <strong>Tanım:</strong> LGS sınav puanına göre Türkiye genelinde sıralama yapılarak öğrenci alan okullara yerleşme.
                       </p>
                       <p className="text-gray-700">
-                        <strong>Okul Türleri:</strong> Fen Liseleri, Sosyal Bilimler Liseleri, proje okulları, bazı teknik programlar
+                        <strong>Okul Türleri:</strong> Fen Liseleri, Sosyal Bilimler Liseleri, Anadolu Liseleri, proje okulları, bazı teknik programlar
                       </p>
                       <p className="text-gray-700">
                         <strong>Belirleyici Faktör:</strong> LGS puanı ve tercih sırası; adres dikkate alınmaz.
@@ -3038,60 +3038,74 @@ const VanTabanPuanTab = () => {
 const MerkeziYerlestirmePuanlariPanel = () => {
   const lgsSchools = [
     {
-      name: "Van Atatürk Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "420.5",
-      capacity: "150",
-      district: "Merkez"
-    },
-    {
-      name: "Van Fen Lisesi",
+      name: "Van Türk Telekom Fen Lisesi",
       type: "Fen Lisesi", 
-      score: "445.2",
-      capacity: "120",
-      district: "Merkez"
+      score: "460.91",
+      capacity: "150",
+      district: "Edremit"
     },
     {
-      name: "Van İpekyolu Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "415.8",
+      name: "İpekyolu Borsa İstanbul Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "441.61",
       capacity: "150",
       district: "İpekyolu"
     },
     {
-      name: "Van Muradiye Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "398.2",
-      capacity: "120",
-      district: "Muradiye"
+      name: "Tuşba TOBB Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "422.90",
+      capacity: "150",
+      district: "Tuşba"
     },
     {
-      name: "Van Erciş Anadolu Lisesi",
+      name: "Niyazi Türkmenoğlu Anadolu Lisesi",
       type: "Anadolu Lisesi",
-      score: "392.1",
+      score: "416.75",
+      capacity: "120",
+      district: "İpekyolu"
+    },
+    {
+      name: "Erciş Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "402.18",
       capacity: "150",
       district: "Erciş"
     },
     {
-      name: "Van Gevaş Anadolu Lisesi",
+      name: "Kazım Karabekir Anadolu Lisesi",
       type: "Anadolu Lisesi",
-      score: "385.7",
-      capacity: "120",
-      district: "Gevaş"
+      score: "400.23",
+      capacity: "150",
+      district: "İpekyolu"
     },
     {
-      name: "Van Çatak Anadolu Lisesi",
+      name: "Türkiye Yardımsevenler Derneği Anadolu Lisesi",
       type: "Anadolu Lisesi",
-      score: "378.9",
-      capacity: "100",
-      district: "Çatak"
+      score: "387.01",
+      capacity: "120",
+      district: "Edremit"
     },
     {
-      name: "Van Gürpınar Anadolu Lisesi",
+      name: "Van Atatürk Anadolu Lisesi",
       type: "Anadolu Lisesi",
-      score: "372.4",
+      score: "379.46",
+      capacity: "180",
+      district: "İpekyolu"
+    },
+    {
+      name: "Abdurrahman Gazi Borsa İstanbul Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "367.20",
+      capacity: "150",
+      district: "Tuşba"
+    },
+    {
+      name: "Muradiye Alpaslan Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "366.59",
       capacity: "120",
-      district: "Gürpınar"
+      district: "Muradiye"
     }
   ];
 
@@ -3100,10 +3114,10 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
           <span className="text-blue-600 mr-3">🎯</span>
-          Van İli LGS Taban Puanları (2024)
+          Van İli Merkezi Yerleştirme Taban Puanları (2025)
         </h3>
         <p className="text-gray-600 mb-6">
-          2024 LGS sonuçlarına göre Van ilindeki Anadolu ve Fen liselerinin taban puanları:
+          2025 LGS sonuçlarına göre Van ilindeki merkezi yerleştirme kapsamındaki okulların taban puanları:
         </p>
         
         <div className="overflow-x-auto">
@@ -3153,46 +3167,74 @@ const MerkeziYerlestirmePuanlariPanel = () => {
 const YerelYerlestirmePuanlariPanel = () => {
   const obpSchools = [
     {
-      name: "Van İmam Hatip Ortaokulu",
-      type: "İmam Hatip Ortaokulu",
-      score: "85.2",
-      capacity: "120",
-      district: "Merkez"
-    },
-    {
-      name: "Van Kız İmam Hatip Ortaokulu",
-      type: "İmam Hatip Ortaokulu",
-      score: "82.7",
-      capacity: "120",
-      district: "Merkez"
-    },
-    {
-      name: "Van Mesleki ve Teknik Anadolu Lisesi",
-      type: "Meslek Lisesi",
-      score: "78.5",
+      name: "Mesut Özata Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "91.09",
       capacity: "150",
-      district: "Merkez"
+      district: "İpekyolu"
     },
     {
-      name: "Van Sağlık Meslek Lisesi",
-      type: "Sağlık Meslek Lisesi",
-      score: "80.3",
-      capacity: "100",
-      district: "Merkez"
+      name: "Özen Adalı Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "89.66",
+      capacity: "150",
+      district: "İpekyolu"
     },
     {
-      name: "Van Tarım Meslek Lisesi",
-      type: "Tarım Meslek Lisesi",
-      score: "75.8",
-      capacity: "80",
+      name: "Mehmet Akif Ersoy Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "88.96",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Arif Nihat Asya Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "89.39",
+      capacity: "150",
       district: "Erciş"
     },
     {
-      name: "Van Ticaret Meslek Lisesi",
-      type: "Ticaret Meslek Lisesi",
-      score: "76.9",
+      name: "Faki Teyran Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "85.96",
+      capacity: "150",
+      district: "Edremit"
+    },
+    {
+      name: "İki Nisan Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "84.93",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Çaldıran Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "84.30",
       capacity: "120",
-      district: "Merkez"
+      district: "Çaldıran"
+    },
+    {
+      name: "İzzeddin Şir Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "83.69",
+      capacity: "120",
+      district: "Gevaş"
+    },
+    {
+      name: "Van-Borsa İstanbul Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "84.09",
+      capacity: "150",
+      district: "Edremit"
+    },
+    {
+      name: "Said Nursi Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "65.83",
+      capacity: "120",
+      district: "İpekyolu"
     }
   ];
 
@@ -3201,10 +3243,10 @@ const YerelYerlestirmePuanlariPanel = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
           <span className="text-green-600 mr-3">📖</span>
-          Van İli OBP Taban Puanları (2024)
+          Van İli Yerel Yerleştirme Taban Puanları (2025)
         </h3>
         <p className="text-gray-600 mb-6">
-          2024 OBP sonuçlarına göre Van ilindeki İmam hatip ve meslek liselerinin taban puanları:
+          2025 OBP sonuçlarına göre Van ilindeki yerel yerleştirme kapsamındaki okulların taban puanları:
         </p>
         
         <div className="overflow-x-auto">
@@ -3242,7 +3284,7 @@ const YerelYerlestirmePuanlariPanel = () => {
 
         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-yellow-800">
-            <strong>Not:</strong> Bu puanlar 2024 OBP sonuçlarıdır. 2025 puanları MEB tarafından açıklandığında güncellenecektir.
+            <strong>Not:</strong> Bu puanlar 2025 OBP sonuçlarına göre yerel yerleştirme taban puanlarıdır ve MEB verilerine dayanmaktadır.
           </p>
         </div>
       </div>
