@@ -738,7 +738,7 @@ function StudentDashboardContent() {
                                   const nets = studentResult?.nets || {};
                                   const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
                                     if (typeof net === 'number') {
-                                      return sum + Math.round(net * 1.3);
+                                      return sum + Math.round(net * 3.33); // Net * 3.33 = Doğru sayısı
                                     }
                                     return sum;
                                   }, 0);
@@ -752,10 +752,11 @@ function StudentDashboardContent() {
                                   const nets = studentResult?.nets || {};
                                   const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
                                     if (typeof net === 'number') {
-                                      return sum + Math.round(net * 1.3);
+                                      return sum + Math.round(net * 3.33);
                                     }
                                     return sum;
                                   }, 0);
+                                  // Yanlış sayısı = Doğru sayısı * 0.3 (tahmini oran)
                                   return String(Math.round(totalCorrect * 0.3));
                                 })()}
                               </td>
@@ -766,12 +767,14 @@ function StudentDashboardContent() {
                                   const nets = studentResult?.nets || {};
                                   const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
                                     if (typeof net === 'number') {
-                                      return sum + Math.round(net * 1.3);
+                                      return sum + Math.round(net * 3.33);
                                     }
                                     return sum;
                                   }, 0);
                                   const estimatedWrong = Math.round(totalCorrect * 0.3);
-                                  return Math.max(0, 50 - totalCorrect - estimatedWrong);
+                                  // Toplam soru sayısını tahmin et (deneme başına ortalama 90 soru)
+                                  const totalQuestions = 90;
+                                  return Math.max(0, totalQuestions - totalCorrect - estimatedWrong);
                                 })()}
                               </td>
                               <td className="px-2 py-2 text-center font-medium text-blue-600">
@@ -837,7 +840,7 @@ function StudentDashboardContent() {
                 {/* Gelişim Trend Tahmini */}
                 <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow p-4">
                   <h3 className="text-sm font-semibold mb-3">🔮 Gelişim Trend Tahmini</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-white bg-opacity-20 p-3 rounded-lg">
                       <h4 className="text-xs font-medium opacity-90">Son 3 Deneme Ortalaması</h4>
                       <p className="text-xl font-bold">
@@ -851,36 +854,15 @@ function StudentDashboardContent() {
                       </p>
                     </div>
                     <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                      <h4 className="text-xs font-medium opacity-90">LGS Hedef Uzaklığı</h4>
+                      <h4 className="text-xs font-medium opacity-90">Son Deneme Net</h4>
+                      <p className="text-xl font-bold">
+                        {netChartData.length > 0 ? netChartData[netChartData.length - 1].öğrenci.toFixed(1) : '0.0'}
+                      </p>
+                    </div>
+                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                      <h4 className="text-xs font-medium opacity-90">LGS Hedef Net Uzaklığı</h4>
                       <p className="text-xl font-bold">
                         {Math.max(0, 75 - (netChartData.slice(-3).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(3, netChartData.length))).toFixed(1)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Net Gelişiminden Puan Hedefine Geçiş Analizi */}
-                <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg shadow p-4">
-                  <h3 className="text-sm font-semibold mb-3">📈 Net'ten Puan'a Geçiş Hedef Analizi</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                      <h4 className="text-xs font-medium opacity-90">Hedef Puan</h4>
-                      <p className="text-xl font-bold">{studentScoreTarget}</p>
-                    </div>
-                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                      <h4 className="text-xs font-medium opacity-90">Gerekli Ortalama Net</h4>
-                      <p className="text-xl font-bold">{(studentScoreTarget / 5).toFixed(1)}</p>
-                    </div>
-                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                      <h4 className="text-xs font-medium opacity-90">Son 3 Deneme Net Ort.</h4>
-                      <p className="text-xl font-bold">
-                        {(netChartData.slice(-3).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(3, netChartData.length)).toFixed(1)}
-                      </p>
-                    </div>
-                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                      <h4 className="text-xs font-medium opacity-90">Puan Hedefine Ulaşma %</h4>
-                      <p className="text-xl font-bold">
-                        {((netChartData.slice(-3).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(3, netChartData.length)) * 5 / studentScoreTarget * 100).toFixed(0)}%
                       </p>
                     </div>
                   </div>
@@ -947,8 +929,11 @@ function StudentDashboardContent() {
                     <div className="bg-gray-50 p-3 rounded-lg">
                       <h4 className="text-xs font-medium text-gray-700 mb-2">Sütun Grafiği</h4>
                       <ResponsiveContainer width="100%" height={300}>
+                        {/* @ts-ignore */}
                         <BarChart data={scoreChartData}>
+                          {/* @ts-ignore */}
                           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          {/* @ts-ignore */}
                           <XAxis 
                             dataKey="exam" 
                             angle={-45}
@@ -957,13 +942,22 @@ function StudentDashboardContent() {
                             interval={0}
                             tick={{ fontSize: 9 }}
                           />
+                          {/* @ts-ignore */}
                           <YAxis domain={[0, 500]} tick={{ fontSize: 9 }} />
+                          {/* @ts-ignore */}
                           <Tooltip 
                             formatter={(value) => [`${Number(value).toFixed(0)}`, 'Puan']}
                             labelStyle={{ color: '#374151' }}
                             contentStyle={{ backgroundColor: '#f9fafb', border: '1px solid #d1d5db' }}
                           />
+                          {/* @ts-ignore */}
+                          <Legend />
+                          {/* @ts-ignore */}
                           <Bar dataKey="öğrenci" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Öğrenci Puanı" />
+                          {/* @ts-ignore */}
+                          <Bar dataKey="sınıf" fill="#10B981" radius={[2, 2, 0, 0]} name="Sınıf Ortalama Puan" />
+                          {/* @ts-ignore */}
+                          <Bar dataKey="genel" fill="#F59E0B" radius={[2, 2, 0, 0]} name="Genel Ortalama Puan" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -1023,12 +1017,12 @@ function StudentDashboardContent() {
                           // Gerçek doğru sayısını hesapla
                           const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
                             if (typeof net === 'number') {
-                              return sum + Math.round(net * 1.3);
+                              return sum + Math.round(net * 3.33); // Net * 3.33 = Doğru sayısı
                             }
                             return sum;
                           }, 0);
-                          const wrongCount = Math.round(totalCorrect * 0.3);
-                          const emptyCount = Math.max(0, 50 - totalCorrect - wrongCount);
+                          const wrongCount = Math.round(totalCorrect * 0.3); // Yanlış sayısı = Doğru * 0.3
+                          const emptyCount = Math.max(0, 90 - totalCorrect - wrongCount); // 90 toplam soru
                           
                           let level = '';
                           let levelColor = '';
@@ -1262,7 +1256,11 @@ function StudentDashboardContent() {
                           <h4 className="text-[8px] font-medium text-gray-500 mb-1">Genel Ortalama</h4>
                           <p className="text-sm font-bold text-orange-600">{selectedExamResult.generalAverage.toFixed(1)}</p>
                           <p className="text-xs text-gray-600 mt-1">
-                            Genel Ortalama Net
+                            Genel Ortalama Net {selectedExamResult.generalAverage >= selectedExamResult.studentTotalNet ? (
+                              <span className="text-green-600">(+{(selectedExamResult.generalAverage - selectedExamResult.studentTotalNet).toFixed(1)})</span>
+                            ) : (
+                              <span className="text-red-600">({(selectedExamResult.studentTotalNet - selectedExamResult.generalAverage).toFixed(1)})</span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -1351,6 +1349,101 @@ function StudentDashboardContent() {
                                   </tr>
                                 );
                               })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* Öğrenci-Sınıf-Genel Kıyaslama Tablosu */}
+                      <div className="bg-white rounded-lg shadow p-1">
+                        <h4 className="text-sm font-semibold text-gray-800 mb-2">📈 Öğrenci-Sınıf-Genel Kıyaslama</h4>
+                        
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Net</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Sınıf Ort.</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Genel Ort.</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Sınıfa Göre</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Genele Göre</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {(() => {
+                                const studentNet = selectedExamResult.studentTotalNet;
+                                const classAverage = selectedExamResult.classAverage;
+                                const generalAverage = selectedExamResult.generalAverage;
+                                
+                                return [
+                                  {
+                                    kategori: 'Toplam Net',
+                                    net: studentNet,
+                                    sinif: classAverage,
+                                    genel: generalAverage,
+                                    sinifFark: studentNet - classAverage,
+                                    genelFark: studentNet - generalAverage
+                                  },
+                                  {
+                                    kategori: 'Toplam Puan',
+                                    net: selectedExamResult.studentTotalScore,
+                                    sinif: selectedExamResult.classAverageScore,
+                                    genel: selectedExamResult.generalAverageScore,
+                                    sinifFark: selectedExamResult.studentTotalScore - selectedExamResult.classAverageScore,
+                                    genelFark: selectedExamResult.studentTotalScore - selectedExamResult.generalAverageScore
+                                  }
+                                ].map((item, index) => (
+                                  <tr key={index} className="hover:bg-gray-50">
+                                    <td className="px-2 py-1.5">
+                                      <span className="text-xs font-medium text-gray-900">{item.kategori}</span>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <span className="text-xs font-bold text-blue-600">
+                                        {item.net.toFixed(item.kategori.includes('Puan') ? 0 : 1)}
+                                      </span>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <span className="text-xs text-gray-600">
+                                        {item.sinif.toFixed(item.kategori.includes('Puan') ? 0 : 1)}
+                                      </span>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <span className="text-xs text-orange-600 font-medium">
+                                        {item.genel.toFixed(item.kategori.includes('Puan') ? 0 : 1)}
+                                      </span>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <div className="flex flex-col items-center">
+                                        <span className={`text-xs font-medium ${
+                                          item.sinifFark >= 0 ? 'text-green-600' : 'text-red-600'
+                                        }`}>
+                                          {item.sinifFark >= 0 ? '+' : ''}{item.sinifFark.toFixed(item.kategori.includes('Puan') ? 0 : 1)}
+                                        </span>
+                                        <span className={`text-[10px] ${
+                                          item.sinifFark >= 0 ? 'text-green-500' : 'text-red-500'
+                                        }`}>
+                                          {item.sinifFark >= 0 ? '↗' : '↘'}
+                                        </span>
+                                      </div>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <div className="flex flex-col items-center">
+                                        <span className={`text-xs font-medium ${
+                                          item.genelFark >= 0 ? 'text-green-600' : 'text-red-600'
+                                        }`}>
+                                          {item.genelFark >= 0 ? '+' : ''}{item.genelFark.toFixed(item.kategori.includes('Puan') ? 0 : 1)}
+                                        </span>
+                                        <span className={`text-[10px] ${
+                                          item.genelFark >= 0 ? 'text-green-500' : 'text-red-500'
+                                        }`}>
+                                          {item.genelFark >= 0 ? '↗' : '↘'}
+                                        </span>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ));
+                              })()}
                             </tbody>
                           </table>
                         </div>
@@ -1607,17 +1700,24 @@ function StudentDashboardContent() {
                         const studentNet = studentResult?.nets?.[subject.key] || 0;
                         
                         // Sınıf ve genel ortalamalarını hesapla
-                        const classAverage = item.classAverage || 0;
-                        const generalAverage = item.generalAverage || 0;
+                        const classAverages = item.exam.generalAverages?.[reportData.student.class] || {};
+                        const classSubjectAverage = classAverages[subject.key] || 0; // Sınıfın o ders net ortalaması
+                        
+                        // Genel ortalama: ders bazındaki genel net ortalamalarından
+                        const generalSubjectAverage = classAverages[subject.key] || 0; // Genel ders ortalaması (deneme yönetiminde girilen)
                         
                         return {
                           exam: item.exam.title,
                           öğrenci: studentNet,
-                          sınıf: classAverage,
-                          genel: generalAverage,
+                          sınıf: classSubjectAverage,
+                          genel: generalSubjectAverage,
                           index: index + 1
                         };
                       });
+
+                      // YAxis domain değerini ders bazında sabitle
+                      const yAxisDomain = subject.key === 'turkce' || subject.key === 'matematik' || subject.key === 'fen' ? [0, 20] : [0, 10];
+                      const yAxisTick = subject.key === 'turkce' || subject.key === 'matematik' || subject.key === 'fen' ? 2 : 1;
 
 
 
@@ -1638,7 +1738,7 @@ function StudentDashboardContent() {
                                 dataKey="index"
                                 tickFormatter={(value) => `Deneme ${value}`}
                               />
-                              <YAxis domain={[0, 90]} />
+                              <YAxis domain={yAxisDomain} tick={{ fontSize: 9 }} />
                               <Tooltip 
                                 formatter={(value, name) => [`${Number(value).toFixed(1)}`, name]}
                                 labelFormatter={(label) => `Deneme ${label}`}
@@ -1658,7 +1758,7 @@ function StudentDashboardContent() {
                                 stroke="#10B981" 
                                 strokeWidth={1}
                                 strokeDasharray="5 5"
-                                name="Sınıf Ort."
+                                name={`${subject.name} Sınıf Ort.`}
                               />
                               <Line 
                                 type="monotone" 
@@ -1666,7 +1766,7 @@ function StudentDashboardContent() {
                                 stroke="#F59E0B" 
                                 strokeWidth={1}
                                 strokeDasharray="3 3"
-                                name="Genel Ort."
+                                name={`${subject.name} Genel Ort.`}
                               />
                             </LineChart>
                           </ResponsiveContainer>
