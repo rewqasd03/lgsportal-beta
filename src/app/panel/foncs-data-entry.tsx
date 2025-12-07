@@ -2895,7 +2895,7 @@ const LGSCalculatorTab = () => {
 
 // Lise Taban Puanları Tab Component
 const VanTabanPuanTab = () => {
-  const [selectedType, setSelectedType] = useState<'lgs' | 'obp' | null>(null);
+  const [selectedType, setSelectedType] = useState<'merkezi' | 'yerel' | null>(null);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
@@ -2908,52 +2908,69 @@ const VanTabanPuanTab = () => {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
               <h3 className="text-xl font-semibold text-blue-900 mb-4">📚 Lise Yerleştirme Sistemi</h3>
               
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-6 border">
-                  <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-                    <span className="text-blue-600 mr-3 text-2xl">🎯</span>
-                    LGS (Liselere Geçiş Sınavı)
-                  </h4>
-                  <p className="text-sm text-gray-600 mb-3">
-                    <strong>Amacı:</strong> Anadolu ve Fen liselerine yerleştirme
-                  </p>
-                  <p className="text-sm text-gray-600 mb-3">
-                    <strong>Puan Hesabı:</strong> Net sayıları × 3.33 katsayısı
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Önemli:</strong> Sadece puan sıralaması değil, tercih sırası da önemlidir
-                  </p>
+              <div className="bg-white rounded-lg p-6 border mb-6">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="text-purple-600 mr-3 text-2xl">🎓</span>
+                  Lise Yerleştirme Türleri
+                </h4>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+                    <h5 className="font-semibold text-blue-800 mb-3 flex items-center">
+                      <span className="text-blue-600 mr-2 text-xl">🎯</span>
+                      Merkezi Yerleştirme
+                    </h5>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-gray-700">
+                        <strong>Tanım:</strong> LGS sınav puanına göre Türkiye genelinde sıralama yapılarak öğrenci alan okullara yerleşme.
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Okul Türleri:</strong> Fen Liseleri, Sosyal Bilimler Liseleri, proje okulları, bazı teknik programlar
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Belirleyici Faktör:</strong> LGS puanı ve tercih sırası; adres dikkate alınmaz.
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Tercih:</strong> Öğrenciler sınavla alan okullar için ayrı tercih listesinden seçim yapar.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+                    <h5 className="font-semibold text-green-800 mb-3 flex items-center">
+                      <span className="text-green-600 mr-2 text-xl">🏠</span>
+                      Yerel Yerleştirme (Adrese Dayalı)
+                    </h5>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-gray-700">
+                        <strong>Tanım:</strong> Öğrencinin ikamet adresi, okul türü ve kontenjan dikkate alınarak kendi kayıt alanındaki okullara yerleşme.
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Okul Türleri:</strong> Anadolu Liseleri, Meslek Liseleri, İmam Hatip Liseleri
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Belirleyici Faktör:</strong> Kayıt alanı, okul türü ve kontenjan; tercih sırası önemlidir.
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Tercih:</strong> Kayıt alanı önceliklidir; farklı alanlardan (komşu/diğer) okul seçimi sınırlıdır.
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="bg-white rounded-lg p-6 border">
-                  <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-                    <span className="text-green-600 mr-3 text-2xl">📖</span>
-                    OBP (Ortaokul Başarı Puanı)
-                  </h4>
-                  <p className="text-sm text-gray-600 mb-3">
-                    <strong>Amacı:</strong> İmam hatip ve meslek liselerine yerleştirme
-                  </p>
-                  <p className="text-sm text-gray-600 mb-3">
-                    <strong>Puan Hesabı:</strong> 6., 7., 8. sınıf not ortalaması
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Önemli:</strong> Tüm ortaokul yıllarının performansı etkiler
+                <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <p className="text-purple-800 text-sm">
+                    <strong>💡 Bilgi:</strong> LGS puanınız ile merkezi yerleştirme kapsamındaki okullara (Fen, Sosyal Bilimler), 
+                    adres bilginiz ile yerel yerleştirme kapsamındaki okullara (Anadolu, Meslek, İmam Hatip) başvurabilirsiniz.
                   </p>
                 </div>
-              </div>
-              
-              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-yellow-800 text-sm">
-                  <strong>💡 İpucu:</strong> LGS ile OBP puanları farklı sistemlerde hesaplanır. 
-                  LGS puanınız ile Anadolu/Fen liselerine, OBP puanınız ile diğer liselere başvurabilirsiniz.
-                </p>
               </div>
             </div>
 
             {/* Seçim Kartları */}
             <div className="grid md:grid-cols-2 gap-6">
               <button
-                onClick={() => setSelectedType('lgs')}
+                onClick={() => setSelectedType('merkezi')}
                 className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg p-8 text-left transition-all duration-200 transform hover:scale-105 shadow-lg"
               >
                 <div className="flex items-center mb-4">
@@ -2961,30 +2978,30 @@ const VanTabanPuanTab = () => {
                     <span className="text-3xl">🎯</span>
                   </div>
                   <div>
-                    <h4 className="text-xl font-semibold">LGS Taban Puanları</h4>
-                    <p className="text-blue-100 text-sm">Anadolu & Fen Liseleri</p>
+                    <h4 className="text-xl font-semibold">Merkezi Yerleştirme</h4>
+                    <p className="text-blue-100 text-sm">Fen & Sosyal Bilimler Liseleri</p>
                   </div>
                 </div>
                 <p className="text-blue-100 text-sm">
-                  2025 LGS puanları ile Van ilindeki Anadolu ve Fen liselerinin taban puanlarını görüntüleyin.
+                  LGS puanına göre merkezi yerleştirme kapsamındaki okulların taban puanlarını görüntüleyin.
                 </p>
               </button>
 
               <button
-                onClick={() => setSelectedType('obp')}
+                onClick={() => setSelectedType('yerel')}
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg p-8 text-left transition-all duration-200 transform hover:scale-105 shadow-lg"
               >
                 <div className="flex items-center mb-4">
                   <div className="bg-white bg-opacity-20 rounded-full p-3 mr-4">
-                    <span className="text-3xl">📖</span>
+                    <span className="text-3xl">🏠</span>
                   </div>
                   <div>
-                    <h4 className="text-xl font-semibold">OBP Taban Puanları</h4>
+                    <h4 className="text-xl font-semibold">Yerel Yerleştirme</h4>
                     <p className="text-green-100 text-sm">İmam Hatip & Meslek Liseleri</p>
                   </div>
                 </div>
                 <p className="text-green-100 text-sm">
-                  2025 OBP puanları ile Van ilindeki İmam hatip ve meslek liselerinin taban puanlarını görüntüleyin.
+                  Adres bilginize göre yerel yerleştirme kapsamındaki okulların taban puanlarını görüntüleyin.
                 </p>
               </button>
             </div>
@@ -3005,10 +3022,10 @@ const VanTabanPuanTab = () => {
             </div>
 
             {/* Seçilen İçerik */}
-            {selectedType === 'lgs' ? (
-              <LGSTabanPuanlariPanel />
+            {selectedType === 'merkezi' ? (
+              <MerkeziYerlestirmePuanlariPanel />
             ) : (
-              <OBPTabanPuanlariPanel />
+              <YerelYerlestirmePuanlariPanel />
             )}
           </>
         )}
@@ -3017,8 +3034,8 @@ const VanTabanPuanTab = () => {
   );
 };
 
-// Van LGS Taban Puanları Component (Panel)
-const LGSTabanPuanlariPanel = () => {
+// Merkezi Yerleştirme Taban Puanları Component (Panel)
+const MerkeziYerlestirmePuanlariPanel = () => {
   const lgsSchools = [
     {
       name: "Van Atatürk Anadolu Lisesi",
@@ -3133,7 +3150,7 @@ const LGSTabanPuanlariPanel = () => {
 };
 
 // Van OBP Taban Puanları Component (Panel)
-const OBPTabanPuanlariPanel = () => {
+const YerelYerlestirmePuanlariPanel = () => {
   const obpSchools = [
     {
       name: "Van İmam Hatip Ortaokulu",
