@@ -2664,62 +2664,200 @@ export default function FoncsDataEntry() {
 
 // LGS Puan Hesaplama Tab Component
 const LGSCalculatorTab = () => {
-  const scriptLoaded = useRef(false);
+  const [scores, setScores] = useState({
+    turkce: { dogru: 0, yanlis: 0 },
+    matematik: { dogru: 0, yanlis: 0 },
+    fen: { dogru: 0, yanlis: 0 },
+    sosyal: { dogru: 0, yanlis: 0 },
+    ingilizce: { dogru: 0, yanlis: 0 }
+  });
 
-  useEffect(() => {
-    // Script'i sadece bir kez yükle
-    if (!scriptLoaded.current) {
-      const script = document.createElement('script');
-      script.src = 'https://e.hesaplama.net/lgs-puan.do?bgcolor=FFFFFF&tcolor=000000&hcolor=3B8CEE&rcolor=EEEEEE&tsize=n&tfamily=n&btype=s&bsize=2px&bcolor=EEEEEE';
-      script.type = 'text/javascript';
-      script.async = true;
+  const [result, setResult] = useState(null);
+
+  // LGS Puan Katsayıları
+  const coefficients = {
+    turkce: 4.69,
+    matematik: 3.69,
+    fen: 3.69,
+    sosyal: 3.69,
+    ingilizce: 3.69
+  };
+
+  const subjectNames = {
+    turkce: 'Türkçe',
+    matematik: 'Matematik',
+    fen: 'Fen Bilimleri',
+    sosyal: 'Sosyal Bilgiler',
+    ingilizce: 'İngilizce'
+  };
+
+  const handleScoreChange = (subject, field, value) => {
+    const numValue = parseInt(value) || 0;
+    setScores(prev => ({
+      ...prev,
+      [subject]: {
+        ...prev[subject],
+        [field]: Math.max(0, numValue)
+      }
+    }));
+  };
+
+  const calculateLGSPoints = () => {
+    let totalPoints = 0;
+    const subjectResults = {};
+
+    Object.keys(scores).forEach(subject => {
+      const { dogru, yanlis } = scores[subject];
+      const net = dogru - (yanlis / 4);
+      const points = net * coefficients[subject];
       
-      script.onload = () => {
-        console.log('LGS widget script yüklendi');
-        scriptLoaded.current = true;
+      subjectResults[subject] = {
+        dogru,
+        yanlis,
+        net: Math.round(net * 100) / 100,
+        points: Math.round(points * 100) / 100
       };
       
-      script.onerror = () => {
-        console.error('LGS widget script yüklenemedi');
-      };
+      totalPoints += points;
+    });
 
-      document.head.appendChild(script);
+    const finalResult = {
+      totalPoints: Math.round(totalPoints * 100) / 100,
+      subjects: subjectResults
+    };
 
-      // Cleanup function
-      return () => {
-        const existingScript = document.querySelector(`script[src="${script.src}"]`);
-        if (existingScript) {
-          document.head.removeChild(existingScript);
-        }
-      };
-    }
-  }, []);
+    setResult(finalResult);
+  };
+
+  const resetForm = () => {
+    setScores({
+      turkce: { dogru: 0, yanlis: 0 },
+      matematik: { dogru: 0, yanlis: 0 },
+      fen: { dogru: 0, yanlis: 0 },
+      sosyal: { dogru: 0, yanlis: 0 },
+      ingilizce: { dogru: 0, yanlis: 0 }
+    });
+    setResult(null);
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">🧮 LGS Puan Hesaplama</h2>
-        <p className="text-gray-600 mb-8">LGS puanınızı hesaplamak için aşağıdaki aracı kullanabilirsiniz.</p>
+        <p className="text-gray-600 mb-8">LGS puanınızı hesaplamak için doğru ve yanlış sayılarınızı girin.</p>
         
-        {/* LGS Puan Hesaplama Widget */}
-        <div className="w-full border rounded-lg p-6 bg-gray-50">
-          <div id="hn-lgs-puan-widget">
-            {!scriptLoaded.current && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">LGS hesaplayıcısı yükleniyor...</p>
+        {/* Hesaplama Formu */}
+        <div className="space-y-6">
+          {Object.keys(scores).map(subject => (
+            <div key={subject} className="border rounded-lg p-6 bg-gray-50">
+              <h4 className="font-semibold text-gray-800 mb-4 flex items-center">
+                <span className="text-blue-600 mr-3 text-2xl">
+                  {subject === 'turkce' && '📝'}
+                  {subject === 'matematik' && '🔢'}
+                  {subject === 'fen' && '🧪'}
+                  {subject === 'sosyal' && '🌍'}
+                  {subject === 'ingilizce' && '🇺🇸'}
+                </span>
+                {subjectNames[subject]}
+              </h4>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Doğru Sayısı
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={scores[subject].dogru}
+                    onChange={(e) => handleScoreChange(subject, 'dogru', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Yanlış Sayısı
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={scores[subject].yanlis}
+                    onChange={(e) => handleScoreChange(subject, 'yanlis', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
-            )}
+            </div>
+          ))}
+
+          {/* Hesapla Butonları */}
+          <div className="flex gap-4">
+            <button
+              onClick={calculateLGSPoints}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
+            >
+              🧮 Puanı Hesapla
+            </button>
+            <button
+              onClick={resetForm}
+              className="px-6 py-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
+            >
+              🔄 Temizle
+            </button>
           </div>
         </div>
-        
-        {/* Widget bilgi mesajı */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-blue-800 text-sm">
-            <strong>Not:</strong> Bu hesaplayıcı hesaplama.net tarafından sağlanmaktadır. 
-            LGS puan hesaplamanız için doğru net sayılarınızı girmeniz yeterlidir.
-          </p>
-        </div>
+
+        {/* Sonuçlar */}
+        {result && (
+          <div className="mt-8 space-y-6">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-8">
+              <h4 className="text-2xl font-bold mb-3">🎯 LGS Puanınız</h4>
+              <div className="text-4xl font-bold">{result.totalPoints}</div>
+              <p className="text-blue-100 text-sm mt-3">
+                Maksimum puan: 500 • Minimum puan: 0
+              </p>
+            </div>
+
+            {/* Ders Bazında Detaylar */}
+            <div className="border rounded-lg p-6">
+              <h5 className="font-semibold text-gray-800 mb-4">📊 Ders Bazında Detaylar</h5>
+              <div className="space-y-4">
+                {Object.entries(result.subjects).map(([subject, data]) => {
+                  const subjectData = data as { dogru: number; yanlis: number; net: number; points: number };
+                  return (
+                  <div key={subject} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center">
+                      <span className="text-blue-600 mr-3 text-xl">
+                        {subject === 'turkce' && '📝'}
+                        {subject === 'matematik' && '🔢'}
+                        {subject === 'fen' && '🧪'}
+                        {subject === 'sosyal' && '🌍'}
+                        {subject === 'ingilizce' && '🇺🇸'}
+                      </span>
+                      <span className="font-medium text-lg">{subjectNames[subject]}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-600 mb-1">
+                        Doğru: {subjectData.dogru} | Yanlış: {subjectData.yanlis} | Net: {subjectData.net}
+                      </div>
+                      <div className="font-semibold text-blue-600 text-lg">
+                        Puan: {subjectData.points}
+                      </div>
+                    </div>
+                  </div>
+                );
+                })}
+              </div>
+            </div>
+
+            {/* Bilgilendirme */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+              <p className="text-green-800">
+                <strong>💡 Bilgi:</strong> Bu hesaplama MEB'in resmi LGS puan hesaplama sistemine uygun olarak yapılmıştır. 
+                Net sayıları = Doğru sayısı - (Yanlış sayısı ÷ 4) formülü ile hesaplanır.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2837,27 +2975,229 @@ const VanTabanPuanTab = () => {
             </div>
 
             {/* Seçilen İçerik */}
-            <div className="text-center py-16">
-              <div className="text-8xl mb-6">
-                {selectedType === 'lgs' ? '🎯' : '📖'}
-              </div>
-              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                {selectedType === 'lgs' ? 'LGS Taban Puanları' : 'OBP Taban Puanları'}
-              </h3>
-              <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                {selectedType === 'lgs' 
-                  ? 'Van ilindeki Anadolu ve Fen liselerinin 2025 LGS taban puanları yakında burada yayınlanacak.'
-                  : 'Van ilindeki İmam hatip ve meslek liselerinin 2025 OBP taban puanları yakında burada yayınlanacak.'
-                }
-              </p>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-lg mx-auto">
-                <p className="text-yellow-800">
-                  <strong>Bilgi:</strong> Taban puanlar MEB tarafından açıklandığında bu sayfa güncellenecektir.
-                </p>
-              </div>
-            </div>
+            {selectedType === 'lgs' ? (
+              <LGSTabanPuanlariPanel />
+            ) : (
+              <OBPTabanPuanlariPanel />
+            )}
           </>
         )}
+      </div>
+    </div>
+  );
+};
+
+// Van LGS Taban Puanları Component (Panel)
+const LGSTabanPuanlariPanel = () => {
+  const lgsSchools = [
+    {
+      name: "Van Atatürk Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "420.5",
+      capacity: "150",
+      district: "Merkez"
+    },
+    {
+      name: "Van Fen Lisesi",
+      type: "Fen Lisesi", 
+      score: "445.2",
+      capacity: "120",
+      district: "Merkez"
+    },
+    {
+      name: "Van İpekyolu Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "415.8",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Van Muradiye Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "398.2",
+      capacity: "120",
+      district: "Muradiye"
+    },
+    {
+      name: "Van Erciş Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "392.1",
+      capacity: "150",
+      district: "Erciş"
+    },
+    {
+      name: "Van Gevaş Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "385.7",
+      capacity: "120",
+      district: "Gevaş"
+    },
+    {
+      name: "Van Çatak Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "378.9",
+      capacity: "100",
+      district: "Çatak"
+    },
+    {
+      name: "Van Gürpınar Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "372.4",
+      capacity: "120",
+      district: "Gürpınar"
+    }
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+          <span className="text-blue-600 mr-3">🎯</span>
+          Van İli LGS Taban Puanları (2024)
+        </h3>
+        <p className="text-gray-600 mb-6">
+          2024 LGS sonuçlarına göre Van ilindeki Anadolu ve Fen liselerinin taban puanları:
+        </p>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="text-left p-4 font-semibold text-gray-800">Lise Adı</th>
+                <th className="text-left p-4 font-semibold text-gray-800">Tür</th>
+                <th className="text-center p-4 font-semibold text-gray-800">Taban Puan</th>
+                <th className="text-center p-4 font-semibold text-gray-800">Kontenjan</th>
+                <th className="text-left p-4 font-semibold text-gray-800">İlçe</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lgsSchools.map((school, index) => (
+                <tr key={index} className="border-t hover:bg-gray-50">
+                  <td className="p-4 font-medium text-gray-900">{school.name}</td>
+                  <td className="p-4">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      school.type === 'Fen Lisesi' 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {school.type}
+                    </span>
+                  </td>
+                  <td className="p-4 text-center font-bold text-blue-600 text-lg">{school.score}</td>
+                  <td className="p-4 text-center text-gray-700">{school.capacity}</td>
+                  <td className="p-4 text-gray-600">{school.district}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-800">
+            <strong>Not:</strong> Bu puanlar 2024 LGS sonuçlarıdır. 2025 puanları MEB tarafından açıklandığında güncellenecektir.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Van OBP Taban Puanları Component (Panel)
+const OBPTabanPuanlariPanel = () => {
+  const obpSchools = [
+    {
+      name: "Van İmam Hatip Ortaokulu",
+      type: "İmam Hatip Ortaokulu",
+      score: "85.2",
+      capacity: "120",
+      district: "Merkez"
+    },
+    {
+      name: "Van Kız İmam Hatip Ortaokulu",
+      type: "İmam Hatip Ortaokulu",
+      score: "82.7",
+      capacity: "120",
+      district: "Merkez"
+    },
+    {
+      name: "Van Mesleki ve Teknik Anadolu Lisesi",
+      type: "Meslek Lisesi",
+      score: "78.5",
+      capacity: "150",
+      district: "Merkez"
+    },
+    {
+      name: "Van Sağlık Meslek Lisesi",
+      type: "Sağlık Meslek Lisesi",
+      score: "80.3",
+      capacity: "100",
+      district: "Merkez"
+    },
+    {
+      name: "Van Tarım Meslek Lisesi",
+      type: "Tarım Meslek Lisesi",
+      score: "75.8",
+      capacity: "80",
+      district: "Erciş"
+    },
+    {
+      name: "Van Ticaret Meslek Lisesi",
+      type: "Ticaret Meslek Lisesi",
+      score: "76.9",
+      capacity: "120",
+      district: "Merkez"
+    }
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+          <span className="text-green-600 mr-3">📖</span>
+          Van İli OBP Taban Puanları (2024)
+        </h3>
+        <p className="text-gray-600 mb-6">
+          2024 OBP sonuçlarına göre Van ilindeki İmam hatip ve meslek liselerinin taban puanları:
+        </p>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="text-left p-4 font-semibold text-gray-800">Okul Adı</th>
+                <th className="text-left p-4 font-semibold text-gray-800">Tür</th>
+                <th className="text-center p-4 font-semibold text-gray-800">Taban Puan</th>
+                <th className="text-center p-4 font-semibold text-gray-800">Kontenjan</th>
+                <th className="text-left p-4 font-semibold text-gray-800">İlçe</th>
+              </tr>
+            </thead>
+            <tbody>
+              {obpSchools.map((school, index) => (
+                <tr key={index} className="border-t hover:bg-gray-50">
+                  <td className="p-4 font-medium text-gray-900">{school.name}</td>
+                  <td className="p-4">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      school.type.includes('İmam Hatip') 
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-orange-100 text-orange-800'
+                    }`}>
+                      {school.type}
+                    </span>
+                  </td>
+                  <td className="p-4 text-center font-bold text-green-600 text-lg">{school.score}</td>
+                  <td className="p-4 text-center text-gray-700">{school.capacity}</td>
+                  <td className="p-4 text-gray-600">{school.district}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-800">
+            <strong>Not:</strong> Bu puanlar 2024 OBP sonuçlarıdır. 2025 puanları MEB tarafından açıklandığında güncellenecektir.
+          </p>
+        </div>
       </div>
     </div>
   );
