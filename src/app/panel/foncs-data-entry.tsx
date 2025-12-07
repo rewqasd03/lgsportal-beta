@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { getStudents, getExams, getResults, addStudent, addExam, addResult, deleteStudent, deleteExam, deleteResult, updateStudent, updateResult, updateExam, saveStudentTargets, getAllTargets, getStudentScoreTarget, mapDashboardKeysToPanel, mapPanelKeysToDashboard, Student, Exam, Result } from "../../firebase";
+import { getStudents, getExams, getResults, addStudent, addExam, addResult, deleteStudent, deleteExam, deleteResult, updateStudent, updateResult, updateExam, saveStudentTargets, getAllTargets, getStudentScoreTarget, mapDashboardKeysToPanel, mapPanelKeysToDashboard, db, doc, getDoc, Student, Exam, Result } from "../../firebase";
 // Ana Tab Interface
 interface Tab {
   key: string;
@@ -1701,41 +1701,43 @@ export default function FoncsDataEntry() {
       return lastNets;
     };
 
-    // Öğrenci seçildiğinde hedefleri yükle (düzeltilmiş versiyon)
+    // Öğrenci seçildiğinde hedefleri yükle (verimli versiyon)
     useEffect(() => {
       if (selectedStudent) {
         // Firebase'den fresh veri çek
         const loadFreshTargets = async () => {
           try {
-            // Ders hedeflerini Firebase'den çek
-            const dashboardTargets = await getAllTargets();
-            const freshStudentTargets = dashboardTargets[selectedStudent] || {};
-            const panelTargets = mapDashboardKeysToPanel(freshStudentTargets);
+            // Sadece seçili öğrencinin hedefini çek (daha verimli)
+            const targetsRef = doc(db, 'targets', selectedStudent);
+            const targetsSnapshot = await getDoc(targetsRef);
             
-            // Puan hedefini Firebase'den çek
-            const scoreTarget = await getStudentScoreTarget(selectedStudent) || 450;
-            
-            const formData: {[subject: string]: number} = {};
-            
-            lgsSubjects.forEach(subject => {
-              // Önce Firebase'den gelen değeri kullan, yoksa varsayılan
-              formData[subject.key] = panelTargets[subject.key] || subject.target;
-            });
-            
-            console.log('📊 Fresh hedefler yüklendi - Panel:', formData);
-            console.log('🎯 Fresh puan hedefi:', scoreTarget);
-            setStudentTargetForm(formData);
-            setStudentScoreTarget(scoreTarget);
-            
-            // Local state'i de güncelle (çakışma olmasın diye)
-            setStudentTargets(prev => ({
-              ...prev,
-              [selectedStudent]: freshStudentTargets
-            }));
-            setStudentScoreTargets(prev => ({
-              ...prev,
-              [selectedStudent]: scoreTarget
-            }));
+            if (targetsSnapshot.exists()) {
+              const data = targetsSnapshot.data();
+              const dashboardTargets = data.targets || {};
+              const panelTargets = mapDashboardKeysToPanel(dashboardTargets);
+              const scoreTarget = data.targetScore || 450;
+              
+              const formData: {[subject: string]: number} = {};
+              
+              lgsSubjects.forEach(subject => {
+                formData[subject.key] = panelTargets[subject.key] || subject.target;
+              });
+              
+              console.log('📊 Fresh hedefler yüklendi - Panel:', formData);
+              console.log('🎯 Fresh puan hedefi:', scoreTarget);
+              setStudentTargetForm(formData);
+              setStudentScoreTarget(scoreTarget);
+              
+            } else {
+              // Hedef bulunamadı, varsayılan değerlerle başla
+              const formData: {[subject: string]: number} = {};
+              lgsSubjects.forEach(subject => {
+                formData[subject.key] = subject.target;
+              });
+              setStudentTargetForm(formData);
+              setStudentScoreTarget(450);
+              console.log('📋 Hedef bulunamadı, varsayılan değerler yüklendi');
+            }
             
           } catch (error) {
             console.error('Fresh target load error:', error);
