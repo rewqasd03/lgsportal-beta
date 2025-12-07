@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -2664,6 +2664,37 @@ export default function FoncsDataEntry() {
 
 // LGS Puan Hesaplama Tab Component
 const LGSCalculatorTab = () => {
+  const scriptLoaded = useRef(false);
+
+  useEffect(() => {
+    // Script'i sadece bir kez yükle
+    if (!scriptLoaded.current) {
+      const script = document.createElement('script');
+      script.src = 'https://e.hesaplama.net/lgs-puan.do?bgcolor=FFFFFF&tcolor=000000&hcolor=3B8CEE&rcolor=EEEEEE&tsize=n&tfamily=n&btype=s&bsize=2px&bcolor=EEEEEE';
+      script.type = 'text/javascript';
+      script.async = true;
+      
+      script.onload = () => {
+        console.log('LGS widget script yüklendi');
+        scriptLoaded.current = true;
+      };
+      
+      script.onerror = () => {
+        console.error('LGS widget script yüklenemedi');
+      };
+
+      document.head.appendChild(script);
+
+      // Cleanup function
+      return () => {
+        const existingScript = document.querySelector(`script[src="${script.src}"]`);
+        if (existingScript) {
+          document.head.removeChild(existingScript);
+        }
+      };
+    }
+  }, []);
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
@@ -2672,8 +2703,22 @@ const LGSCalculatorTab = () => {
         
         {/* LGS Puan Hesaplama Widget */}
         <div className="w-full border rounded-lg p-6 bg-gray-50">
-          <div id="hn-lgs-puan-widget"></div>
-          <script src="https://e.hesaplama.net/lgs-puan.do?bgcolor=FFFFFF&tcolor=000000&hcolor=3B8CEE&rcolor=EEEEEE&tsize=n&tfamily=n&btype=s&bsize=2px&bcolor=EEEEEE" type="text/javascript"></script>
+          <div id="hn-lgs-puan-widget">
+            {!scriptLoaded.current && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">LGS hesaplayıcısı yükleniyor...</p>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Widget bilgi mesajı */}
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-blue-800 text-sm">
+            <strong>Not:</strong> Bu hesaplayıcı hesaplama.net tarafından sağlanmaktadır. 
+            LGS puan hesaplamanız için doğru net sayılarınızı girmeniz yeterlidir.
+          </p>
         </div>
       </div>
     </div>
