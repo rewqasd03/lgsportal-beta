@@ -3106,6 +3106,139 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       score: "366.59",
       capacity: "120",
       district: "Muradiye"
+    },
+    {
+      name: "Erciş Sosyal Bilimler Lisesi",
+      type: "Sosyal Bilimler Lisesi",
+      score: "366.09",
+      capacity: "120",
+      district: "Erciş"
+    },
+    {
+      name: "Van Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "360.29",
+      capacity: "120",
+      district: "İpekyolu"
+    },
+    {
+      name: "Van-Borsa İstanbul Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "349.74",
+      capacity: "180",
+      district: "Edremit"
+    },
+    {
+      name: "Sevim Kürüm Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "349.08",
+      capacity: "120",
+      district: "Erciş"
+    },
+    {
+      name: "İskele Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "325.31",
+      capacity: "120",
+      district: "İpekyolu"
+    },
+    {
+      name: "Edremit Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "312.80",
+      capacity: "120",
+      district: "Edremit"
+    },
+    {
+      name: "Mehmet Erdemoğlu Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "305.71",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Şehit Polis Halil Hamuryen Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "308.52",
+      capacity: "120",
+      district: "Erciş"
+    },
+    {
+      name: "Tevfik İleri Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "294.42",
+      capacity: "120",
+      district: "Erciş"
+    },
+    {
+      name: "Erciş Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "293.47",
+      capacity: "150",
+      district: "Erciş"
+    },
+    {
+      name: "Mizancı Murat Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "293.21",
+      capacity: "120",
+      district: "Edremit"
+    },
+    {
+      name: "Gevaş Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "267.96",
+      capacity: "120",
+      district: "Gevaş"
+    },
+    {
+      name: "Hüseyin Çelik Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "263.42",
+      capacity: "120",
+      district: "Tuşba"
+    },
+    {
+      name: "Özalp Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "255.88",
+      capacity: "120",
+      district: "Özalp"
+    },
+    {
+      name: "Tuşba Şehit Ferhat Arslan Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "251.82",
+      capacity: "120",
+      district: "Tuşba"
+    },
+    {
+      name: "Şehit Haluk Varlı Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "221.47",
+      capacity: "120",
+      district: "Gürpınar"
+    },
+    {
+      name: "Muradiye Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "208.61",
+      capacity: "120",
+      district: "Muradiye"
+    },
+    {
+      name: "Başkale Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "199.41",
+      capacity: "120",
+      district: "Başkale"
+    },
+    {
+      name: "Çaldıran Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "197.30",
+      capacity: "120",
+      district: "Çaldıran"
     }
   ];
 
@@ -3235,6 +3368,111 @@ const YerelYerlestirmePuanlariPanel = () => {
       score: "65.83",
       capacity: "120",
       district: "İpekyolu"
+    },
+    {
+      name: "Evliya Çelebi Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "45.72",
+      capacity: "150",
+      district: "Edremit"
+    },
+    {
+      name: "Kalecik Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "43.85",
+      capacity: "120",
+      district: "Tuşba"
+    },
+    {
+      name: "Tuşba Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "42.18",
+      capacity: "120",
+      district: "Tuşba"
+    },
+    {
+      name: "Başkale Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "41.65",
+      capacity: "120",
+      district: "Başkale"
+    },
+    {
+      name: "Muradiye Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "39.24",
+      capacity: "120",
+      district: "Muradiye"
+    },
+    {
+      name: "Gürpınar Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "38.97",
+      capacity: "120",
+      district: "Gürpınar"
+    },
+    {
+      name: "Özalp Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "35.82",
+      capacity: "120",
+      district: "Özalp"
+    },
+    {
+      name: "Saray Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "34.15",
+      capacity: "120",
+      district: "Saray"
+    },
+    {
+      name: "Bahçesaray Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "32.48",
+      capacity: "120",
+      district: "Bahçesaray"
+    },
+    {
+      name: "Gevaş Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "30.76",
+      capacity: "120",
+      district: "Gevaş"
+    },
+    {
+      name: "Akdamar Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "29.31",
+      capacity: "120",
+      district: "Gevaş"
+    },
+    {
+      name: "Çatak Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "27.84",
+      capacity: "120",
+      district: "Çatak"
+    },
+    {
+      name: "Gevaş Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "26.45",
+      capacity: "120",
+      district: "Gevaş"
+    },
+    {
+      name: "Başkale Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "24.89",
+      capacity: "120",
+      district: "Başkale"
+    },
+    {
+      name: "Çatak Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "23.68",
+      capacity: "120",
+      district: "Çatak"
     }
   ];
 
