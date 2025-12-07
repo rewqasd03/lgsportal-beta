@@ -249,70 +249,41 @@ export default function FoncsDataEntry() {
       });
     }, [students, results, exams]);
 
-    // En başarılı öğrenciler (Net) - Sınıf bazında
-    const topStudentsByNet = useMemo(() => {
+    // En başarılı öğrenciler (Net) - Sınıf grupları
+    const topStudentsByNetByClass = useMemo(() => {
       const classGroups = studentPerformance.reduce((acc, student) => {
         if (!acc[student.class]) acc[student.class] = [];
         acc[student.class].push(student);
         return acc;
       }, {} as Record<string, typeof studentPerformance>);
 
-      const topStudents: typeof studentPerformance = [];
+      const classRankings: Record<string, typeof studentPerformance> = {};
       Object.entries(classGroups).forEach(([className, students]) => {
-        const topInClass = students
+        classRankings[className] = students
           .sort((a, b) => b.avgNet - a.avgNet)
           .slice(0, 5);
-        topStudents.push(...topInClass);
       });
 
-      return topStudents.sort((a, b) => b.avgNet - a.avgNet);
+      return classRankings;
     }, [studentPerformance]);
 
-    // En başarılı öğrenciler (Puan) - Sınıf bazında
-    const topStudentsByScore = useMemo(() => {
+    // En başarılı öğrenciler (Puan) - Sınıf grupları
+    const topStudentsByScoreByClass = useMemo(() => {
       const classGroups = studentPerformance.reduce((acc, student) => {
         if (!acc[student.class]) acc[student.class] = [];
         acc[student.class].push(student);
         return acc;
       }, {} as Record<string, typeof studentPerformance>);
 
-      const topStudents: typeof studentPerformance = [];
+      const classRankings: Record<string, typeof studentPerformance> = {};
       Object.entries(classGroups).forEach(([className, students]) => {
-        const topInClass = students
+        classRankings[className] = students
           .sort((a, b) => b.avgPuan - a.avgPuan)
           .slice(0, 5);
-        topStudents.push(...topInClass);
       });
 
-      return topStudents.sort((a, b) => b.avgPuan - a.avgPuan);
+      return classRankings;
     }, [studentPerformance]);
-
-    // Rozet sistemi
-    const getBadgeInfo = (student: any, type: 'puan' | 'net') => {
-      const score = type === 'puan' ? student.avgPuan : student.avgNet;
-      const totalExams = student.totalExams;
-      
-      // Sıralama hesapla
-      const sortedStudents = type === 'puan' 
-        ? [...studentPerformance].sort((a, b) => b.avgPuan - a.avgPuan)
-        : [...studentPerformance].sort((a, b) => b.avgNet - a.avgNet);
-      
-      const rank = sortedStudents.findIndex(s => s.id === student.id) + 1;
-      
-      if (rank === 1) {
-        return { icon: '🥇', name: 'Süperstar', color: 'from-yellow-400 to-orange-500', bg: 'bg-yellow-50' };
-      } else if (rank <= 3) {
-        return { icon: '🥈', name: 'Şampiyon', color: 'from-blue-400 to-purple-500', bg: 'bg-blue-50' };
-      } else if (rank <= 10) {
-        return { icon: '🏆', name: 'Yıldız', color: 'from-green-400 to-teal-500', bg: 'bg-green-50' };
-      } else if (totalExams >= 10) {
-        return { icon: '⭐', name: 'Azimkar', color: 'from-purple-400 to-pink-500', bg: 'bg-purple-50' };
-      } else if (totalExams >= 5) {
-        return { icon: '💪', name: 'Azimli', color: 'from-indigo-400 to-blue-500', bg: 'bg-indigo-50' };
-      } else {
-        return { icon: '🌟', name: 'Umut Vadeden', color: 'from-pink-400 to-rose-500', bg: 'bg-pink-50' };
-      }
-    };
 
     // Son eklenen denemeler
     const recentExams = useMemo(() => {
@@ -405,36 +376,40 @@ export default function FoncsDataEntry() {
               En Başarılı Öğrenciler (Ortalama Net)
             </h3>
           </div>
-          <div className="p-6">
-            {topStudentsByNet.length > 0 ? (
-              <div className="space-y-4">
-                {topStudentsByNet.map((student, index) => {
-                  const badge = getBadgeInfo(student, 'net');
-                  return (
-                    <div key={student.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <p className="font-medium text-gray-900">{student.name}</p>
-                            <p className="text-xs text-gray-500">{student.class}</p>
+          <div className="space-y-6">
+            {Object.keys(topStudentsByNetByClass).length > 0 ? (
+              Object.entries(topStudentsByNetByClass).map(([className, students]) => (
+                <div key={className} className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-4 py-3 border-b border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                      <span className="bg-green-100 p-1 rounded text-xs">🎯</span>
+                      {className}
+                    </h4>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    {students.length > 0 ? (
+                      students.map((student, index) => (
+                        <div key={student.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900 text-sm">{student.name}</p>
+                            </div>
                           </div>
-                          <div className={`px-2 py-1 rounded-full text-xs font-medium text-white bg-gradient-to-r ${badge.color} flex items-center gap-1`}>
-                            <span>{badge.icon}</span>
-                            <span>{badge.name}</span>
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-green-600">{student.avgNet.toFixed(2)} net</p>
+                            <p className="text-xs text-gray-500">{student.totalExams} deneme</p>
                           </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-green-600">{student.avgNet.toFixed(2)} net</p>
-                        <p className="text-xs text-gray-500">{student.totalExams} deneme</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-center py-4 text-sm">Bu sınıfta henüz deneme sonucu bulunmamaktadır.</p>
+                    )}
+                  </div>
+                </div>
+              ))
             ) : (
               <p className="text-gray-500 text-center py-8">Henüz sonuç bulunmamaktadır.</p>
             )}
@@ -449,36 +424,40 @@ export default function FoncsDataEntry() {
               En Başarılı Öğrenciler (Ortalama Puan)
             </h3>
           </div>
-          <div className="p-6">
-            {topStudentsByScore.length > 0 ? (
-              <div className="space-y-4">
-                {topStudentsByScore.map((student, index) => {
-                  const badge = getBadgeInfo(student, 'puan');
-                  return (
-                    <div key={student.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-gradient-to-r from-purple-400 to-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <p className="font-medium text-gray-900">{student.name}</p>
-                            <p className="text-xs text-gray-500">{student.class}</p>
+          <div className="space-y-6">
+            {Object.keys(topStudentsByScoreByClass).length > 0 ? (
+              Object.entries(topStudentsByScoreByClass).map(([className, students]) => (
+                <div key={className} className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3 border-b border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                      <span className="bg-purple-100 p-1 rounded text-xs">🎯</span>
+                      {className}
+                    </h4>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    {students.length > 0 ? (
+                      students.map((student, index) => (
+                        <div key={student.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-gradient-to-r from-purple-400 to-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900 text-sm">{student.name}</p>
+                            </div>
                           </div>
-                          <div className={`px-2 py-1 rounded-full text-xs font-medium text-white bg-gradient-to-r ${badge.color} flex items-center gap-1`}>
-                            <span>{badge.icon}</span>
-                            <span>{badge.name}</span>
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-purple-600">{student.avgPuan.toFixed(0)} puan</p>
+                            <p className="text-xs text-gray-500">{student.totalExams} deneme</p>
                           </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-purple-600">{student.avgPuan.toFixed(0)} puan</p>
-                        <p className="text-xs text-gray-500">{student.totalExams} deneme</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-center py-4 text-sm">Bu sınıfta henüz deneme sonucu bulunmamaktadır.</p>
+                    )}
+                  </div>
+                </div>
+              ))
             ) : (
               <p className="text-gray-500 text-center py-8">Henüz sonuç bulunmamaktadır.</p>
             )}
