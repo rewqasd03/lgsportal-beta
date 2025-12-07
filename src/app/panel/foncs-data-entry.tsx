@@ -17,7 +17,9 @@ const TABS: Tab[] = [
   { key: "deneme", label: "📋 Deneme Yönetimi" },
   { key: "bireysel", label: "👨‍🎓 Bireysel Veri" },
   { key: "toplu", label: "👥 Toplu Veri" },
-  { key: "hedef", label: "🎯 Hedef Belirleme" }
+  { key: "hedef", label: "🎯 Hedef Belirleme" },
+  { key: "lgs-hesaplama", label: "🧮 LGS Puan Hesaplama" },
+  { key: "van-taban-puan", label: "🎓 Van LGS Taban Puanları" }
 ];
 
 // 📊 DERS RENK KODLAMASI - Görsel iyileştirme
@@ -2596,6 +2598,8 @@ export default function FoncsDataEntry() {
       case "bireysel": return <IndividualTab />;
       case "toplu": return <BulkTab />;
       case "hedef": return <TargetTab />;
+      case "lgs-hesaplama": return <LGSCalculatorTab />;
+      case "van-taban-puan": return <VanTabanPuanTab />;
       default: return <HomeTab />;
     }
   };
@@ -2657,3 +2661,47 @@ export default function FoncsDataEntry() {
     </div>
   );
 }
+
+// LGS Puan Hesaplama Tab Component
+const LGSCalculatorTab = () => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">🧮 LGS Puan Hesaplama</h2>
+        <p className="text-gray-600 mb-8">LGS puanınızı hesaplamak için aşağıdaki aracı kullanabilirsiniz.</p>
+        
+        {/* LGS Puan Hesaplama Widget */}
+        <div className="w-full border rounded-lg p-6 bg-gray-50">
+          <div id="hn-lgs-puan-widget"></div>
+          <script src="https://e.hesaplama.net/lgs-puan.do?bgcolor=FFFFFF&tcolor=000000&hcolor=3B8CEE&rcolor=EEEEEE&tsize=n&tfamily=n&btype=s&bsize=2px&bcolor=EEEEEE" type="text/javascript"></script>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Van 2025 LGS Lise Taban Puanları Tab Component
+const VanTabanPuanTab = () => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">🎓 Van 2025 LGS Lise Taban Puanları</h2>
+        <p className="text-gray-600 mb-8">Van ilindeki liselerin 2025 LGS taban puanları burada yayınlanacak.</p>
+        
+        {/* Yakında eklenecek mesajı */}
+        <div className="text-center py-16">
+          <div className="text-8xl mb-6">🚧</div>
+          <h3 className="text-2xl font-semibold text-gray-800 mb-4">İçerik Hazırlanıyor</h3>
+          <p className="text-gray-600 mb-8 max-w-md mx-auto">
+            Van ilindeki liselerin 2025 LGS taban puanları yakında burada yayınlanacak.
+          </p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-lg mx-auto">
+            <p className="text-yellow-800">
+              <strong>Bilgi:</strong> Taban puanlar MEB tarafından açıklandığında bu sayfa güncellenecektir.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

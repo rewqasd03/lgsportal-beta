@@ -402,7 +402,7 @@ function StudentDashboardContent() {
             <div className="mb-6">
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                  {[1, 2, 3, 4, 5, 6].map((tab) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -418,6 +418,8 @@ function StudentDashboardContent() {
                       {tab === 4 && '📚 Denemeler'}
                       {tab === 5 && '🎯 Ders Bazında Gelişim'}
                       {tab === 6 && '🎯 Hedef Takibi'}
+                      {tab === 7 && '🧮 LGS Puan Hesaplama'}
+                      {tab === 8 && '🎓 Van LGS Taban Puanları'}
                     </button>
                   ))}
                 </nav>
@@ -2111,6 +2113,46 @@ function StudentDashboardContent() {
                   </div>
                 </div>
 
+              </div>
+            )}
+
+            {/* Tab 7: LGS Puan Hesaplama */}
+            {activeTab === 7 && (
+              <div className="space-y-3">
+                <div className="bg-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">🧮 LGS Puan Hesaplama</h3>
+                  <p className="text-gray-600 mb-4">LGS puanınızı hesaplamak için aşağıdaki aracı kullanabilirsiniz.</p>
+                  
+                  {/* LGS Puan Hesaplama Widget */}
+                  <div className="w-full border rounded-lg p-4 bg-gray-50">
+                    <div id="hn-lgs-puan-widget"></div>
+                    <script src="https://e.hesaplama.net/lgs-puan.do?bgcolor=FFFFFF&tcolor=000000&hcolor=3B8CEE&rcolor=EEEEEE&tsize=n&tfamily=n&btype=s&bsize=2px&bcolor=EEEEEE" type="text/javascript"></script>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 8: Van 2025 LGS Lise Taban Puanları */}
+            {activeTab === 8 && (
+              <div className="space-y-3">
+                <div className="bg-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">🎓 Van 2025 LGS Lise Taban Puanları</h3>
+                  <p className="text-gray-600 mb-4">Van ilindeki liselerin 2025 LGS taban puanları burada yayınlanacak.</p>
+                  
+                  {/* Yakında eklenecek mesajı */}
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">🚧</div>
+                    <h4 className="text-lg font-medium text-gray-800 mb-2">İçerik Hazırlanıyor</h4>
+                    <p className="text-gray-600 mb-4">
+                      Van ilindeki liselerin 2025 LGS taban puanları yakında burada yayınlanacak.
+                    </p>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-md mx-auto">
+                      <p className="text-yellow-800 text-sm">
+                        <strong>Bilgi:</strong> Taban puanlar MEB tarafından açıklandığında bu sayfa güncellenecektir.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </>
