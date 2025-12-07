@@ -2462,9 +2462,6 @@ function LGSHesaplamaTab() {
                       <div className="text-sm text-gray-600">
                         Doğru: {subjectData.dogru} | Yanlış: {subjectData.yanlis} | Net: {subjectData.net}
                       </div>
-                      <div className="font-semibold text-blue-600">
-                        Puan: {subjectData.points}
-                      </div>
                     </div>
                   </div>
                 );
