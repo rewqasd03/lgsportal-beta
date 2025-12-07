@@ -713,9 +713,9 @@ function StudentDashboardContent() {
                           <th className="px-2 py-2 text-left">Deneme</th>
                           <th className="px-2 py-2 text-center">Tarih</th>
                           <th className="px-2 py-2 text-center">Net</th>
-                          <th className="px-2 py-2 text-center">Doğru</th>
-                          <th className="px-2 py-2 text-center">Yanlış</th>
-                          <th className="px-2 py-2 text-center">Boş</th>
+                          <th className="px-2 py-2 text-center">Toplam Doğru</th>
+                          <th className="px-2 py-2 text-center">Toplam Yanlış</th>
+                          <th className="px-2 py-2 text-center">Toplam Boş</th>
                           <th className="px-2 py-2 text-center">Toplam Puan</th>
                           <th className="px-2 py-2 text-center">Gelişim</th>
                         </tr>
@@ -1008,9 +1008,9 @@ function StudentDashboardContent() {
                           <th className="px-2 py-2 text-center">Tarih</th>
                           <th className="px-2 py-2 text-center">Toplam Puan</th>
                           <th className="px-2 py-2 text-center">Net Ortalaması</th>
-                          <th className="px-2 py-2 text-center">Doğru Sayısı</th>
-                          <th className="px-2 py-2 text-center">Yanlış Sayısı</th>
-                          <th className="px-2 py-2 text-center">Boş Sayısı</th>
+                          <th className="px-2 py-2 text-center">Toplam Doğru</th>
+                          <th className="px-2 py-2 text-center">Toplam Yanlış</th>
+                          <th className="px-2 py-2 text-center">Toplam Boş</th>
                           <th className="px-2 py-2 text-center">Puan Gelişimi</th>
                           <th className="px-2 py-2 text-center">Seviye</th>
                         </tr>
