@@ -66,9 +66,12 @@ export default function HomePage() {
 
   const totalClasses = Object.keys(detailedClassStats).length;
 
+  // Test öğrencilerini filtrele (Mehmet Kaya, Ahmet Yılmaz, Fatma Demir)
+  const testStudentIds = ['12348', '12346', '12347'];
+  
   // En aktif 10 öğrenci
   const topActiveStudents = students
-    .filter(student => (student.viewCount || 0) > 0)
+    .filter(student => (student.viewCount || 0) > 0 && !testStudentIds.includes(student.id)) // Test öğrencilerini çıkar
     .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
     .slice(0, 10);
 
