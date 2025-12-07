@@ -2669,10 +2669,14 @@ const LGSCalculatorTab = () => {
     matematik: { dogru: 0, yanlis: 0 },
     fen: { dogru: 0, yanlis: 0 },
     sosyal: { dogru: 0, yanlis: 0 },
+    din: { dogru: 0, yanlis: 0 },
     ingilizce: { dogru: 0, yanlis: 0 }
   });
 
   const [result, setResult] = useState(null);
+
+  // MEB LGS Taban Puanı
+  const basePoints = 193.492;
 
   // LGS Puan Katsayıları
   const coefficients = {
@@ -2680,7 +2684,18 @@ const LGSCalculatorTab = () => {
     matematik: 3.69,
     fen: 3.69,
     sosyal: 3.69,
+    din: 3.69,
     ingilizce: 3.69
+  };
+
+  // Ders Soru Sayıları
+  const questionCounts = {
+    turkce: 20,
+    matematik: 20,
+    fen: 20,
+    sosyal: 10,
+    din: 10,
+    ingilizce: 10
   };
 
   const subjectNames = {
@@ -2688,6 +2703,7 @@ const LGSCalculatorTab = () => {
     matematik: 'Matematik',
     fen: 'Fen Bilimleri',
     sosyal: 'Sosyal Bilgiler',
+    din: 'Din Kültürü ve Ahlak Bilgisi',
     ingilizce: 'İngilizce'
   };
 
@@ -2703,12 +2719,13 @@ const LGSCalculatorTab = () => {
   };
 
   const calculateLGSPoints = () => {
-    let totalPoints = 0;
+    let totalPoints = basePoints; // Taban puanı ekle
     const subjectResults = {};
 
     Object.keys(scores).forEach(subject => {
       const { dogru, yanlis } = scores[subject];
-      const net = dogru - (yanlis / 4);
+      // MEB Formülü: Net = Doğru - (Yanlış ÷ 3) - 3 yanlış 1 doğruyu götürüyor
+      const net = dogru - (yanlis / 3);
       const points = net * coefficients[subject];
       
       subjectResults[subject] = {
@@ -2735,6 +2752,7 @@ const LGSCalculatorTab = () => {
       matematik: { dogru: 0, yanlis: 0 },
       fen: { dogru: 0, yanlis: 0 },
       sosyal: { dogru: 0, yanlis: 0 },
+      din: { dogru: 0, yanlis: 0 },
       ingilizce: { dogru: 0, yanlis: 0 }
     });
     setResult(null);
@@ -2750,15 +2768,21 @@ const LGSCalculatorTab = () => {
         <div className="space-y-6">
           {Object.keys(scores).map(subject => (
             <div key={subject} className="border rounded-lg p-6 bg-gray-50">
-              <h4 className="font-semibold text-gray-800 mb-4 flex items-center">
-                <span className="text-blue-600 mr-3 text-2xl">
-                  {subject === 'turkce' && '📝'}
-                  {subject === 'matematik' && '🔢'}
-                  {subject === 'fen' && '🧪'}
-                  {subject === 'sosyal' && '🌍'}
-                  {subject === 'ingilizce' && '🇺🇸'}
+              <h4 className="font-semibold text-gray-800 mb-4 flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="text-blue-600 mr-3 text-2xl">
+                    {subject === 'turkce' && '📝'}
+                    {subject === 'matematik' && '🔢'}
+                    {subject === 'fen' && '🧪'}
+                    {subject === 'sosyal' && '🌍'}
+                    {subject === 'din' && '🕌'}
+                    {subject === 'ingilizce' && '🇺🇸'}
+                  </span>
+                  {subjectNames[subject]}
+                </div>
+                <span className="text-xs text-gray-500 bg-gray-200 px-3 py-1 rounded">
+                  {questionCounts[subject]} soru
                 </span>
-                {subjectNames[subject]}
               </h4>
               <div className="grid grid-cols-2 gap-6">
                 <div>
@@ -2821,8 +2845,8 @@ const LGSCalculatorTab = () => {
             <div className="border rounded-lg p-6">
               <h5 className="font-semibold text-gray-800 mb-4">📊 Ders Bazında Detaylar</h5>
               <div className="space-y-4">
-                {Object.entries(result.subjects).map(([subject, data]) => {
-                  const subjectData = data as { dogru: number; yanlis: number; net: number; points: number };
+                {Object.entries(subjectNames).map(([subject, name]) => {
+                  const subjectData = result.subjects[subject] || { dogru: 0, yanlis: 0, net: 0, points: 0 };
                   return (
                   <div key={subject} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center">
@@ -2831,9 +2855,11 @@ const LGSCalculatorTab = () => {
                         {subject === 'matematik' && '🔢'}
                         {subject === 'fen' && '🧪'}
                         {subject === 'sosyal' && '🌍'}
+                        {subject === 'din' && '🕌'}
                         {subject === 'ingilizce' && '🇺🇸'}
                       </span>
-                      <span className="font-medium text-lg">{subjectNames[subject]}</span>
+                      <span className="font-medium text-lg">{name}</span>
+                      <span className="text-xs text-gray-500 ml-2">({questionCounts[subject]} soru)</span>
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-gray-600 mb-1">
@@ -2853,7 +2879,8 @@ const LGSCalculatorTab = () => {
             <div className="bg-green-50 border border-green-200 rounded-lg p-6">
               <p className="text-green-800">
                 <strong>💡 Bilgi:</strong> Bu hesaplama MEB'in resmi LGS puan hesaplama sistemine uygun olarak yapılmıştır. 
-                Net sayıları = Doğru sayısı - (Yanlış sayısı ÷ 4) formülü ile hesaplanır.
+                Net sayıları = Doğru sayısı - (Yanlış sayısı ÷ 3) formülü ile hesaplanır. 
+                <strong>Taban puan: 193.492</strong> otomatik olarak eklenir.
               </p>
             </div>
           </div>
