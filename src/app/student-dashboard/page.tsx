@@ -672,7 +672,6 @@ function StudentDashboardContent() {
                             contentStyle={{ backgroundColor: '#f9fafb', border: '1px solid #d1d5db' }}
                           />
                           {/* @ts-ignore */}
-<<<<<<< HEAD
                           <Legend />
                           {/* @ts-ignore */}
                           <Bar dataKey="öğrenci" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Öğrenci Net" />
@@ -680,9 +679,6 @@ function StudentDashboardContent() {
                           <Bar dataKey="sınıf" fill="#10B981" radius={[2, 2, 0, 0]} name="Sınıf Ortalaması" />
                           {/* @ts-ignore */}
                           <Bar dataKey="genel" fill="#F59E0B" radius={[2, 2, 0, 0]} name="Genel Ortalama" />
-=======
-                          <Bar dataKey="öğrenci" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Öğrenci Net" />
->>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -729,24 +725,17 @@ function StudentDashboardContent() {
                           const previousNet = index > 0 ? netChartData[index-1]?.öğrenci || 0 : 0;
                           const currentNet = exam.öğrenci || 0;
                           const development = index > 0 ? (currentNet - previousNet) : 0;
-<<<<<<< HEAD
-=======
                           const totalQuestions = Math.round(currentNet + (exam.öğrenci || 0) * 0.2 + 10); // Tahmini
->>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
                           
                           return (
                             <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                               <td className="px-2 py-2 font-medium text-blue-600">{exam.exam || `Deneme ${index + 1}`}</td>
-<<<<<<< HEAD
                               <td className="px-2 py-2 text-center text-gray-600">
                                 {reportData.examResults[index]?.exam?.date ? 
                                   new Date(reportData.examResults[index].exam.date).toLocaleDateString('tr-TR') : 
                                   `2025-${String(index + 1).padStart(2, '0')}-15`
                                 }
                               </td>
-=======
-                              <td className="px-2 py-2 text-center text-gray-600">2025-{String(index + 1).padStart(2, '0')}-15</td>
->>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
                               <td className="px-2 py-2 text-center">
                                 <span className={`font-semibold ${currentNet >= 60 ? 'text-green-600' : currentNet >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>
                                   {currentNet.toFixed(1)}
@@ -754,18 +743,6 @@ function StudentDashboardContent() {
                               </td>
                               <td className="px-2 py-2 text-center text-green-600 font-medium">
                                 {(() => {
-<<<<<<< HEAD
-                                  const examResult = reportData.examResults[index];
-                                  const studentResult = examResult?.studentResults[0];
-                                  if (!studentResult) return '0';
-                                  
-                                  // Gerçek deneme verilerinden doğru, yanlış, boş sayılarını çek
-                                  const correctCount = studentResult.correctCount || 0;
-                                  const wrongCount = studentResult.wrongCount || 0;
-                                  const emptyCount = studentResult.emptyCount || 0;
-                                  
-                                  return String(correctCount);
-=======
                                   // Gerçek sonuçlardan doğru sayısını hesapla
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
@@ -777,23 +754,12 @@ function StudentDashboardContent() {
                                     return sum;
                                   }, 0);
                                   return String(totalCorrect);
->>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
                                 })()}
                               </td>
                               <td className="px-2 py-2 text-center text-red-600">
                                 {(() => {
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
-<<<<<<< HEAD
-                                  if (!studentResult) return '0';
-                                  
-                                  // Gerçek deneme verilerinden doğru, yanlış, boş sayılarını çek
-                                  const correctCount = studentResult.correctCount || 0;
-                                  const wrongCount = studentResult.wrongCount || 0;
-                                  const emptyCount = studentResult.emptyCount || 0;
-                                  
-                                  return String(wrongCount);
-=======
                                   const nets = studentResult?.nets || {};
                                   const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
                                     if (typeof net === 'number') {
@@ -803,27 +769,12 @@ function StudentDashboardContent() {
                                   }, 0);
                                   // Yanlış sayısı = Doğru sayısı * 0.3 (tahmini oran)
                                   return String(Math.round(totalCorrect * 0.3));
->>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
                                 })()}
                               </td>
                               <td className="px-2 py-2 text-center text-gray-500">
                                 {(() => {
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
-<<<<<<< HEAD
-                                  if (!studentResult) return '0';
-                                  
-                                  // Gerçek deneme verilerinden doğru, yanlış, boş sayılarını çek
-                                  const correctCount = studentResult.correctCount || 0;
-                                  const wrongCount = studentResult.wrongCount || 0;
-                                  const emptyCount = studentResult.emptyCount || 0;
-                                  
-                                  return String(emptyCount);
-                                })()}
-                              </td>
-                              <td className="px-2 py-2 text-center font-medium text-blue-600">
-                                {reportData.examResults[index]?.studentTotalScore.toFixed(0) || '0'}
-=======
                                   const nets = studentResult?.nets || {};
                                   const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
                                     if (typeof net === 'number') {
@@ -839,7 +790,6 @@ function StudentDashboardContent() {
                               </td>
                               <td className="px-2 py-2 text-center font-medium text-blue-600">
                                 {reportData.examResults[index]?.studentTotalScore.toFixed(0) || '0'} {/* Gerçek toplam puan */}
->>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
                               </td>
                               <td className="px-2 py-2 text-center">
                                 {index > 0 ? (
@@ -1070,16 +1020,6 @@ function StudentDashboardContent() {
                           const previousScore = index > 0 ? scoreChartData[index-1]?.öğrenci || 0 : 0;
                           const currentScore = exam.öğrenci || 0;
                           const scoreDevelopment = index > 0 ? (currentScore - previousScore) : 0;
-<<<<<<< HEAD
-                          const currentNet = reportData.examResults[index]?.studentTotalNet || 0;
-                          const examResult = reportData.examResults[index];
-                          const studentResult = examResult?.studentResults[0];
-                          
-                          // Gerçek deneme verilerinden doğru, yanlış, boş sayılarını çek
-                          const correctCount = studentResult?.correctCount || 0;
-                          const wrongCount = studentResult?.wrongCount || 0;
-                          const emptyCount = studentResult?.emptyCount || 0;
-=======
                           const currentNet = reportData.examResults[index]?.studentTotalNet || 0; // Gerçek net
                           const examResult = reportData.examResults[index];
                           const studentResult = examResult?.studentResults[0];
@@ -1094,7 +1034,6 @@ function StudentDashboardContent() {
                           }, 0);
                           const wrongCount = Math.round(totalCorrect * 0.3); // Yanlış sayısı = Doğru * 0.3
                           const emptyCount = Math.max(0, 90 - totalCorrect - wrongCount); // 90 toplam soru
->>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
                           
                           let level = '';
                           let levelColor = '';
@@ -1130,11 +1069,7 @@ function StudentDashboardContent() {
                                 {currentNet.toFixed(1)}
                               </td>
                               <td className="px-2 py-2 text-center text-green-600 font-medium">
-<<<<<<< HEAD
-                                {correctCount}
-=======
                                 {totalCorrect}
->>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
                               </td>
                               <td className="px-2 py-2 text-center text-red-600">
                                 {wrongCount}
@@ -1775,7 +1710,6 @@ function StudentDashboardContent() {
                         const studentResult = item.studentResults[0];
                         const studentNet = studentResult?.nets?.[subject.key] || 0;
                         
-<<<<<<< HEAD
                         // Sınıf ortalaması: denemeye giren öğrencilerin o ders net ortalaması
                         const examResults = allResultsData.filter(r => r.examId === item.exam.id);
                         const classStudents = examResults.filter(r => {
@@ -1786,17 +1720,9 @@ function StudentDashboardContent() {
                           ? classStudents.reduce((sum, r) => sum + (r.nets?.[subject.key] || 0), 0) / classStudents.length
                           : 0;
                         
-                        // Genel ortalama: deneme yönetiminde girilen genel ortalama verisi
-                        const classAverages = item.exam.generalAverages?.[reportData.student.class] || {};
-                        const generalSubjectAverage = classAverages[subject.key] || 0; // Deneme yönetiminde girilen veri
-=======
                         // Sınıf ve genel ortalamalarını hesapla
                         const classAverages = item.exam.generalAverages?.[reportData.student.class] || {};
-                        const classSubjectAverage = classAverages[subject.key] || 0; // Sınıfın o ders net ortalaması
-                        
-                        // Genel ortalama: ders bazındaki genel net ortalamalarından
                         const generalSubjectAverage = classAverages[subject.key] || 0; // Genel ders ortalaması (deneme yönetiminde girilen)
->>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
                         
                         return {
                           exam: item.exam.title,
@@ -2041,7 +1967,6 @@ function StudentDashboardContent() {
                     );
                   })()}
                 </div>
-<<<<<<< HEAD
 
                 {/* Denemeler ve Hedefe Ulaşma Durumu */}
                 <div className="bg-white rounded-lg shadow p-2">
@@ -2138,8 +2063,7 @@ function StudentDashboardContent() {
                     </table>
                   </div>
                 </div>
-=======
->>>>>>> ee95ef9caa1ef160b706308f87a94a84af8b96b4
+
               </div>
             )}
           </>
