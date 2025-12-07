@@ -2678,14 +2678,14 @@ const LGSCalculatorTab = () => {
   // MEB LGS Taban Puanı
   const basePoints = 193.492;
 
-  // LGS Puan Katsayıları
+  // LGS Puan Katsayıları (MEB 2024 - 1 net'in getirdiği puan)
   const coefficients = {
-    turkce: 4.69,
-    matematik: 3.69,
-    fen: 3.69,
-    sosyal: 3.69,
-    din: 3.69,
-    ingilizce: 3.69
+    turkce: 3.671,
+    matematik: 4.953,
+    fen: 4.072,
+    sosyal: 1.685,
+    din: 1.941,
+    ingilizce: 1.632
   };
 
   // Ders Soru Sayıları
