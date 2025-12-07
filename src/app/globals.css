@@ -7,8 +7,36 @@ body {
   background-color: #f8fafc; /* Tailwind slate-50 */
 }
 
+/* Toast Animations */
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
 
+@keyframes progressBar {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
+  }
+}
 
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-progressBar {
+  animation: progressBar 4s linear;
+}
+
+/* Enhanced fade-in-up animation */
 @keyframes fade-in-up {
   0% {
     opacity: 0;
