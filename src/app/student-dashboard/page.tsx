@@ -369,7 +369,7 @@ function StudentDashboardContent() {
               <img 
                 src="/projelogo.png" 
                 alt="LGS Portalı" 
-                className="w-10 h-10 rounded-full shadow-md"
+                className="w-16 h-16 rounded-full shadow-md"
               />
               <div>
                 <h1 className="text-lg font-bold text-gray-900">LGS Portalı</h1>
@@ -2145,6 +2145,21 @@ function StudentDashboardContent() {
           </>
         )}
       </div>
+      
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 py-6 mt-8">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <img src="/projelogo.png" alt="LGS Portalı" className="w-8 h-8 mr-3" />
+              <span className="text-sm font-medium text-gray-900">LGS Portalı</span>
+            </div>
+            <p className="text-xs text-gray-500">
+              © {new Date().getFullYear()} LGS Portalı | Developed by Murat UYSAL
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

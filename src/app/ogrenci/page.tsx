@@ -41,7 +41,7 @@ const StudentLoginPage: React.FC = () => {
           <img 
             src="/projelogo.png" 
             alt="LGS Portalı" 
-            className="w-20 h-20 mx-auto mb-4 hover:scale-110 transition-transform duration-300 drop-shadow-xl"
+            className="w-24 h-24 mx-auto mb-4 hover:scale-110 transition-transform duration-300 drop-shadow-xl"
           />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Öğrenci Portalı</h1>
           <p className="text-gray-600">LGS Başarı Takip Sistemi</p>
