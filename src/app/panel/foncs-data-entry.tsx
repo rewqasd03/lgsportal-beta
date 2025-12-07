@@ -1932,6 +1932,31 @@ export default function FoncsDataEntry() {
                         </div>
                       </div>
                       
+<<<<<<< HEAD
+                      {/* Mevcut Hedef */}
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Mevcut Hedef</label>
+                        <div className="bg-purple-100 p-2 rounded-lg">
+                          <div className="flex justify-between">
+                            <span className="text-xs text-purple-600">Belirlenen:</span>
+                            <span className="text-xs font-bold text-purple-700">
+                              {studentTargetForm[subject.key]?.toFixed(1) || subject.target}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-purple-600">Fark:</span>
+                            <span className={`text-xs font-bold ${
+                              (studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0) >= 0 
+                                ? 'text-green-600' 
+                                : 'text-red-600'
+                            }`}>
+                              {((studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0)) >= 0 ? '+' : ''}
+                              {((studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0)).toFixed(1)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
                       {/* Mevcut Hedef */}
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">Mevcut Hedef</label>
