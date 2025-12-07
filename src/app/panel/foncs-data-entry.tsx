@@ -240,7 +240,11 @@ export default function FoncsDataEntry() {
           totalExams,
           avgNet,
           avgPuan: totalExams > 0 
-            ? studentResults.reduce((sum: number, r) => sum + (r.puan || 0), 0) / totalExams
+            ? studentResults.reduce((sum: number, r) => {
+                // Puan bilgisi varsa onu kullan, yoksa nets.total'ı kullan
+                const score = r.puan || r.nets?.total || 0;
+                return sum + score;
+              }, 0) / totalExams
             : 0,
           lastExam: lastExam?.title || 'Deneme yok',
           lastDate: lastExam ? new Date(lastExam.date).toLocaleDateString('tr-TR') : 'N/A',
