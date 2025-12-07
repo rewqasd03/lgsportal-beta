@@ -2134,7 +2134,7 @@ function StudentDashboardContent() {
 
 // Lise Taban Puanları Tab Komponenti
 function LiseTabanPuanlariTab() {
-  const [selectedType, setSelectedType] = useState<'lgs' | 'obp' | null>(null);
+  const [selectedType, setSelectedType] = useState<'merkezi' | 'yerel' | null>(null);
 
   return (
     <div className="space-y-3">
@@ -2147,52 +2147,69 @@ function LiseTabanPuanlariTab() {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <h4 className="text-lg font-semibold text-blue-900 mb-3">📚 Lise Yerleştirme Sistemi</h4>
               
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-white rounded-lg p-4 border">
-                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center">
-                    <span className="text-blue-600 mr-2">🎯</span>
-                    LGS (Liselere Geçiş Sınavı)
-                  </h5>
-                  <p className="text-sm text-gray-600 mb-2">
-                    <strong>Amacı:</strong> Anadolu ve Fen liselerine yerleştirme
-                  </p>
-                  <p className="text-sm text-gray-600 mb-2">
-                    <strong>Puan Hesabı:</strong> Net sayıları × 3.33 katsayısı
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Önemli:</strong> Sadece puan sıralaması değil, tercih sırası da önemlidir
-                  </p>
+              <div className="bg-white rounded-lg p-4 border mb-4">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="text-purple-600 mr-2">🎓</span>
+                  Lise Yerleştirme Türleri
+                </h4>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                    <h5 className="font-semibold text-blue-800 mb-3 flex items-center">
+                      <span className="text-blue-600 mr-2">🎯</span>
+                      Merkezi Yerleştirme
+                    </h5>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-gray-700">
+                        <strong>Tanım:</strong> LGS sınav puanına göre Türkiye genelinde sıralama yapılarak öğrenci alan okullara yerleşme.
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Okul Türleri:</strong> Fen Liseleri, Sosyal Bilimler Liseleri, proje okulları, bazı teknik programlar
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Belirleyici Faktör:</strong> LGS puanı ve tercih sırası; adres dikkate alınmaz.
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Tercih:</strong> Öğrenciler sınavla alan okullar için ayrı tercih listesinden seçim yapar.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                    <h5 className="font-semibold text-green-800 mb-3 flex items-center">
+                      <span className="text-green-600 mr-2">🏠</span>
+                      Yerel Yerleştirme (Adrese Dayalı)
+                    </h5>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-gray-700">
+                        <strong>Tanım:</strong> Öğrencinin ikamet adresi, okul türü ve kontenjan dikkate alınarak kendi kayıt alanındaki okullara yerleşme.
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Okul Türleri:</strong> Anadolu Liseleri, Meslek Liseleri, İmam Hatip Liseleri
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Belirleyici Faktör:</strong> Kayıt alanı, okul türü ve kontenjan; tercih sırası önemlidir.
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Tercih:</strong> Kayıt alanı önceliklidir; farklı alanlardan (komşu/diğer) okul seçimi sınırlıdır.
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="bg-white rounded-lg p-4 border">
-                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center">
-                    <span className="text-green-600 mr-2">📖</span>
-                    OBP (Ortaokul Başarı Puanı)
-                  </h5>
-                  <p className="text-sm text-gray-600 mb-2">
-                    <strong>Amacı:</strong> İmam hatip ve meslek liselerine yerleştirme
-                  </p>
-                  <p className="text-sm text-gray-600 mb-2">
-                    <strong>Puan Hesabı:</strong> 6., 7., 8. sınıf not ortalaması
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Önemli:</strong> Tüm ortaokul yıllarının performansı etkiler
+                <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                  <p className="text-purple-800 text-sm">
+                    <strong>💡 Bilgi:</strong> LGS puanınız ile merkezi yerleştirme kapsamındaki okullara (Fen, Sosyal Bilimler), 
+                    adres bilginiz ile yerel yerleştirme kapsamındaki okullara (Anadolu, Meslek, İmam Hatip) başvurabilirsiniz.
                   </p>
                 </div>
-              </div>
-              
-              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-yellow-800 text-sm">
-                  <strong>💡 İpucu:</strong> LGS ile OBP puanları farklı sistemlerde hesaplanır. 
-                  LGS puanınız ile Anadolu/Fen liselerine, OBP puanınız ile diğer liselere başvurabilirsiniz.
-                </p>
               </div>
             </div>
 
             {/* Seçim Kartları */}
             <div className="grid md:grid-cols-2 gap-4">
               <button
-                onClick={() => setSelectedType('lgs')}
+                onClick={() => setSelectedType('merkezi')}
                 className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg p-6 text-left transition-all duration-200 transform hover:scale-105 shadow-lg"
               >
                 <div className="flex items-center mb-3">
@@ -2200,30 +2217,30 @@ function LiseTabanPuanlariTab() {
                     <span className="text-2xl">🎯</span>
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold">LGS Taban Puanları</h4>
-                    <p className="text-blue-100 text-sm">Anadolu & Fen Liseleri</p>
+                    <h4 className="text-lg font-semibold">Merkezi Yerleştirme</h4>
+                    <p className="text-blue-100 text-sm">Fen & Sosyal Bilimler Liseleri</p>
                   </div>
                 </div>
                 <p className="text-blue-100 text-sm">
-                  2025 LGS puanları ile Van ilindeki Anadolu ve Fen liselerinin taban puanlarını görüntüleyin.
+                  LGS puanına göre merkezi yerleştirme kapsamındaki okulların taban puanlarını görüntüleyin.
                 </p>
               </button>
 
               <button
-                onClick={() => setSelectedType('obp')}
+                onClick={() => setSelectedType('yerel')}
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg p-6 text-left transition-all duration-200 transform hover:scale-105 shadow-lg"
               >
                 <div className="flex items-center mb-3">
                   <div className="bg-white bg-opacity-20 rounded-full p-2 mr-3">
-                    <span className="text-2xl">📖</span>
+                    <span className="text-2xl">🏠</span>
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold">OBP Taban Puanları</h4>
-                    <p className="text-green-100 text-sm">İmam Hatip & Meslek Liseleri</p>
+                    <h4 className="text-lg font-semibold">Yerel Yerleştirme</h4>
+                    <p className="text-green-100 text-sm">Anadolu, Meslek & İmam Hatip</p>
                   </div>
                 </div>
                 <p className="text-green-100 text-sm">
-                  2025 OBP puanları ile Van ilindeki İmam hatip ve meslek liselerinin taban puanlarını görüntüleyin.
+                  Adres bilginize göre yerel yerleştirme kapsamındaki okulların taban puanlarını görüntüleyin.
                 </p>
               </button>
             </div>
@@ -2244,10 +2261,10 @@ function LiseTabanPuanlariTab() {
             </div>
 
             {/* Seçilen İçerik */}
-            {selectedType === 'lgs' ? (
-              <LGSTabanPuanlari />
+            {selectedType === 'merkezi' ? (
+              <MerkeziYerlestirmePuanlari />
             ) : (
-              <OBPTabanPuanlari />
+              <YerelYerlestirmePuanlari />
             )}
           </>
         )}
@@ -2484,64 +2501,72 @@ function LGSHesaplamaTab() {
   );
 }
 
-// Van LGS Taban Puanları Component
-function LGSTabanPuanlari() {
-  const lgsSchools = [
-    {
-      name: "Van Atatürk Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "420.5",
-      capacity: "150",
-      district: "Merkez"
-    },
+// Merkezi Yerleştirme Taban Puanları Component
+function MerkeziYerlestirmePuanlari() {
+  const merkeziSchools = [
     {
       name: "Van Fen Lisesi",
       type: "Fen Lisesi", 
       score: "445.2",
       capacity: "120",
-      district: "Merkez"
+      district: "Merkez",
+      yertip: "Merkezi Yerleştirme"
+    },
+    {
+      name: "Van Atatürk Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "420.5",
+      capacity: "150",
+      district: "Merkez",
+      yertip: "Yerel Yerleştirme"
     },
     {
       name: "Van İpekyolu Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "415.8",
       capacity: "150",
-      district: "İpekyolu"
+      district: "İpekyolu",
+      yertip: "Yerel Yerleştirme"
     },
     {
       name: "Van Muradiye Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "398.2",
       capacity: "120",
-      district: "Muradiye"
+      district: "Muradiye",
+      yertip: "Yerel Yerleştirme"
     },
     {
       name: "Van Erciş Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "392.1",
       capacity: "150",
-      district: "Erciş"
+      district: "Erciş",
+      yertip: "Yerel Yerleştirme"
     },
     {
       name: "Van Gevaş Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "385.7",
       capacity: "120",
-      district: "Gevaş"
+      district: "Gevaş",
+      yertip: "Yerel Yerleştirme"
     },
     {
       name: "Van Çatak Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "378.9",
       capacity: "100",
-      district: "Çatak"
+      district: "Çatak",
+      yertip: "Yerel Yerleştirme"
     },
     {
       name: "Van Gürpınar Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "372.4",
       capacity: "120",
-      district: "Gürpınar"
+      district: "Gürpınar",
+      yertip: "Yerel Yerleştirme"
     }
   ];
 
@@ -2550,10 +2575,10 @@ function LGSTabanPuanlari() {
       <div className="bg-white rounded-lg shadow p-4">
         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
           <span className="text-blue-600 mr-2">🎯</span>
-          Van İli LGS Taban Puanları (2024)
+          Van İli Merkezi Yerleştirme Taban Puanları (2024)
         </h4>
         <p className="text-gray-600 mb-4 text-sm">
-          2024 LGS sonuçlarına göre Van ilindeki Anadolu ve Fen liselerinin taban puanları:
+          2024 LGS sonuçlarına göre merkezi yerleştirme kapsamındaki okulların taban puanları:
         </p>
         
         <div className="overflow-x-auto">
@@ -2562,13 +2587,14 @@ function LGSTabanPuanlari() {
               <tr className="bg-gray-50">
                 <th className="text-left p-3 font-semibold text-gray-800">Lise Adı</th>
                 <th className="text-left p-3 font-semibold text-gray-800">Tür</th>
+                <th className="text-center p-3 font-semibold text-gray-800">Yerleştirme Türü</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Taban Puan</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Kontenjan</th>
                 <th className="text-left p-3 font-semibold text-gray-800">İlçe</th>
               </tr>
             </thead>
             <tbody>
-              {lgsSchools.map((school, index) => (
+              {merkeziSchools.map((school, index) => (
                 <tr key={index} className="border-t hover:bg-gray-50">
                   <td className="p-3 font-medium text-gray-900">{school.name}</td>
                   <td className="p-3">
@@ -2578,6 +2604,15 @@ function LGSTabanPuanlari() {
                         : 'bg-green-100 text-green-800'
                     }`}>
                       {school.type}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      school.yertip === 'Merkezi Yerleştirme'
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-orange-100 text-orange-800'
+                    }`}>
+                      {school.yertip}
                     </span>
                   </td>
                   <td className="p-3 text-center font-bold text-blue-600">{school.score}</td>
@@ -2591,7 +2626,7 @@ function LGSTabanPuanlari() {
 
         <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
           <p className="text-yellow-800 text-xs">
-            <strong>Not:</strong> Bu puanlar 2024 LGS sonuçlarıdır. 2025 puanları MEB tarafından açıklandığında güncellenecektir.
+            <strong>Not:</strong> Bu puanlar 2024 LGS sonuçlarına göre merkezi yerleştirme taban puanlarıdır. 2025 puanları MEB tarafından açıklandığında güncellenecektir.
           </p>
         </div>
       </div>
@@ -2599,50 +2634,56 @@ function LGSTabanPuanlari() {
   );
 }
 
-// Van OBP Taban Puanları Component
-function OBPTabanPuanlari() {
-  const obpSchools = [
+// Yerel Yerleştirme Taban Puanları Component
+function YerelYerlestirmePuanlari() {
+  const yerelSchools = [
     {
-      name: "Van İmam Hatip Ortaokulu",
-      type: "İmam Hatip Ortaokulu",
-      score: "85.2",
+      name: "Van İmam Hatip Lisesi",
+      type: "İmam Hatip Lisesi",
+      score: "385.2",
       capacity: "120",
-      district: "Merkez"
+      district: "Merkez",
+      yertip: "Yerel Yerleştirme"
     },
     {
-      name: "Van Kız İmam Hatip Ortaokulu",
-      type: "İmam Hatip Ortaokulu",
-      score: "82.7",
+      name: "Van Kız İmam Hatip Lisesi",
+      type: "İmam Hatip Lisesi",
+      score: "382.7",
       capacity: "120",
-      district: "Merkez"
+      district: "Merkez",
+      yertip: "Yerel Yerleştirme"
     },
     {
       name: "Van Mesleki ve Teknik Anadolu Lisesi",
       type: "Meslek Lisesi",
-      score: "78.5",
+      score: "378.5",
       capacity: "150",
-      district: "Merkez"
+      district: "Merkez",
+      yertip: "Yerel Yerleştirme"
     },
     {
       name: "Van Sağlık Meslek Lisesi",
       type: "Sağlık Meslek Lisesi",
-      score: "80.3",
+      score: "380.3",
       capacity: "100",
-      district: "Merkez"
+      district: "Merkez",
+      yertip: "Yerel Yerleştirme"
     },
     {
       name: "Van Tarım Meslek Lisesi",
       type: "Tarım Meslek Lisesi",
-      score: "75.8",
+      score: "375.8",
       capacity: "80",
-      district: "Erciş"
+      district: "Erciş",
+      yertip: "Yerel Yerleştirme"
     },
     {
       name: "Van Ticaret Meslek Lisesi",
       type: "Ticaret Meslek Lisesi",
-      score: "76.9",
+      score: "376.9",
       capacity: "120",
-      district: "Merkez"
+      district: "Merkez",
+      yertip: "Yerel Yerleştirme"
     }
   ];
 
@@ -2650,11 +2691,11 @@ function OBPTabanPuanlari() {
     <div className="space-y-4">
       <div className="bg-white rounded-lg shadow p-4">
         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-          <span className="text-green-600 mr-2">📖</span>
-          Van İli OBP Taban Puanları (2024)
+          <span className="text-green-600 mr-2">🏠</span>
+          Van İli Yerel Yerleştirme Taban Puanları (2024)
         </h4>
         <p className="text-gray-600 mb-4 text-sm">
-          2024 OBP sonuçlarına göre Van ilindeki İmam hatip ve meslek liselerinin taban puanları:
+          2024 sonuçlarına göre yerel yerleştirme kapsamındaki okulların taban puanları:
         </p>
         
         <div className="overflow-x-auto">
@@ -2663,13 +2704,14 @@ function OBPTabanPuanlari() {
               <tr className="bg-gray-50">
                 <th className="text-left p-3 font-semibold text-gray-800">Okul Adı</th>
                 <th className="text-left p-3 font-semibold text-gray-800">Tür</th>
+                <th className="text-center p-3 font-semibold text-gray-800">Yerleştirme Türü</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Taban Puan</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Kontenjan</th>
                 <th className="text-left p-3 font-semibold text-gray-800">İlçe</th>
               </tr>
             </thead>
             <tbody>
-              {obpSchools.map((school, index) => (
+              {yerelSchools.map((school, index) => (
                 <tr key={index} className="border-t hover:bg-gray-50">
                   <td className="p-3 font-medium text-gray-900">{school.name}</td>
                   <td className="p-3">
@@ -2679,6 +2721,15 @@ function OBPTabanPuanlari() {
                         : 'bg-orange-100 text-orange-800'
                     }`}>
                       {school.type}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      school.yertip === 'Yerel Yerleştirme'
+                        ? 'bg-orange-100 text-orange-800' 
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {school.yertip}
                     </span>
                   </td>
                   <td className="p-3 text-center font-bold text-green-600">{school.score}</td>
@@ -2692,7 +2743,7 @@ function OBPTabanPuanlari() {
 
         <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
           <p className="text-yellow-800 text-xs">
-            <strong>Not:</strong> Bu puanlar 2024 OBP sonuçlarıdır. 2025 puanları MEB tarafından açıklandığında güncellenecektir.
+            <strong>Not:</strong> Bu puanlar 2024 sonuçlarına göre yerel yerleştirme taban puanlarıdır. 2025 puanları MEB tarafından açıklandığında güncellenecektir.
           </p>
         </div>
       </div>
