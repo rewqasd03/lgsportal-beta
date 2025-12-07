@@ -2594,12 +2594,72 @@ export default function FoncsDataEntry() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Toast Notification */}
+      {/* Toast Notification - Modern Design */}
       {toast && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500'}`}>
-          <div className="flex items-center gap-2">
-            <span>{toast.message}</span>
-            <button onClick={() => setToast(null)} className="ml-2 text-white hover:text-gray-200">✕</button>
+        <div className={`fixed top-6 right-6 z-50 transform transition-all duration-300 ease-in-out animate-slideIn`}>
+          <div className={`
+            relative min-w-[320px] max-w-md p-4 rounded-xl shadow-2xl text-white overflow-hidden
+            ${toast.type === 'success' 
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 border border-emerald-400' 
+              : toast.type === 'error' 
+                ? 'bg-gradient-to-r from-red-500 to-pink-600 border border-red-400'
+                : 'bg-gradient-to-r from-blue-500 to-indigo-600 border border-blue-400'
+            }
+          `}>
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                backgroundRepeat: 'repeat'
+              }}></div>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="absolute top-0 left-0 h-1 bg-white bg-opacity-30 animate-progressBar"></div>
+            
+            <div className="relative flex items-start gap-3">
+              {/* Icon */}
+              <div className="flex-shrink-0 mt-0.5">
+                {toast.type === 'success' && (
+                  <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+                {toast.type === 'error' && (
+                  <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+                {toast.type === 'info' && (
+                  <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium leading-relaxed">
+                  {toast.message}
+                </p>
+              </div>
+              
+              {/* Close Button */}
+              <button 
+                onClick={() => setToast(null)} 
+                className="flex-shrink-0 w-6 h-6 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition-all duration-200 group"
+              >
+                <svg className="w-3 h-3 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       )}
