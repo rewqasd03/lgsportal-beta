@@ -67,21 +67,17 @@ const StudentReport: React.FC<StudentReportProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Debug: URL parametrelerini console'a yazdır
+  // URL parametrelerini kontrol et
   useEffect(() => {
-    console.log('=== STUDENT REPORT DEBUG ===');
-    console.log('Current URL:', window.location.href);
-    console.log('SearchParams:', searchParams?.toString());
-    console.log('All params:', Object.fromEntries(searchParams?.entries() || []));
-
-    // Arama parametrelerini kontrol et
     if (searchParams) {
       const type = searchParams.get('type');
       const studentId = searchParams.get('studentId');
       const classId = searchParams.get('classId');
-      console.log('Type:', type);
-      console.log('Student ID:', studentId);
-      console.log('Class ID:', classId);
+      
+      // Arama parametrelerini doğrula
+      if (!type || (type === 'student' && !studentId) || (type === 'class' && !classId)) {
+        toast.error('Geçersiz rapor parametreleri');
+      }
     }
   }, [searchParams]);
 
@@ -97,23 +93,18 @@ const StudentReport: React.FC<StudentReportProps> = ({
       const studentId = searchParams.get('studentId');
       const classId = searchParams.get('classId');
 
-      console.log('DEBUG - Search params:', { type, studentId, classId });
-
       // Parametre kontrolü
       if (!type) {
-        console.error('ERROR: No type parameter found');
         toast.error('Rapor tipi belirtilmemiş');
         return;
       }
 
       if (type === 'student' && !studentId) {
-        console.error('ERROR: Student ID not provided');
         toast.error('Öğrenci ID belirtilmemiş');
         return;
       }
 
       if (type === 'class' && !classId) {
-        console.error('ERROR: Class ID not provided');
         toast.error('Sınıf ID belirtilmemiş');
         return;
       }
@@ -124,22 +115,16 @@ const StudentReport: React.FC<StudentReportProps> = ({
       if (type === 'student' && studentId) {
         // Öğrenci raporu
         const student = students.find(s => s.id === studentId);
-        console.log('DEBUG - Looking for student with ID:', studentId);
-        console.log('DEBUG - Found student:', student);
         if (!student) {
-          console.error('Student not found for ID:', studentId);
           toast.error('Öğrenci bulunamadı');
           return;
         }
 
         const studentResults = results.filter(r => r.studentId === studentId);
-        console.log('DEBUG - Student results count:', studentResults.length);
-        console.log('DEBUG - Student results:', studentResults);
         const examResults = [];
 
         for (const result of studentResults) {
           const exam = exams.find(e => e.id === result.examId);
-          console.log('DEBUG - Looking for exam with ID:', result.examId, 'Found:', exam);
           if (!exam) continue;
 
           // Sınıf ortalamasını hesapla
@@ -162,9 +147,6 @@ const StudentReport: React.FC<StudentReportProps> = ({
         }
 
         examResults.sort((a, b) => new Date(a.exam.date).getTime() - new Date(b.exam.date).getTime());
-
-        console.log('DEBUG - Final examResults count:', examResults.length);
-        console.log('DEBUG - Setting report data:', { student, examResultsCount: examResults.length });
 
         setReportData({
           student,

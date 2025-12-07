@@ -66,12 +66,9 @@ export default function HomePage() {
 
   const totalClasses = Object.keys(detailedClassStats).length;
 
-  // Test öğrencilerini filtrele (Mehmet Kaya, Ahmet Yılmaz, Fatma Demir)
-  const testStudentIds = ['12348', '12346', '12347'];
-  
   // En aktif 10 öğrenci
   const topActiveStudents = students
-    .filter(student => (student.viewCount || 0) > 0 && !testStudentIds.includes(student.id)) // Test öğrencilerini çıkar
+    .filter(student => (student.viewCount || 0) > 0)
     .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
     .slice(0, 10);
 
@@ -115,8 +112,6 @@ export default function HomePage() {
           </h1>
           <p className="text-center text-xs text-gray-600 leading-relaxed max-w-lg mx-auto mb-6">
             Öğrenciler başarılarını takip edebilir, öğretmenler sınıf performanslarını anlık olarak görebilir.
-            <br />
-            <span className="text-blue-600 font-medium">🎯 UI sorunu çözüldü - Deployment test</span>
           </p>
 
 
