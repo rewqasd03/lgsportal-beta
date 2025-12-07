@@ -332,8 +332,8 @@ function StudentDashboardContent() {
   const trend = improvement > 2 ? 'Yükseliş' : improvement < -2 ? 'Düşüş' : 'Stabil';
   const trendColor = improvement > 2 ? 'text-green-600' : improvement < -2 ? 'text-red-600' : 'text-yellow-600';
 
-  // Renk kodları
-  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#F97316'];
+  // Renk kodları - Tüm dersler için sabit renk
+  const COLORS = ['#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6'];
 
   // Grafik verileri
   const netChartData = reportData.examResults.map((item, index) => ({
