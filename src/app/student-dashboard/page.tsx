@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
@@ -2118,18 +2118,7 @@ function StudentDashboardContent() {
 
             {/* Tab 7: LGS Puan Hesaplama */}
             {activeTab === 7 && (
-              <div className="space-y-3">
-                <div className="bg-white rounded-lg shadow p-4">
-                  <h3 className="text-sm font-semibold text-gray-800 mb-4">🧮 LGS Puan Hesaplama</h3>
-                  <p className="text-gray-600 mb-4">LGS puanınızı hesaplamak için aşağıdaki aracı kullanabilirsiniz.</p>
-                  
-                  {/* LGS Puan Hesaplama Widget */}
-                  <div className="w-full border rounded-lg p-4 bg-gray-50">
-                    <div id="hn-lgs-puan-widget"></div>
-                    <script src="https://e.hesaplama.net/lgs-puan.do?bgcolor=FFFFFF&tcolor=000000&hcolor=3B8CEE&rcolor=EEEEEE&tsize=n&tfamily=n&btype=s&bsize=2px&bcolor=EEEEEE" type="text/javascript"></script>
-                  </div>
-                </div>
-              </div>
+              <LGSHesaplamaTab />
             )}
 
             {/* Tab 8: Van 2025 LGS Lise Taban Puanları */}
@@ -2157,6 +2146,69 @@ function StudentDashboardContent() {
             )}
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+// LGS Puan Hesaplama Tab Komponenti
+function LGSHesaplamaTab() {
+  const scriptLoaded = useRef(false);
+
+  useEffect(() => {
+    // Script'i sadece bir kez yükle
+    if (!scriptLoaded.current) {
+      const script = document.createElement('script');
+      script.src = 'https://e.hesaplama.net/lgs-puan.do?bgcolor=FFFFFF&tcolor=000000&hcolor=3B8CEE&rcolor=EEEEEE&tsize=n&tfamily=n&btype=s&bsize=2px&bcolor=EEEEEE';
+      script.type = 'text/javascript';
+      script.async = true;
+      
+      script.onload = () => {
+        console.log('LGS widget script yüklendi');
+        scriptLoaded.current = true;
+      };
+      
+      script.onerror = () => {
+        console.error('LGS widget script yüklenemedi');
+      };
+
+      document.head.appendChild(script);
+
+      // Cleanup function
+      return () => {
+        const existingScript = document.querySelector(`script[src="${script.src}"]`);
+        if (existingScript) {
+          document.head.removeChild(existingScript);
+        }
+      };
+    }
+  }, []);
+
+  return (
+    <div className="space-y-3">
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="text-sm font-semibold text-gray-800 mb-4">🧮 LGS Puan Hesaplama</h3>
+        <p className="text-gray-600 mb-4">LGS puanınızı hesaplamak için aşağıdaki aracı kullanabilirsiniz.</p>
+        
+        {/* LGS Puan Hesaplama Widget */}
+        <div className="w-full border rounded-lg p-4 bg-gray-50">
+          <div id="hn-lgs-puan-widget">
+            {!scriptLoaded.current && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">LGS hesaplayıcısı yükleniyor...</p>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Widget bilgi mesajı */}
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-blue-800 text-sm">
+            <strong>Not:</strong> Bu hesaplayıcı hesaplama.net tarafından sağlanmaktadır. 
+            LGS puan hesaplamanız için doğru net sayılarınızı girmeniz yeterlidir.
+          </p>
+        </div>
       </div>
     </div>
   );
