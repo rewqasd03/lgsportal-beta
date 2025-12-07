@@ -105,7 +105,7 @@ export default function HomePage() {
           <img
             src="/projelogo.png"
             alt="LGS Portalı"
-            className="w-20 h-20 mx-auto mb-4 hover:scale-110 transition-transform duration-300 drop-shadow-xl"
+            className="w-24 h-24 mx-auto mb-4 hover:scale-110 transition-transform duration-300 drop-shadow-xl"
           />
           <h1 className="text-xs sm:text-sm font-black tracking-tight text-center mb-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
             LGS Portalı
@@ -274,6 +274,12 @@ export default function HomePage() {
             </button>
           </Link>
 
+          <a href="mailto:uysal.mu07@gmail.com">
+            <button className="px-8 py-3 rounded-2xl text-white text-xs font-bold shadow-2xl bg-gradient-to-r from-purple-500 via-pink-600 to-rose-600 hover:from-purple-600 hover:to-pink-700 hover:scale-105 hover:shadow-pink-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2">
+              <span className="text-xs">📧</span>
+              <span>İletişim</span>
+            </button>
+          </a>
 
         </div>
 
