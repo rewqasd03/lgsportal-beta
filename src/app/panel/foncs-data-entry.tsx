@@ -2997,11 +2997,8 @@ const LGSCalculatorTab = () => {
                       <span className="text-xs text-gray-500 ml-2">({questionCounts[subject]} soru)</span>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-gray-600 mb-1">
-                        Doğru: {subjectData.dogru} | Yanlış: {subjectData.yanlis} | Net: {subjectData.net}
-                      </div>
-                      <div className="font-semibold text-blue-600 text-lg">
-                        Puan: {subjectData.points}
+                      <div className="text-sm text-gray-600">
+                        Doğru: {subjectData.dogru} | Yanlış: {subjectData.yanlis} | Boş: {20 - subjectData.dogru - subjectData.yanlis} | Net: {subjectData.net}
                       </div>
                     </div>
                   </div>
