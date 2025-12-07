@@ -743,13 +743,12 @@ function StudentDashboardContent() {
                               </td>
                               <td className="px-2 py-2 text-center text-green-600 font-medium">
                                 {(() => {
-                                  // Gerçek sonuçlardan doğru sayısını hesapla
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
                                   const nets = studentResult?.nets || {};
                                   const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
                                     if (typeof net === 'number') {
-                                      return sum + Math.round(net * 3.33); // Net * 3.33 = Doğru sayısı
+                                      return sum + Math.round(net * 3.33);
                                     }
                                     return sum;
                                   }, 0);
@@ -767,8 +766,9 @@ function StudentDashboardContent() {
                                     }
                                     return sum;
                                   }, 0);
-                                  // Yanlış sayısı = Doğru sayısı * 0.3 (tahmini oran)
-                                  return String(Math.round(totalCorrect * 0.3));
+                                  // Gerçek yanlış sayısını tahmin et: (Net * 3.33) * 0.2
+                                  const wrongCount = Math.round(totalCorrect * 0.2);
+                                  return String(wrongCount);
                                 })()}
                               </td>
                               <td className="px-2 py-2 text-center text-gray-500">
@@ -782,10 +782,10 @@ function StudentDashboardContent() {
                                     }
                                     return sum;
                                   }, 0);
-                                  const estimatedWrong = Math.round(totalCorrect * 0.3);
-                                  // Toplam soru sayısını tahmin et (deneme başına ortalama 90 soru)
-                                  const totalQuestions = 90;
-                                  return Math.max(0, totalQuestions - totalCorrect - estimatedWrong);
+                                  const wrongCount = Math.round(totalCorrect * 0.2);
+                                  // Boş sayısı = 90 - Doğru - Yanlış
+                                  const emptyCount = Math.max(0, 90 - totalCorrect - wrongCount);
+                                  return String(emptyCount);
                                 })()}
                               </td>
                               <td className="px-2 py-2 text-center font-medium text-blue-600">
@@ -1028,12 +1028,14 @@ function StudentDashboardContent() {
                           // Gerçek doğru sayısını hesapla
                           const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
                             if (typeof net === 'number') {
-                              return sum + Math.round(net * 3.33); // Net * 3.33 = Doğru sayısı
+                              return sum + Math.round(net * 3.33);
                             }
                             return sum;
                           }, 0);
-                          const wrongCount = Math.round(totalCorrect * 0.3); // Yanlış sayısı = Doğru * 0.3
-                          const emptyCount = Math.max(0, 90 - totalCorrect - wrongCount); // 90 toplam soru
+                          // Yanlış sayısı = Doğru sayısı * 0.2
+                          const wrongCount = Math.round(totalCorrect * 0.2);
+                          // Boş sayısı = 90 - Doğru - Yanlış
+                          const emptyCount = Math.max(0, 90 - totalCorrect - wrongCount);
                           
                           let level = '';
                           let levelColor = '';
@@ -1267,10 +1269,10 @@ function StudentDashboardContent() {
                           <h4 className="text-[8px] font-medium text-gray-500 mb-1">Genel Ortalama</h4>
                           <p className="text-sm font-bold text-orange-600">{selectedExamResult.generalAverage.toFixed(1)}</p>
                           <p className="text-xs text-gray-600 mt-1">
-                            Genel Ortalama Net {selectedExamResult.generalAverage >= selectedExamResult.studentTotalNet ? (
-                              <span className="text-green-600">(+{(selectedExamResult.generalAverage - selectedExamResult.studentTotalNet).toFixed(1)})</span>
+                            Fark: {selectedExamResult.generalAverage >= selectedExamResult.studentTotalNet ? (
+                              <span className="text-green-600">+{(selectedExamResult.generalAverage - selectedExamResult.studentTotalNet).toFixed(1)}</span>
                             ) : (
-                              <span className="text-red-600">({(selectedExamResult.studentTotalNet - selectedExamResult.generalAverage).toFixed(1)})</span>
+                              <span className="text-red-600">-{(selectedExamResult.studentTotalNet - selectedExamResult.generalAverage).toFixed(1)}</span>
                             )}
                           </p>
                         </div>
@@ -1968,7 +1970,7 @@ function StudentDashboardContent() {
                   })()}
                 </div>
 
-                {/* Denemeler ve Hedefe Ulaşma Durumu */}
+                {/* Denemeler ve Hedefe Ulaşma Durumu - Ders Bazında */}
                 <div className="bg-white rounded-lg shadow p-2">
                   <h3 className="text-sm font-semibold text-gray-800 mb-2">📋 Denemeler ve Hedefe Ulaşma Durumu</h3>
                   
@@ -1976,91 +1978,116 @@ function StudentDashboardContent() {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Deneme</th>
-                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Tarih</th>
-                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Net</th>
-                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Hedef</th>
-                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Durum</th>
-                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Fark</th>
-                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Yorum</th>
+                          <th className="px-1 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Deneme</th>
+                          <th className="px-1 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Tarih</th>
+                          {subjects.map((subject) => (
+                            <th key={subject.key} className="px-1 py-1.5 text-center text-[10px] font-medium text-gray-500 uppercase">
+                              {subject.name}
+                            </th>
+                          ))}
+                          <th className="px-1 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Toplam Net</th>
+                          <th className="px-1 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Toplam Hedef</th>
+                          <th className="px-1 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Fark</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {(() => {
+                        {reportData.examResults.map((result, index) => {
+                          const studentResult = result.studentResults[0];
+                          const nets = studentResult?.nets || {};
                           const targets = studentTargets || {};
-                          const toplamHedef = Object.values(targets).reduce((sum, target) => sum + (target || 0), 0);
                           
-                          return reportData.examResults.map((result, index) => {
-                            const currentNet = result.studentTotalNet;
-                            const targetNet = toplamHedef > 0 ? toplamHedef : 75; // Varsayılan hedef
+                          const subjectData = subjects.map(subject => {
+                            const currentNet = nets[subject.key] || 0;
+                            const targetNet = targets[subject.key] || 0;
                             const difference = currentNet - targetNet;
-                            const isAchieved = currentNet >= targetNet;
                             
-                            // Yorum oluştur
-                            let comment = '';
-                            if (index === 0) {
-                              comment = 'İlk deneme, başlangıç noktası';
-                            } else {
-                              const previousNet = reportData.examResults[index - 1].studentTotalNet;
-                              const change = currentNet - previousNet;
-                              if (change > 2) {
-                                comment = '🚀 Mükemmel gelişim!';
-                              } else if (change > 0) {
-                                comment = '📈 İyi ilerleme';
-                              } else if (change > -2) {
-                                comment = '➡️ Stabil performans';
-                              } else {
-                                comment = '📉 Dikkat gerekiyor';
-                              }
-                            }
-                            
-                            return (
-                              <tr key={result.exam.id} className="hover:bg-gray-50">
-                                <td className="px-2 py-1.5">
-                                  <span className="text-xs font-medium text-gray-900">{result.exam.title}</span>
-                                </td>
-                                <td className="px-2 py-1.5 text-center">
-                                  <span className="text-xs text-gray-600">
-                                    {new Date(result.exam.date).toLocaleDateString('tr-TR')}
-                                  </span>
-                                </td>
-                                <td className="px-2 py-1.5 text-center">
-                                  <span className={`text-xs font-bold ${
-                                    currentNet >= targetNet ? 'text-green-600' : 'text-blue-600'
-                                  }`}>
-                                    {currentNet.toFixed(1)}
-                                  </span>
-                                </td>
-                                <td className="px-2 py-1.5 text-center">
-                                  <span className="text-xs font-medium text-gray-700">
-                                    {targetNet.toFixed(1)}
-                                  </span>
-                                </td>
-                                <td className="px-2 py-1.5 text-center">
-                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    isAchieved 
-                                      ? 'bg-green-100 text-green-800' 
-                                      : 'bg-blue-100 text-blue-800'
-                                  }`}>
-                                    {isAchieved ? '✅ Ulaştı' : '🎯 Çalışıyor'}
-                                  </span>
-                                </td>
-                                <td className="px-2 py-1.5 text-center">
-                                  <span className={`text-xs font-medium ${
-                                    difference >= 0 ? 'text-green-600' : 'text-red-600'
-                                  }`}>
-                                    {difference >= 0 ? '+' : ''}{difference.toFixed(1)}
-                                  </span>
-                                </td>
-                                <td className="px-2 py-1.5 text-center">
-                                  <span className="text-xs text-gray-600">{comment}</span>
-                                </td>
-                              </tr>
-                            );
+                            return {
+                              name: subject.name,
+                              current: currentNet,
+                              target: targetNet,
+                              difference: difference,
+                              achieved: currentNet >= targetNet
+                            };
                           });
-                        })()}
+                          
+                          const totalNet = subjectData.reduce((sum, data) => sum + data.current, 0);
+                          const totalTarget = subjectData.reduce((sum, data) => sum + data.target, 0);
+                          const totalDifference = totalNet - totalTarget;
+                          
+                          return (
+                            <tr key={result.exam.id} className="hover:bg-gray-50">
+                              <td className="px-1 py-1.5">
+                                <span className="text-xs font-medium text-gray-900">{result.exam.title}</span>
+                              </td>
+                              <td className="px-1 py-1.5 text-center">
+                                <span className="text-xs text-gray-600">
+                                  {new Date(result.exam.date).toLocaleDateString('tr-TR')}
+                                </span>
+                              </td>
+                              {subjectData.map((data, subIndex) => (
+                                <td key={subIndex} className="px-1 py-1.5 text-center">
+                                  <div className="text-[10px]">
+                                    <div className={`font-bold ${
+                                      data.achieved ? 'text-green-600' : 'text-red-600'
+                                    }`}>
+                                      {data.current.toFixed(1)}
+                                    </div>
+                                    <div className="text-gray-500">
+                                      {data.target > 0 ? `/${data.target.toFixed(1)}` : '/0'}
+                                    </div>
+                                    <div className={`text-[8px] ${
+                                      data.difference >= 0 ? 'text-green-500' : 'text-red-500'
+                                    }`}>
+                                      {data.difference >= 0 ? '+' : ''}{data.difference.toFixed(1)}
+                                    </div>
+                                  </div>
+                                </td>
+                              ))}
+                              <td className="px-1 py-1.5 text-center">
+                                <span className="text-xs font-bold text-blue-600">
+                                  {totalNet.toFixed(1)}
+                                </span>
+                              </td>
+                              <td className="px-1 py-1.5 text-center">
+                                <span className="text-xs font-medium text-gray-700">
+                                  {totalTarget.toFixed(1)}
+                                </span>
+                              </td>
+                              <td className="px-1 py-1.5 text-center">
+                                <span className={`text-xs font-medium ${
+                                  totalDifference >= 0 ? 'text-green-600' : 'text-red-600'
+                                }`}>
+                                  {totalDifference >= 0 ? '+' : ''}{totalDifference.toFixed(1)}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
+                  </div>
+                  
+                  {/* Hedef Durumu Özeti */}
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-800 mb-2">Hedef Durumu Özeti</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                      {subjects.map((subject) => {
+                        const target = studentTargets[subject.key] || 0;
+                        const current = reportData.examResults[reportData.examResults.length - 1]?.studentResults[0]?.nets?.[subject.key] || 0;
+                        const achieved = current >= target && target > 0;
+                        
+                        return (
+                          <div key={subject.key} className="text-center">
+                            <div className="text-xs text-gray-600 mb-1">{subject.name}</div>
+                            <div className={`text-xs font-bold ${
+                              achieved ? 'text-green-600' : target > 0 ? 'text-red-600' : 'text-gray-500'
+                            }`}>
+                              {achieved ? '✅ Hedefe Ulaştı' : target > 0 ? '🎯 Hedefe Çalışıyor' : 'Hedef Belirlenmemiş'}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
