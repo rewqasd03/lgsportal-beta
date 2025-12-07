@@ -1021,7 +1021,7 @@ function StudentDashboardContent() {
                           const nets = studentResult?.nets || {};
                           
                           // Gerçek doğru sayısını hesapla
-                          const totalCorrect = Object.values(nets).reduce((sum: number, net: any) => {
+                          const totalCorrect: number = (Object.values(nets) as any[]).reduce((sum: number, net: any) => {
                             if (typeof net === 'number') {
                               return sum + Math.round(net * 1.3);
                             }
