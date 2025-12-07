@@ -1416,26 +1416,31 @@ function StudentDashboardContent() {
                   // Bu denemeye ait tüm öğrencilerin sonuçlarını al ve sırala
                   const examResults = allResultsData.filter(result => result.examId === selectedExamId);
                   
-                  const studentsWithScores = examResults.map(result => {
-                    const student = allStudentsData.find(s => s.id === result.studentId);
-                    const score = typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
-                                  typeof result.puan === 'number' ? result.puan : 
-                                  (typeof result.totalScore === 'number' ? result.totalScore : 0);
-                    
-                    // Toplam net'i hesapla (ders bazındaki netlerin toplamı)
-                    const nets: Record<string, number> = result.nets || {};
-                    const totalNet = (nets.turkce || 0) + (nets.sosyal || 0) + (nets.din || 0) + 
-                                   (nets.ingilizce || 0) + (nets.matematik || 0) + (nets.fen || 0);
-                    
-                    return {
-                      studentId: result.studentId,
-                      studentName: student?.name || 'Bilinmeyen Öğrenci',
-                      studentNumber: student?.number || '',
-                      totalScore: score,
-                      totalNet: totalNet,
-                      nets: nets
-                    };
-                  }).sort((a, b) => b.totalScore - a.totalScore);
+                  // Test öğrencilerini filtrele (Mehmet Kaya, Ahmet Yılmaz, Fatma Demir)
+                  const testStudentIds = ['12348', '12346', '12347'];
+                  
+                  const studentsWithScores = examResults
+                    .filter(result => !testStudentIds.includes(result.studentId)) // Test öğrencilerini çıkar
+                    .map(result => {
+                      const student = allStudentsData.find(s => s.id === result.studentId);
+                      const score = typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
+                                    typeof result.puan === 'number' ? result.puan : 
+                                    (typeof result.totalScore === 'number' ? result.totalScore : 0);
+                      
+                      // Toplam net'i hesapla (ders bazındaki netlerin toplamı)
+                      const nets: Record<string, number> = result.nets || {};
+                      const totalNet = (nets.turkce || 0) + (nets.sosyal || 0) + (nets.din || 0) + 
+                                     (nets.ingilizce || 0) + (nets.matematik || 0) + (nets.fen || 0);
+                      
+                      return {
+                        studentId: result.studentId,
+                        studentName: student?.name || 'Bilinmeyen Öğrenci',
+                        studentNumber: student?.number || '',
+                        totalScore: score,
+                        totalNet: totalNet,
+                        nets: nets
+                      };
+                    }).sort((a, b) => b.totalScore - a.totalScore);
 
                   const studentRank = studentsWithScores.findIndex(s => s.studentId === reportData.student.id) + 1;
 
