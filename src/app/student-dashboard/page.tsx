@@ -2164,7 +2164,7 @@ function LiseTabanPuanlariTab() {
                         <strong>Tanım:</strong> LGS sınav puanına göre Türkiye genelinde sıralama yapılarak öğrenci alan okullara yerleşme.
                       </p>
                       <p className="text-gray-700">
-                        <strong>Okul Türleri:</strong> Fen Liseleri, Sosyal Bilimler Liseleri, proje okulları, bazı teknik programlar
+                        <strong>Okul Türleri:</strong> Fen Liseleri, Sosyal Bilimler Liseleri, Anadolu Liseleri, proje okulları, bazı teknik programlar
                       </p>
                       <p className="text-gray-700">
                         <strong>Belirleyici Faktör:</strong> LGS puanı ve tercih sırası; adres dikkate alınmaz.
@@ -2505,68 +2505,84 @@ function LGSHesaplamaTab() {
 function MerkeziYerlestirmePuanlari() {
   const merkeziSchools = [
     {
-      name: "Van Fen Lisesi",
+      name: "Van Türk Telekom Fen Lisesi",
       type: "Fen Lisesi", 
-      score: "445.2",
+      score: "460.91",
+      capacity: "150",
+      district: "Edremit",
+      yertip: "Merkezi Yerleştirme"
+    },
+    {
+      name: "İpekyolu Borsa İstanbul Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "441.61",
+      capacity: "150",
+      district: "İpekyolu",
+      yertip: "Merkezi Yerleştirme"
+    },
+    {
+      name: "Tuşba TOBB Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "422.90",
+      capacity: "150",
+      district: "Tuşba",
+      yertip: "Merkezi Yerleştirme"
+    },
+    {
+      name: "Niyazi Türkmenoğlu Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "416.75",
       capacity: "120",
-      district: "Merkez",
+      district: "İpekyolu",
+      yertip: "Merkezi Yerleştirme"
+    },
+    {
+      name: "Erciş Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "402.18",
+      capacity: "150",
+      district: "Erciş",
+      yertip: "Merkezi Yerleştirme"
+    },
+    {
+      name: "Kazım Karabekir Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "400.23",
+      capacity: "150",
+      district: "İpekyolu",
+      yertip: "Merkezi Yerleştirme"
+    },
+    {
+      name: "Türkiye Yardımsevenler Derneği Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "387.01",
+      capacity: "120",
+      district: "Edremit",
       yertip: "Merkezi Yerleştirme"
     },
     {
       name: "Van Atatürk Anadolu Lisesi",
       type: "Anadolu Lisesi",
-      score: "420.5",
-      capacity: "150",
-      district: "Merkez",
-      yertip: "Yerel Yerleştirme"
-    },
-    {
-      name: "Van İpekyolu Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "415.8",
-      capacity: "150",
+      score: "379.46",
+      capacity: "180",
       district: "İpekyolu",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Merkezi Yerleştirme"
     },
     {
-      name: "Van Muradiye Anadolu Lisesi",
+      name: "Abdurrahman Gazi Borsa İstanbul Anadolu Lisesi",
       type: "Anadolu Lisesi",
-      score: "398.2",
+      score: "367.20",
+      capacity: "150",
+      district: "Tuşba",
+      yertip: "Merkezi Yerleştirme"
+    },
+    {
+      name: "Muradiye Alpaslan Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "366.59",
       capacity: "120",
       district: "Muradiye",
-      yertip: "Yerel Yerleştirme"
-    },
-    {
-      name: "Van Erciş Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "392.1",
-      capacity: "150",
-      district: "Erciş",
-      yertip: "Yerel Yerleştirme"
-    },
-    {
-      name: "Van Gevaş Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "385.7",
-      capacity: "120",
-      district: "Gevaş",
-      yertip: "Yerel Yerleştirme"
-    },
-    {
-      name: "Van Çatak Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "378.9",
-      capacity: "100",
-      district: "Çatak",
-      yertip: "Yerel Yerleştirme"
-    },
-    {
-      name: "Van Gürpınar Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "372.4",
-      capacity: "120",
-      district: "Gürpınar",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Merkezi Yerleştirme"
     }
   ];
 
@@ -2575,10 +2591,10 @@ function MerkeziYerlestirmePuanlari() {
       <div className="bg-white rounded-lg shadow p-4">
         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
           <span className="text-blue-600 mr-2">🎯</span>
-          Van İli Merkezi Yerleştirme Taban Puanları (2024)
+          Van İli Merkezi Yerleştirme Taban Puanları (2025)
         </h4>
         <p className="text-gray-600 mb-4 text-sm">
-          2024 LGS sonuçlarına göre merkezi yerleştirme kapsamındaki okulların taban puanları:
+          2025 LGS sonuçlarına göre merkezi yerleştirme kapsamındaki okulların taban puanları:
         </p>
         
         <div className="overflow-x-auto">
@@ -2626,7 +2642,7 @@ function MerkeziYerlestirmePuanlari() {
 
         <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
           <p className="text-yellow-800 text-xs">
-            <strong>Not:</strong> Bu puanlar 2024 LGS sonuçlarına göre merkezi yerleştirme taban puanlarıdır. 2025 puanları MEB tarafından açıklandığında güncellenecektir.
+            <strong>Not:</strong> Bu puanlar 2025 LGS sonuçlarına göre merkezi yerleştirme taban puanlarıdır ve MEB verilerine dayanmaktadır.
           </p>
         </div>
       </div>
@@ -2638,51 +2654,83 @@ function MerkeziYerlestirmePuanlari() {
 function YerelYerlestirmePuanlari() {
   const yerelSchools = [
     {
-      name: "Van İmam Hatip Lisesi",
-      type: "İmam Hatip Lisesi",
-      score: "385.2",
-      capacity: "120",
-      district: "Merkez",
-      yertip: "Yerel Yerleştirme"
-    },
-    {
-      name: "Van Kız İmam Hatip Lisesi",
-      type: "İmam Hatip Lisesi",
-      score: "382.7",
-      capacity: "120",
-      district: "Merkez",
-      yertip: "Yerel Yerleştirme"
-    },
-    {
-      name: "Van Mesleki ve Teknik Anadolu Lisesi",
-      type: "Meslek Lisesi",
-      score: "378.5",
+      name: "Mesut Özata Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "91.09",
       capacity: "150",
-      district: "Merkez",
+      district: "İpekyolu",
       yertip: "Yerel Yerleştirme"
     },
     {
-      name: "Van Sağlık Meslek Lisesi",
-      type: "Sağlık Meslek Lisesi",
-      score: "380.3",
-      capacity: "100",
-      district: "Merkez",
+      name: "Özen Adalı Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "89.66",
+      capacity: "150",
+      district: "İpekyolu",
       yertip: "Yerel Yerleştirme"
     },
     {
-      name: "Van Tarım Meslek Lisesi",
-      type: "Tarım Meslek Lisesi",
-      score: "375.8",
-      capacity: "80",
+      name: "Mehmet Akif Ersoy Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "88.96",
+      capacity: "150",
+      district: "İpekyolu",
+      yertip: "Yerel Yerleştirme"
+    },
+    {
+      name: "Arif Nihat Asya Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "89.39",
+      capacity: "150",
       district: "Erciş",
       yertip: "Yerel Yerleştirme"
     },
     {
-      name: "Van Ticaret Meslek Lisesi",
-      type: "Ticaret Meslek Lisesi",
-      score: "376.9",
+      name: "Faki Teyran Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "85.96",
+      capacity: "150",
+      district: "Edremit",
+      yertip: "Yerel Yerleştirme"
+    },
+    {
+      name: "İki Nisan Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "84.93",
+      capacity: "150",
+      district: "İpekyolu",
+      yertip: "Yerel Yerleştirme"
+    },
+    {
+      name: "Çaldıran Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "84.30",
       capacity: "120",
-      district: "Merkez",
+      district: "Çaldıran",
+      yertip: "Yerel Yerleştirme"
+    },
+    {
+      name: "İzzeddin Şir Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "83.69",
+      capacity: "120",
+      district: "Gevaş",
+      yertip: "Yerel Yerleştirme"
+    },
+    {
+      name: "Van-Borsa İstanbul Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "84.09",
+      capacity: "150",
+      district: "Edremit",
+      yertip: "Yerel Yerleştirme"
+    },
+    {
+      name: "Said Nursi Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "65.83",
+      capacity: "120",
+      district: "İpekyolu",
       yertip: "Yerel Yerleştirme"
     }
   ];
@@ -2692,10 +2740,10 @@ function YerelYerlestirmePuanlari() {
       <div className="bg-white rounded-lg shadow p-4">
         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
           <span className="text-green-600 mr-2">🏠</span>
-          Van İli Yerel Yerleştirme Taban Puanları (2024)
+          Van İli Yerel Yerleştirme Taban Puanları (2025)
         </h4>
         <p className="text-gray-600 mb-4 text-sm">
-          2024 sonuçlarına göre yerel yerleştirme kapsamındaki okulların taban puanları:
+          2025 OBP sonuçlarına göre yerel yerleştirme kapsamındaki okulların taban puanları:
         </p>
         
         <div className="overflow-x-auto">
@@ -2743,7 +2791,7 @@ function YerelYerlestirmePuanlari() {
 
         <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
           <p className="text-yellow-800 text-xs">
-            <strong>Not:</strong> Bu puanlar 2024 sonuçlarına göre yerel yerleştirme taban puanlarıdır. 2025 puanları MEB tarafından açıklandığında güncellenecektir.
+            <strong>Not:</strong> Bu puanlar 2025 OBP sonuçlarına göre yerel yerleştirme taban puanlarıdır ve MEB verilerine dayanmaktadır.
           </p>
         </div>
       </div>
