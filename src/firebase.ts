@@ -1554,7 +1554,7 @@ const mapDashboardKeysToPanel = (dashboardTargets: {[key: string]: number}): {[k
 };
 
 // Export dönüştürücü fonksiyonlar
-export { mapPanelKeysToDashboard, mapDashboardKeysToPanel };
+export { mapPanelKeysToDashboard, mapDashboardKeysToPanel, doc, getDoc };
 
 // Öğrenci hedeflerini kaydet (Dashboard formatında saklanır)
 export const saveStudentTargets = async (studentId: string, targets: {[subject: string]: number}, targetScore?: number) => {
