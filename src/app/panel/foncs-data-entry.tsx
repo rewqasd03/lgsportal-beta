@@ -303,11 +303,19 @@ export default function FoncsDataEntry() {
       const totalResults = results.length;
       const avgStudentsPerExam = totalExams > 0 ? Math.round(totalResults / totalExams) : 0;
       
+      // Görüntülenme istatistikleri
+      const totalViews = students.reduce((sum, student) => sum + (student.viewCount || 0), 0);
+      const activeStudents = students.filter(student => (student.viewCount || 0) > 0).length;
+      const avgViewsPerStudent = totalStudents > 0 ? Math.round(totalViews / totalStudents) : 0;
+      
       return {
         totalStudents,
         totalExams,
         totalResults,
-        avgStudentsPerExam
+        avgStudentsPerExam,
+        totalViews,
+        activeStudents,
+        avgViewsPerStudent
       };
     }, [students, exams, results]);
 
@@ -315,58 +323,93 @@ export default function FoncsDataEntry() {
       <div className="space-y-8">
         {/* 🏆 Welcome Banner */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
-          <h1 className="text-3xl font-bold mb-2">📊 Başarı Takip Sistemi</h1>
-          <p className="text-blue-100 text-xs">
-            Öğrencilerinizin akademik başarılarını takip edin ve analiz edin
-          </p>
+          <div className="flex items-center gap-6">
+            <div className="flex-shrink-0">
+              <img 
+                src="/projelogo.png" 
+                alt="Proje Logo" 
+                className="w-20 h-20 object-contain"
+              />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold mb-2">📊 Başarı Takip Sistemi</h1>
+              <p className="text-blue-100 text-sm">
+                Öğrencilerinizin akademik başarılarını takip edin ve analiz edin
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* 📈 Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-xs">Toplam Öğrenci</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalStudents}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalStudents}</p>
               </div>
-              <div className="bg-blue-100 p-3 rounded-full">
-                <span className="text-2xl">👥</span>
+              <div className="bg-blue-100 p-2 rounded-full">
+                <span className="text-xl">👥</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-xs">Toplam Deneme</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalExams}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalExams}</p>
               </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <span className="text-2xl">📋</span>
+              <div className="bg-green-100 p-2 rounded-full">
+                <span className="text-xl">📋</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-xs">Toplam Sonuç</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalResults}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalResults}</p>
               </div>
-              <div className="bg-purple-100 p-3 rounded-full">
-                <span className="text-2xl">📊</span>
+              <div className="bg-purple-100 p-2 rounded-full">
+                <span className="text-xl">📊</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-xs">Ort. Öğrenci/Deneme</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.avgStudentsPerExam}</p>
+                <p className="text-gray-500 text-xs">Toplam Görüntülenme</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalViews}</p>
               </div>
-              <div className="bg-orange-100 p-3 rounded-full">
-                <span className="text-2xl">📈</span>
+              <div className="bg-yellow-100 p-2 rounded-full">
+                <span className="text-xl">👁️</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-xs">Aktif Öğrenci</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.activeStudents}</p>
+              </div>
+              <div className="bg-indigo-100 p-2 rounded-full">
+                <span className="text-xl">✅</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-xs">Ort. Görüntülenme</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.avgViewsPerStudent}</p>
+              </div>
+              <div className="bg-cyan-100 p-2 rounded-full">
+                <span className="text-xl">📈</span>
               </div>
             </div>
           </div>
