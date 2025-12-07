@@ -1701,31 +1701,60 @@ export default function FoncsDataEntry() {
       return lastNets;
     };
 
-    // Öğrenci seçildiğinde hedefleri yükle
+    // Öğrenci seçildiğinde hedefleri yükle (düzeltilmiş versiyon)
     useEffect(() => {
       if (selectedStudent) {
-        // studentTargets[selectedStudent] dashboard formatında gelir, panel formatına dönüştür
-        const dashboardTargets = studentTargets[selectedStudent] || {};
-        const panelTargets = mapDashboardKeysToPanel(dashboardTargets);
+        // Firebase'den fresh veri çek
+        const loadFreshTargets = async () => {
+          try {
+            // Ders hedeflerini Firebase'den çek
+            const dashboardTargets = await getAllTargets();
+            const freshStudentTargets = dashboardTargets[selectedStudent] || {};
+            const panelTargets = mapDashboardKeysToPanel(freshStudentTargets);
+            
+            // Puan hedefini Firebase'den çek
+            const scoreTarget = await getStudentScoreTarget(selectedStudent) || 450;
+            
+            const formData: {[subject: string]: number} = {};
+            
+            lgsSubjects.forEach(subject => {
+              // Önce Firebase'den gelen değeri kullan, yoksa varsayılan
+              formData[subject.key] = panelTargets[subject.key] || subject.target;
+            });
+            
+            console.log('📊 Fresh hedefler yüklendi - Panel:', formData);
+            console.log('🎯 Fresh puan hedefi:', scoreTarget);
+            setStudentTargetForm(formData);
+            setStudentScoreTarget(scoreTarget);
+            
+            // Local state'i de güncelle (çakışma olmasın diye)
+            setStudentTargets(prev => ({
+              ...prev,
+              [selectedStudent]: freshStudentTargets
+            }));
+            setStudentScoreTargets(prev => ({
+              ...prev,
+              [selectedStudent]: scoreTarget
+            }));
+            
+          } catch (error) {
+            console.error('Fresh target load error:', error);
+            // Hata durumunda varsayılan değerlerle devam et
+            const formData: {[subject: string]: number} = {};
+            lgsSubjects.forEach(subject => {
+              formData[subject.key] = subject.target;
+            });
+            setStudentTargetForm(formData);
+            setStudentScoreTarget(450);
+          }
+        };
         
-        const formData: {[subject: string]: number} = {};
-        
-        lgsSubjects.forEach(subject => {
-          formData[subject.key] = panelTargets[subject.key] || subject.target;
-        });
-        
-        // Puan hedefini yükle (studentScoreTargets'ten veya varsayılan 450)
-        const scoreTarget = (studentScoreTargets && studentScoreTargets[selectedStudent]) || 450;
-        
-        console.log('📊 Panel form yükleniyor - Dashboard:', dashboardTargets, '→ Panel:', formData);
-        console.log('🎯 Puan hedefi yükleniyor:', scoreTarget);
-        setStudentTargetForm(formData);
-        setStudentScoreTarget(scoreTarget);
+        loadFreshTargets();
       } else {
         setStudentTargetForm({});
         setStudentScoreTarget(450);
       }
-    }, [selectedStudent, studentTargets, studentScoreTargets]);
+    }, [selectedStudent]);
 
     // Hedef güncelleme
     const updateTarget = (subject: string, target: number) => {
@@ -1903,10 +1932,34 @@ export default function FoncsDataEntry() {
                         </div>
                       </div>
                       
+                      {/* Mevcut Hedef */}
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Mevcut Hedef</label>
+                        <div className="bg-purple-100 p-2 rounded-lg">
+                          <div className="flex justify-between">
+                            <span className="text-xs text-purple-600">Belirlenen:</span>
+                            <span className="text-xs font-bold text-purple-700">
+                              {studentTargetForm[subject.key]?.toFixed(1) || subject.target}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-purple-600">Fark:</span>
+                            <span className={`text-xs font-bold ${
+                              (studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0) >= 0 
+                                ? 'text-green-600' 
+                                : 'text-red-600'
+                            }`}>
+                              {((studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0)) >= 0 ? '+' : ''}
+                              {((studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0)).toFixed(1)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
                       {/* Hedef Net */}
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">
-                          Hedef Net
+                          Yeni Hedef Net
                         </label>
                         <input 
                           type="number" 
@@ -1915,6 +1968,7 @@ export default function FoncsDataEntry() {
                           value={studentTargetForm[subject.key] || subject.target}
                           onChange={(e) => updateTarget(subject.key, Number(e.target.value))}
                           className="w-full p-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs font-semibold"
+                          placeholder={`Varsayılan: ${subject.target}`}
                         />
                       </div>
                       
