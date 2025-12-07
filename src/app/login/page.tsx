@@ -92,7 +92,7 @@ export default function LoginPage() {
       {/* FOOTER */}
       <footer className="border-t bg-white/70 backdrop-blur py-3">
         <div className="mx-auto max-w-5xl px-4 text-center text-xs text-gray-500">
-          © {new Date().getFullYear()} LGS Portalı | Developed by MiniMax Agent
+          © {new Date().getFullYear()} LGS Portalı | Developed by Murat UYSAL
         </div>
       </footer>
     </main>

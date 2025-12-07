@@ -279,7 +279,7 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer className="text-center text-xs text-gray-500 mt-6">
-          © {new Date().getFullYear()} LGS Portalı | Developed by MiniMax Agent
+          © {new Date().getFullYear()} LGS Portalı | Developed by Murat UYSAL
         </footer>
       </div>
     </main>
