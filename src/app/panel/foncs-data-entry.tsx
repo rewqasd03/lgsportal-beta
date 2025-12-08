@@ -531,6 +531,32 @@ const ExcelImportTab = ({ students, exams, onDataUpdate }: {
     errors: string[];
   }>({ total: 0, added: 0, updated: 0, errors: [] });
 
+  // Şablon indirme fonksiyonu
+  const downloadTemplate = () => {
+    const templateData = [
+      ['Öğrenci Adı', 'Sınıf', 'Numara', 'Türkçe Net', 'Matematik Net', 'Fen Net', 'Toplam Puan'],
+      ['Ahmet Yılmaz', '8-A', '1', '15.2', '12.8', '14.5', '425'],
+      ['Ayşe Demir', '8-B', '2', '18.7', '16.3', '17.2', '465'],
+      ['Mehmet Kaya', '8-A', '3', '12.4', '10.1', '13.8', '380'],
+      ['Fatma Özkan', '8-C', '4', '19.3', '18.9', '19.1', '495'],
+      ['Ali Çelik', '8-B', '5', '14.8', '11.7', '15.6', '410']
+    ];
+
+    const csvContent = templateData.map(row => 
+      row.map(cell => `"${cell}"`).join(',')
+    ).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'lgs_ogrenci_veri_sablonu.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // CSV/Excel veri parsing fonksiyonu
   const parseCSVData = (csvText: string): any[] => {
     const lines = csvText.trim().split('\n');
@@ -754,6 +780,35 @@ const ExcelImportTab = ({ students, exams, onDataUpdate }: {
             }`}
           >
             📋 Yapıştır
+          </button>
+        </div>
+      </div>
+
+      {/* 📥 Şablon İndirme */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <span className="text-blue-600 mr-3">📥</span>
+          Excel Şablonu İndir
+        </h3>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-600 mb-2">
+              Veri girişi için hazır şablonu indirin. Şablondaki örnek verileri kendi verilerinizle değiştirin.
+            </p>
+            <ul className="text-xs text-gray-500 space-y-1">
+              <li>• Sütunlar: Öğrenci Adı, Sınıf, Numara, Türkçe Net, Matematik Net, Fen Net, Toplam Puan</li>
+              <li>• Sayısal değerler için ondalık ayracı kullanın (örn: 15.2)</li>
+              <li>• Boş değerler için 0 girin</li>
+            </ul>
+          </div>
+          <button
+            onClick={downloadTemplate}
+            className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Şablon İndir (.CSV)
           </button>
         </div>
       </div>
