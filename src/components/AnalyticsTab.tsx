@@ -125,13 +125,21 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
       .map((student, index) => ({ ...student, classRank: index + 1 }));
   }, [students, results]);
 
-  // Sınıf filtreleme
+  // Sınıf filtreleme ve tekrar sıralama
   const filteredData = useMemo(() => {
-    if (selectedClass === 'all') return performanceData;
-    return performanceData.filter(student => {
-      const studentObj = students.find(s => s.id === student.studentId);
-      return studentObj?.class === selectedClass;
-    });
+    let filtered = performanceData;
+    
+    if (selectedClass !== 'all') {
+      filtered = performanceData.filter(student => {
+        const studentObj = students.find(s => s.id === student.studentId);
+        return studentObj?.class === selectedClass;
+      });
+    }
+    
+    // Seçilen sınıfa göre tekrar sırala ve sıra numaralarını güncelle
+    return filtered
+      .sort((a, b) => b.averageNet - a.averageNet)
+      .map((student, index) => ({ ...student, classRank: index + 1 }));
   }, [performanceData, students, selectedClass]);
 
   // Sınıf listesi
