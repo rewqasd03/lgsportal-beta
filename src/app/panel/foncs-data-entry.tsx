@@ -243,10 +243,6 @@ export default function FoncsDataEntry() {
             scores: r.scores,
             createdAt: r.createdAt 
           })));
-          
-          const studentScores = studentResults.map(r => r.puan).filter(puan => puan != null && puan > 0);
-          console.log(`📈 Filtrelenmiş puanlar:`, studentScores);
-          console.log(`📊 Puan sayısı: ${studentScores.length}, Toplam: ${studentScores.reduce((sum, score) => sum + score, 0)}`);
         }
 
         const lastResult = studentResults[0];
@@ -264,20 +260,31 @@ export default function FoncsDataEntry() {
                   console.log(`📊 studentResults uzunluğu: ${studentResults.length}`);
                 }
                 
-                // Sadece puan bilgisi olan sonuçları al ve ortalamasını hesapla
-                const studentScores = studentResults.map(r => r.puan).filter(puan => puan != null && puan > 0);
+                // Her iki alandan da puan bilgisini al ve birleştir
+                const allScores: number[] = [];
+                
+                studentResults.forEach(r => {
+                  // r.puan alanından
+                  if (r.puan != null && r.puan > 0) {
+                    allScores.push(Number(r.puan));
+                  }
+                  
+                  // r.scores?.puan alanından (string ise number'a çevir)
+                  if (r.scores?.puan != null) {
+                    const scoreValue = typeof r.scores.puan === 'string' ? parseFloat(r.scores.puan) : r.scores.puan;
+                    if (scoreValue > 0) {
+                      allScores.push(scoreValue);
+                    }
+                  }
+                });
                 
                 // 🔍 DEBUG: Farklı puan kaynaklarını kontrol et
                 if (student.name === 'Şükrüye Akpınar') {
-                  console.log(`📈 Doğrudan puan (r.puan):`, studentScores);
-                  const scoresFromScoresField = studentResults.map(r => r.scores?.puan).filter(puan => puan != null && puan > 0);
-                  console.log(`📈 scores.puan alanından:`, scoresFromScoresField);
-                  const allScores = [...studentScores, ...scoresFromScoresField];
-                  console.log(`📈 Birleşik puanlar:`, allScores);
+                  console.log(`📈 Birleşik tüm puanlar:`, allScores);
                 }
                 
-                return studentScores.length > 0 
-                  ? studentScores.reduce((sum, score) => sum + score, 0) / studentScores.length
+                return allScores.length > 0 
+                  ? allScores.reduce((sum, score) => sum + score, 0) / allScores.length
                   : 0;
               })()
             : 0,
