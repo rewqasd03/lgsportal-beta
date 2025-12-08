@@ -234,17 +234,6 @@ export default function FoncsDataEntry() {
           console.log(`✅ ŞÜKRÜYE FINAL (Ders Bazında): avgNet = ${avgNet.toFixed(2)}`);
         }
 
-        // 🔍 DEBUG: Puan hesaplama kontrolü
-        if (student.name === 'Şükrüye Akpınar') {
-          console.log(`🔍 DEBUG PUAN - Öğrenci: ${student.name}`);
-          console.log(`📊 Tüm sonuçlar:`, studentResults.map(r => ({ 
-            id: r.id, 
-            puan: r.puan, 
-            scores: r.scores,
-            createdAt: r.createdAt 
-          })));
-        }
-
         const lastResult = studentResults[0];
         const lastExam = lastResult ? exams.find(e => e.id === lastResult.examId) : null;
 
@@ -254,12 +243,6 @@ export default function FoncsDataEntry() {
           avgNet,
           avgPuan: totalExams > 0 
             ? (() => {
-                // 🔍 DEBUG: Puan hesaplama kontrolü
-                if (student.name === 'Şükrüye Akpınar') {
-                  console.log(`🔍 AVGPUAN HESAPLAMA BAŞLANGICI - Öğrenci: ${student.name}`);
-                  console.log(`📊 studentResults uzunluğu: ${studentResults.length}`);
-                }
-                
                 // Her iki alandan da puan bilgisini al ve birleştir
                 const allScores: number[] = [];
                 
@@ -277,11 +260,6 @@ export default function FoncsDataEntry() {
                     }
                   }
                 });
-                
-                // 🔍 DEBUG: Farklı puan kaynaklarını kontrol et
-                if (student.name === 'Şükrüye Akpınar') {
-                  console.log(`📈 Birleşik tüm puanlar:`, allScores);
-                }
                 
                 return allScores.length > 0 
                   ? allScores.reduce((sum, score) => sum + score, 0) / allScores.length
