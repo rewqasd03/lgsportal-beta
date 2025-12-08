@@ -508,6 +508,508 @@ const PDFImportTab = ({ students, exams, onDataUpdate }: {
   );
 };
 
+// Excel İçe Aktarım Tab Component
+const ExcelImportTab = ({ students, exams, onDataUpdate }: { 
+  students: Student[], 
+  exams: Exam[], 
+  onDataUpdate: () => void 
+}) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [parsedData, setParsedData] = useState<any[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [importMode, setImportMode] = useState<'file' | 'paste'>('file');
+  const [pasteData, setPasteData] = useState('');
+  const [examInfo, setExamInfo] = useState({
+    title: '',
+    date: new Date().toISOString().split('T')[0],
+    classes: [] as string[]
+  });
+  const [importResults, setImportResults] = useState<{
+    total: number;
+    added: number;
+    updated: number;
+    errors: string[];
+  }>({ total: 0, added: 0, updated: 0, errors: [] });
+
+  // CSV/Excel veri parsing fonksiyonu
+  const parseCSVData = (csvText: string): any[] => {
+    const lines = csvText.trim().split('\n');
+    const students: any[] = [];
+    
+    // Header satırını atla (eğer varsa)
+    const dataLines = lines.slice(1);
+    
+    dataLines.forEach((line, index) => {
+      if (!line.trim()) return;
+      
+      // Virgül ile ayrılmış veriyi parse et
+      const columns = line.split(',').map(col => col.trim().replace(/"/g, ''));
+      
+      if (columns.length >= 7) {
+        const student = {
+          name: columns[0] || '',
+          class: columns[1] || '',
+          number: columns[2] || '',
+          turkce: parseFloat(columns[3]) || 0,
+          matematik: parseFloat(columns[4]) || 0,
+          fen: parseFloat(columns[5]) || 0,
+          puan: parseFloat(columns[6]) || 0,
+          scores: {
+            turkce: { D: Math.round((parseFloat(columns[3]) || 0) * 1.25), Y: 0, N: parseFloat(columns[3]) || 0, B: 0 },
+            matematik: { D: Math.round((parseFloat(columns[4]) || 0) * 1.25), Y: 0, N: parseFloat(columns[4]) || 0, B: 0 },
+            fen: { D: Math.round((parseFloat(columns[5]) || 0) * 1.25), Y: 0, N: parseFloat(columns[5]) || 0, B: 0 }
+          }
+        };
+        students.push(student);
+      }
+    });
+    
+    return students;
+  };
+
+  // Excel dosyasını okuma
+  const readExcelFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const text = e.target?.result as string;
+          resolve(text);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  };
+
+  // Dosya seçme işlemi
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && (file.type === 'text/csv' || file.type === 'application/vnd.ms-excel' || file.name.endsWith('.csv') || file.name.endsWith('.xlsx'))) {
+      setSelectedFile(file);
+      setParsedData([]);
+    } else {
+      alert('Lütfen bir CSV veya Excel dosyası seçin.');
+    }
+  };
+
+  // Excel/CSV'i işleme
+  const processExcel = async () => {
+    let text = '';
+    
+    if (importMode === 'file' && selectedFile) {
+      setIsProcessing(true);
+      try {
+        text = await readExcelFile(selectedFile);
+      } catch (error) {
+        console.error('File reading error:', error);
+        alert('Dosya okunurken bir hata oluştu.');
+        setIsProcessing(false);
+        return;
+      }
+    } else if (importMode === 'paste' && pasteData.trim()) {
+      text = pasteData;
+    } else {
+      alert('Lütfen bir dosya seçin veya veri yapıştırın.');
+      return;
+    }
+    
+    try {
+      const parsed = parseCSVData(text);
+      setParsedData(parsed);
+      if (parsed.length === 0) {
+        alert('Hiç veri bulunamadı. Lütfen formatı kontrol edin.');
+      }
+    } catch (error) {
+      console.error('Parsing error:', error);
+      alert('Veri parse edilirken bir hata oluştu.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Firebase'e veri aktarımı
+  const importToFirebase = async () => {
+    if (parsedData.length === 0) return;
+    
+    setIsProcessing(true);
+    const results = {
+      total: parsedData.length,
+      added: 0,
+      updated: 0,
+      errors: [] as string[]
+    };
+
+    try {
+      // Deneme bilgilerini kontrol et/oluştur
+      let examId = '';
+      const existingExam = exams.find(e => 
+        e.title === examInfo.title && e.date === examInfo.date
+      );
+      
+      if (existingExam) {
+        examId = existingExam.id;
+      } else {
+        const newExam: Omit<Exam, 'id'> = {
+          title: examInfo.title,
+          date: examInfo.date,
+          classes: examInfo.classes.length > 0 ? examInfo.classes : undefined
+        };
+        examId = await addExam(newExam);
+      }
+
+      // Her öğrenci için sonuç oluştur
+      for (const studentData of parsedData) {
+        try {
+          let student = students.find(s => 
+            s.name === studentData.name && s.class === studentData.class
+          );
+          
+          if (!student) {
+            const newStudent: Omit<Student, 'id'> = {
+              name: studentData.name,
+              class: studentData.class,
+              number: studentData.number || "0",
+              viewCount: 0,
+              lastViewDate: new Date().toISOString(),
+              createdAt: new Date().toISOString()
+            };
+            
+            const studentId = await addStudent(newStudent);
+            student = { ...newStudent, id: studentId };
+            results.added++;
+          } else {
+            results.updated++;
+          }
+
+          const nets: Result['nets'] = { 
+            total: (studentData.turkce || 0) + (studentData.matematik || 0) + (studentData.fen || 0),
+            turkce: studentData.turkce || 0,
+            matematik: studentData.matematik || 0,
+            fen: studentData.fen || 0
+          };
+
+          const newResult: Omit<Result, 'id'> = {
+            studentId: student.id,
+            examId,
+            nets,
+            scores: {
+              puan: studentData.puan || 0,
+              ...studentData.scores
+            },
+            createdAt: new Date().toISOString()
+          };
+          
+          await addResult(newResult);
+        } catch (error) {
+          console.error('Student import error:', error);
+          results.errors.push(`Öğrenci ${studentData.name}: ${error}`);
+        }
+      }
+      
+      setImportResults(results);
+      onDataUpdate();
+      alert(`İçe aktarım tamamlandı! ${results.added} yeni öğrenci eklendi, ${results.updated} güncellendi.`);
+      
+    } catch (error) {
+      console.error('Firebase import error:', error);
+      alert('Firebase\'e aktarım sırasında bir hata oluştu.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* 📊 Excel İçe Aktarım Header */}
+      <div className="bg-gradient-to-r from-green-500 to-teal-600 rounded-2xl p-8 text-white">
+        <h1 className="text-3xl font-bold mb-2">📊 Excel/CSV İçe Aktarım</h1>
+        <p className="text-green-100 text-xs">
+          Excel (.xlsx) veya CSV dosyalarından öğrenci verilerini hızlıca sisteme aktarın
+        </p>
+      </div>
+
+      {/* 📋 İçe Aktarım Modu Seçimi */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">İçe Aktarım Yöntemi</h3>
+        <div className="flex space-x-4">
+          <button
+            onClick={() => setImportMode('file')}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              importMode === 'file' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            📁 Dosya Yükle
+          </button>
+          <button
+            onClick={() => setImportMode('paste')}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              importMode === 'paste' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            📋 Yapıştır
+          </button>
+        </div>
+      </div>
+
+      {/* 📤 Dosya Yükleme veya Veri Yapıştırma */}
+      {importMode === 'file' ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="text-green-600 mr-3">📁</span>
+            Dosya Seçin
+          </h3>
+          
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-400 transition-colors">
+            <input
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              onChange={handleFileSelect}
+              className="hidden"
+              id="excel-upload"
+            />
+            <label htmlFor="excel-upload" className="cursor-pointer">
+              <div className="text-green-600 mb-4">
+                <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <p className="text-lg font-medium text-gray-900 mb-2">
+                {selectedFile ? selectedFile.name : 'Excel/CSV dosyasını buraya sürükleyin veya seçin'}
+              </p>
+              <p className="text-sm text-gray-500">
+                CSV, XLSX veya XLS dosyaları desteklenmektedir
+              </p>
+            </label>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="text-blue-600 mr-3">📋</span>
+            Veri Yapıştır
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Excel'den veya Google Sheets'ten verileri kopyalayıp buraya yapıştırın:
+          </p>
+          <textarea
+            value={pasteData}
+            onChange={(e) => setPasteData(e.target.value)}
+            placeholder="Öğrenci Adı, Sınıf, Numara, Türkçe Net, Matematik Net, Fen Net, Toplam Puan&#10;Ahmet Yılmaz, 8-A, 1, 15.2, 12.8, 14.5, 425"
+            className="w-full h-40 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-sm"
+          />
+        </div>
+      )}
+
+      {/* Process Button */}
+      {(selectedFile || pasteData.trim()) && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex justify-center">
+            <button
+              onClick={processExcel}
+              disabled={isProcessing}
+              className="bg-green-500 text-white px-8 py-3 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 font-semibold"
+            >
+              {isProcessing ? 'İşleniyor...' : '📊 Veriyi İşle'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 📊 Deneme Bilgileri */}
+      {parsedData.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="text-blue-600 mr-3">📋</span>
+            Deneme Bilgileri
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Deneme Adı *
+              </label>
+              <input
+                type="text"
+                value={examInfo.title}
+                onChange={(e) => setExamInfo(prev => ({ ...prev, title: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Deneme adını girin"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Deneme Tarihi *
+              </label>
+              <input
+                type="date"
+                value={examInfo.date}
+                onChange={(e) => setExamInfo(prev => ({ ...prev, date: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              İlgili Sınıflar (Opsiyonel)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {CLASS_OPTIONS.map(cls => (
+                <label key={cls} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={examInfo.classes.includes(cls)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setExamInfo(prev => ({
+                          ...prev,
+                          classes: [...prev.classes, cls]
+                        }));
+                      } else {
+                        setExamInfo(prev => ({
+                          ...prev,
+                          classes: prev.classes.filter(c => c !== cls)
+                        }));
+                      }
+                    }}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">{cls}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 📋 Parse Edilen Veri Önizlemesi */}
+      {parsedData.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="text-green-600 mr-3">👥</span>
+            Parse Edilen Öğrenci Verileri ({parsedData.length} öğrenci)
+          </h3>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse border border-gray-300">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="border border-gray-300 px-4 py-2 text-left">Öğrenci Adı</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Sınıf</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Numara</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Türkçe Net</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Matematik Net</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Fen Net</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Toplam Puan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {parsedData.map((student, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-2">{student.name}</td>
+                    <td className="border border-gray-300 px-4 py-2">{student.class}</td>
+                    <td className="border border-gray-300 px-4 py-2">{student.number}</td>
+                    <td className="border border-gray-300 px-4 py-2">{student.turkce}</td>
+                    <td className="border border-gray-300 px-4 py-2">{student.matematik}</td>
+                    <td className="border border-gray-300 px-4 py-2">{student.fen}</td>
+                    <td className="border border-gray-300 px-4 py-2 font-semibold">{student.puan}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={importToFirebase}
+              disabled={isProcessing || !examInfo.title}
+              className="bg-green-500 text-white px-8 py-3 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 font-semibold"
+            >
+              {isProcessing ? 'Aktarılıyor...' : `🚀 ${parsedData.length} Öğrenciyi Firebase'e Aktar`}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 📈 İçe Aktarım Sonuçları */}
+      {importResults.total > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="text-indigo-600 mr-3">📊</span>
+            İçe Aktarım Sonuçları
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="text-2xl font-bold text-blue-600">{importResults.total}</div>
+              <div className="text-blue-800">Toplam Öğrenci</div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="text-2xl font-bold text-green-600">{importResults.added}</div>
+              <div className="text-green-800">Yeni Eklenen</div>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="text-2xl font-bold text-orange-600">{importResults.updated}</div>
+              <div className="text-orange-800">Güncellenen</div>
+            </div>
+          </div>
+
+          {importResults.errors.length > 0 && (
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+              <h4 className="font-semibold text-red-800 mb-2">Hatalar:</h4>
+              <ul className="text-sm text-red-700 space-y-1">
+                {importResults.errors.map((error, index) => (
+                  <li key={index}>• {error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 📚 Format Yardımı */}
+      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+          <span className="text-green-600 mr-3">💡</span>
+          Desteklenen Formatlar
+        </h3>
+        
+        <div className="space-y-3 text-green-800">
+          <div>
+            <p className="font-medium">📊 Excel/CSV Format:</p>
+            <p className="text-sm">Öğrenci Adı, Sınıf, Numara, Türkçe Net, Matematik Net, Fen Net, Toplam Puan</p>
+          </div>
+          
+          <div>
+            <p className="font-medium">📋 Örnek Veri:</p>
+            <pre className="bg-green-100 p-2 rounded text-xs">
+{`Ahmet Yılmaz, 8-A, 1, 15.2, 12.8, 14.5, 425
+Ayşe Demir, 8-B, 2, 16.1, 11.9, 15.2, 432
+Mehmet Kaya, 8-A, 3, 14.8, 13.5, 13.9, 418`}
+            </pre>
+          </div>
+          
+          <div className="bg-green-100 p-3 rounded">
+            <p className="text-green-900 text-sm">
+              <strong>💡 İpucu:</strong> Excel'den verileri kopyalayıp "Yapıştır" modunda doğrudan buraya yapıştırabilirsiniz. 
+              Bu yöntem PDF'den çok daha hızlı ve güvenilirdir!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Ana Tab Interface
 interface Tab {
   key: string;
@@ -520,6 +1022,7 @@ const TABS: Tab[] = [
   { key: "deneme", label: "📋 Deneme Yönetimi" },
   { key: "bireysel", label: "👨‍🎓 Bireysel Veri" },
   { key: "toplu", label: "👥 Toplu Veri" },
+  { key: "excel-import", label: "📊 Excel İçe Aktar" },
   { key: "pdf-import", label: "📄 PDF İçe Aktar" },
   { key: "hedef", label: "🎯 Hedef Belirleme" },
   { key: "lgs-hesaplama", label: "🧮 LGS Puan Hesaplama" },
@@ -3192,6 +3695,7 @@ export default function FoncsDataEntry() {
       case "deneme": return <ExamTab />;
       case "bireysel": return <IndividualTab />;
       case "toplu": return <BulkTab />;
+      case "excel-import": return <ExcelImportTab students={students} exams={exams} onDataUpdate={loadDataFromFirebase} />;
       case "pdf-import": return <PDFImportTab students={students} exams={exams} onDataUpdate={loadDataFromFirebase} />;
       case "hedef": return <TargetTab />;
       case "lgs-hesaplama": return <LGSCalculatorTab />;
