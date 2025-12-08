@@ -242,11 +242,13 @@ export default function FoncsDataEntry() {
           totalExams,
           avgNet,
           avgPuan: totalExams > 0 
-            ? studentResults.reduce((sum: number, r) => {
-                // Puan bilgisi varsa onu kullan, yoksa nets.total'ı kullan
-                const score = r.puan || r.nets?.total || 0;
-                return sum + score;
-              }, 0) / totalExams
+            ? (() => {
+                // Sadece puan bilgisi olan sonuçları al ve ortalamasını hesapla
+                const studentScores = studentResults.map(r => r.puan).filter(puan => puan != null && puan > 0);
+                return studentScores.length > 0 
+                  ? studentScores.reduce((sum, score) => sum + score, 0) / studentScores.length
+                  : 0;
+              })()
             : 0,
           lastExam: lastExam?.title || 'Deneme yok',
           lastDate: lastExam ? new Date(lastExam.date).toLocaleDateString('tr-TR') : 'N/A',
