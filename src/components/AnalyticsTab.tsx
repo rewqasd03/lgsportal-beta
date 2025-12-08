@@ -514,6 +514,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                 <p className="text-green-600">📈 Son Net: {analysis.latestNet.toFixed(1)}</p>
                 <p className="text-green-600">📊 Ortalama Net: {analysis.avgNet.toFixed(1)}</p>
                 <p className="text-green-600">📈 Son Puan: {analysis.latestScore.toFixed(0)}</p>
+                <p className="text-green-600">📊 Ortalama Puan: {analysis.avgScore.toFixed(0)}</p>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                 <h4 className="font-semibold text-purple-800">Trend Analizi</h4>
