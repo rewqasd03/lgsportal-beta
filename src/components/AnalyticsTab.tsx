@@ -47,7 +47,6 @@ interface PerformanceComparison {
   averageNet: number;
   bestPerformance: number;
   worstPerformance: number;
-  improvementRate: number;
   totalExams: number;
   classRank: number;
   subjectAverages: {
@@ -81,7 +80,6 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
           averageNet: 0,
           bestPerformance: 0,
           worstPerformance: 0,
-          improvementRate: 0,
           totalExams: 0,
           classRank: 0,
           subjectAverages: { turkce: 0, matematik: 0, fen: 0, sosyal: 0 }
@@ -93,14 +91,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
       const bestPerformance = Math.max(...nets);
       const worstPerformance = Math.min(...nets);
 
-      // İyileşme oranını hesapla (son 3 sınav vs ilk 3 sınav)
-      const sortedResults = studentResults.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-      const firstThree = sortedResults.slice(0, 3);
-      const lastThree = sortedResults.slice(-3);
-      
-      const firstAvg = firstThree.length > 0 ? firstThree.reduce((sum, result) => sum + result.nets.total, 0) / firstThree.length : 0;
-      const lastAvg = lastThree.length > 0 ? lastThree.reduce((sum, result) => sum + result.nets.total, 0) / lastThree.length : 0;
-      const improvementRate = firstAvg > 0 ? ((lastAvg - firstAvg) / firstAvg) * 100 : 0;
+
 
       // Konu bazlı ortalamalar
       const subjectAverages = {
@@ -116,7 +107,6 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
         averageNet,
         bestPerformance,
         worstPerformance,
-        improvementRate,
         totalExams: studentResults.length,
         classRank: 0, // Daha sonra hesaplanacak
         subjectAverages
@@ -193,7 +183,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
   const renderOverview = () => (
     <div className="space-y-6">
       {/* İstatistik Kartları */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Toplam Öğrenci</h3>
           <p className="text-3xl font-bold text-blue-600">{filteredData.length}</p>
@@ -208,12 +198,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
             {filteredData.length > 0 ? Math.max(...filteredData.map(s => s.bestPerformance)).toFixed(1) : '0'}
           </p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Ortalama İyileşme</h3>
-          <p className="text-3xl font-bold text-orange-600">
-            {(filteredData.reduce((sum, s) => sum + s.improvementRate, 0) / filteredData.length).toFixed(1)}%
-          </p>
-        </div>
+
       </div>
 
       {/* Performans Dağılımı */}
@@ -250,7 +235,6 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ortalama Net</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">En İyi</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">En Kötü</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">İyileşme</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Sınav Sayısı</th>
               </tr>
             </thead>
@@ -278,15 +262,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600 font-semibold">
                     {student.worstPerformance.toFixed(1)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      student.improvementRate > 0 ? 'bg-green-100 text-green-800' :
-                      student.improvementRate < 0 ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {student.improvementRate > 0 ? '↗️' : student.improvementRate < 0 ? '↘️' : '➡️'} {student.improvementRate.toFixed(1)}%
-                    </span>
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
                     {student.totalExams}
                   </td>
