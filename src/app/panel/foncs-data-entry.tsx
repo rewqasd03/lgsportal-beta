@@ -534,12 +534,12 @@ const ExcelImportTab = ({ students, exams, onDataUpdate }: {
   // Şablon indirme fonksiyonu
   const downloadTemplate = () => {
     const templateData = [
-      ['Öğrenci Adı', 'Sınıf', 'Numara', 'Türkçe Net', 'Matematik Net', 'Fen Net', 'Toplam Puan'],
-      ['Ahmet Yılmaz', '8-A', '1', '15.2', '12.8', '14.5', '425'],
-      ['Ayşe Demir', '8-B', '2', '18.7', '16.3', '17.2', '465'],
-      ['Mehmet Kaya', '8-A', '3', '12.4', '10.1', '13.8', '380'],
-      ['Fatma Özkan', '8-C', '4', '19.3', '18.9', '19.1', '495'],
-      ['Ali Çelik', '8-B', '5', '14.8', '11.7', '15.6', '410']
+      ['Öğrenci Adı', 'Sınıf', 'Numara', 'Türkçe (D/Y/B)', 'Tarih (D/Y/B)', 'Din K.ve A.B. (D/Y/B)', 'İngilizce (D/Y/B)', 'Matematik (D/Y/B)', 'Fen (D/Y/B)', 'Toplam (D/Y/B)', 'LGS Neti (N)', 'LGS Puanı'],
+      ['Ahmet Yılmaz', '8-A', '1', '20/5/15', '18/7/5', '15/3/2', '16/4/0', '25/8/7', '22/6/2', '116/33/31', '85.2', '425.8'],
+      ['Ayşe Demir', '8-B', '2', '22/3/5', '20/5/5', '18/2/0', '18/3/1', '28/6/6', '25/4/1', '131/23/18', '89.5', '465.2'],
+      ['Mehmet Kaya', '8-A', '3', '18/8/14', '15/10/5', '12/6/2', '14/6/0', '20/12/8', '19/8/3', '98/50/32', '76.3', '380.1'],
+      ['Fatma Özkan', '8-C', '4', '24/1/5', '22/3/5', '20/1/1', '19/2/1', '30/3/7', '27/2/1', '142/12/20', '92.8', '495.7'],
+      ['Ali Çelik', '8-B', '5', '19/6/15', '17/8/5', '14/5/1', '15/5/0', '23/9/8', '21/7/2', '109/40/31', '81.6', '410.3']
     ];
 
     const csvContent = templateData.map(row => 
@@ -557,6 +557,18 @@ const ExcelImportTab = ({ students, exams, onDataUpdate }: {
     document.body.removeChild(link);
   };
 
+  // LGS D/Y/B formatını parse etme fonksiyonu
+  const parseDYBFormat = (dybString: string): { D: number, Y: number, B: number, net: number } => {
+    const parts = dybString.split('/');
+    const D = parseInt(parts[0]) || 0;
+    const Y = parseInt(parts[1]) || 0;
+    const B = parseInt(parts[2]) || 0;
+    // LGS net hesaplama: Net = Doğru - (Yanlış/4)
+    const net = D - (Y / 4);
+    
+    return { D, Y, B, net: Math.round(net * 10) / 10 };
+  };
+
   // CSV/Excel veri parsing fonksiyonu
   const parseCSVData = (csvText: string): any[] => {
     const lines = csvText.trim().split('\n');
@@ -571,20 +583,31 @@ const ExcelImportTab = ({ students, exams, onDataUpdate }: {
       // Virgül ile ayrılmış veriyi parse et
       const columns = line.split(',').map(col => col.trim().replace(/"/g, ''));
       
-      if (columns.length >= 7) {
+      if (columns.length >= 12) {
+        // LGS D/Y/B formatını parse et
+        const turkceData = parseDYBFormat(columns[3] || '0/0/0');
+        const matematikData = parseDYBFormat(columns[7] || '0/0/0');
+        const fenData = parseDYBFormat(columns[8] || '0/0/0');
+        
         const student = {
           name: columns[0] || '',
           class: columns[1] || '',
           number: columns[2] || '',
-          turkce: parseFloat(columns[3]) || 0,
-          matematik: parseFloat(columns[4]) || 0,
-          fen: parseFloat(columns[5]) || 0,
-          puan: parseFloat(columns[6]) || 0,
+          turkce: turkceData.net,
+          matematik: matematikData.net,
+          fen: fenData.net,
+          puan: parseFloat(columns[11]) || 0, // LGS Puanı
           scores: {
-            turkce: { D: Math.round((parseFloat(columns[3]) || 0) * 1.25), Y: 0, N: parseFloat(columns[3]) || 0, B: 0 },
-            matematik: { D: Math.round((parseFloat(columns[4]) || 0) * 1.25), Y: 0, N: parseFloat(columns[4]) || 0, B: 0 },
-            fen: { D: Math.round((parseFloat(columns[5]) || 0) * 1.25), Y: 0, N: parseFloat(columns[5]) || 0, B: 0 }
-          }
+            turkce: { D: turkceData.D, Y: turkceData.Y, N: turkceData.net, B: turkceData.B },
+            matematik: { D: matematikData.D, Y: matematikData.Y, N: matematikData.net, B: matematikData.B },
+            fen: { D: fenData.D, Y: fenData.Y, N: fenData.net, B: fenData.B }
+          },
+          // LGS ek bilgileri
+          tarih: parseDYBFormat(columns[4] || '0/0/0'),
+          din: parseDYBFormat(columns[5] || '0/0/0'),
+          ingilizce: parseDYBFormat(columns[6] || '0/0/0'),
+          toplam: parseDYBFormat(columns[9] || '0/0/0'),
+          lgsNeti: parseFloat(columns[10]) || 0
         };
         students.push(student);
       }
@@ -793,12 +816,13 @@ const ExcelImportTab = ({ students, exams, onDataUpdate }: {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600 mb-2">
-              Veri girişi için hazır şablonu indirin. Şablondaki örnek verileri kendi verilerinizle değiştirin.
+              LGS sınav sonuçları için hazır şablonu indirin. Şablondaki örnek verileri kendi verilerinizle değiştirin.
             </p>
             <ul className="text-xs text-gray-500 space-y-1">
-              <li>• Sütunlar: Öğrenci Adı, Sınıf, Numara, Türkçe Net, Matematik Net, Fen Net, Toplam Puan</li>
-              <li>• Sayısal değerler için ondalık ayracı kullanın (örn: 15.2)</li>
-              <li>• Boş değerler için 0 girin</li>
+              <li>• D/Y/B Formatı: Doğru/Yanlış/Boş (örn: 20/5/15 = 20 doğru, 5 yanlış, 15 boş)</li>
+              <li>• Net Hesaplama: Net = Doğru - (Yanlış/4)</li>
+              <li>• LGS Neti: Tüm derslerin toplam neti</li>
+              <li>• LGS Puanı: 100-500 arası puan aralığı</li>
             </ul>
           </div>
           <button
@@ -856,7 +880,7 @@ const ExcelImportTab = ({ students, exams, onDataUpdate }: {
           <textarea
             value={pasteData}
             onChange={(e) => setPasteData(e.target.value)}
-            placeholder="Öğrenci Adı, Sınıf, Numara, Türkçe Net, Matematik Net, Fen Net, Toplam Puan&#10;Ahmet Yılmaz, 8-A, 1, 15.2, 12.8, 14.5, 425"
+            placeholder="Öğrenci Adı, Sınıf, Numara, Türkçe (D/Y/B), Tarih (D/Y/B), Din K.ve A.B. (D/Y/B), İngilizce (D/Y/B), Matematik (D/Y/B), Fen (D/Y/B), Toplam (D/Y/B), LGS Neti (N), LGS Puanı&#10;Ahmet Yılmaz, 8-A, 1, 20/5/15, 18/7/5, 15/3/2, 16/4/0, 25/8/7, 22/6/2, 116/33/31, 85.2, 425.8"
             className="w-full h-40 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-sm"
           />
         </div>
