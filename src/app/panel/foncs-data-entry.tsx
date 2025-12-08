@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart,
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { getStudents, getExams, getResults, addStudent, addExam, addResult, deleteStudent, deleteExam, deleteResult, updateStudent, updateResult, updateExam, saveStudentTargets, getAllTargets, getStudentScoreTarget, mapDashboardKeysToPanel, mapPanelKeysToDashboard, db, doc, getDoc, Student, Exam, Result } from "../../firebase";
+import AnalyticsTab from "../../components/AnalyticsTab";
 // Ana Tab Interface
 interface Tab {
   key: string;
@@ -19,6 +20,7 @@ const TABS: Tab[] = [
   { key: "toplu", label: "👥 Toplu Veri" },
   { key: "hedef", label: "🎯 Hedef Belirleme" },
   { key: "lgs-hesaplama", label: "🧮 LGS Puan Hesaplama" },
+  { key: "analytics", label: "📊 Analitik & Raporlar" },
   { key: "van-taban-puan", label: "🎓 Lise Taban Puanları" }
 ];
 
@@ -2671,6 +2673,7 @@ export default function FoncsDataEntry() {
       case "toplu": return <BulkTab />;
       case "hedef": return <TargetTab />;
       case "lgs-hesaplama": return <LGSCalculatorTab />;
+      case "analytics": return <AnalyticsTab students={students} results={results} exams={exams} />;
       case "van-taban-puan": return <VanTabanPuanTab />;
       default: return <HomeTab />;
     }
