@@ -289,48 +289,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
         </div>
       </div>
 
-      {/* Radar Chart - Konu Bazlı Karşılaştırma */}
-      {filteredData.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-xl font-bold mb-4">Konu Bazlı Performans Analizi</h3>
-          <ResponsiveContainer width="100%" height={400}>
-            <RadarChart data={[filteredData[0]]}>
-              <PolarGrid />
-              <PolarAngleAxis dataKey="studentName" />
-              <PolarRadiusAxis angle={90} domain={[0, 20]} />
-              <Radar
-                name="Türkçe"
-                dataKey="subjectAverages.turkce"
-                stroke="#10B981"
-                fill="#10B981"
-                fillOpacity={0.3}
-              />
-              <Radar
-                name="Matematik"
-                dataKey="subjectAverages.matematik"
-                stroke="#F59E0B"
-                fill="#F59E0B"
-                fillOpacity={0.3}
-              />
-              <Radar
-                name="Fen"
-                dataKey="subjectAverages.fen"
-                stroke="#3B82F6"
-                fill="#3B82F6"
-                fillOpacity={0.3}
-              />
-              <Radar
-                name="Sosyal"
-                dataKey="subjectAverages.sosyal"
-                stroke="#8B5CF6"
-                fill="#8B5CF6"
-                fillOpacity={0.3}
-              />
-              <Legend />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+
     </div>
   );
 
