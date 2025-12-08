@@ -234,6 +234,21 @@ export default function FoncsDataEntry() {
           console.log(`✅ ŞÜKRÜYE FINAL (Ders Bazında): avgNet = ${avgNet.toFixed(2)}`);
         }
 
+        // 🔍 DEBUG: Puan hesaplama kontrolü
+        if (student.name === 'Şükrüye Akpınar') {
+          console.log(`🔍 DEBUG PUAN - Öğrenci: ${student.name}`);
+          console.log(`📊 Tüm sonuçlar:`, studentResults.map(r => ({ 
+            id: r.id, 
+            puan: r.puan, 
+            scores: r.scores,
+            createdAt: r.createdAt 
+          })));
+          
+          const studentScores = studentResults.map(r => r.puan).filter(puan => puan != null && puan > 0);
+          console.log(`📈 Filtrelenmiş puanlar:`, studentScores);
+          console.log(`📊 Puan sayısı: ${studentScores.length}, Toplam: ${studentScores.reduce((sum, score) => sum + score, 0)}`);
+        }
+
         const lastResult = studentResults[0];
         const lastExam = lastResult ? exams.find(e => e.id === lastResult.examId) : null;
 
@@ -243,8 +258,24 @@ export default function FoncsDataEntry() {
           avgNet,
           avgPuan: totalExams > 0 
             ? (() => {
+                // 🔍 DEBUG: Puan hesaplama kontrolü
+                if (student.name === 'Şükrüye Akpınar') {
+                  console.log(`🔍 AVGPUAN HESAPLAMA BAŞLANGICI - Öğrenci: ${student.name}`);
+                  console.log(`📊 studentResults uzunluğu: ${studentResults.length}`);
+                }
+                
                 // Sadece puan bilgisi olan sonuçları al ve ortalamasını hesapla
                 const studentScores = studentResults.map(r => r.puan).filter(puan => puan != null && puan > 0);
+                
+                // 🔍 DEBUG: Farklı puan kaynaklarını kontrol et
+                if (student.name === 'Şükrüye Akpınar') {
+                  console.log(`📈 Doğrudan puan (r.puan):`, studentScores);
+                  const scoresFromScoresField = studentResults.map(r => r.scores?.puan).filter(puan => puan != null && puan > 0);
+                  console.log(`📈 scores.puan alanından:`, scoresFromScoresField);
+                  const allScores = [...studentScores, ...scoresFromScoresField];
+                  console.log(`📈 Birleşik puanlar:`, allScores);
+                }
+                
                 return studentScores.length > 0 
                   ? studentScores.reduce((sum, score) => sum + score, 0) / studentScores.length
                   : 0;
