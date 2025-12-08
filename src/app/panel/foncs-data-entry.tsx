@@ -2759,27 +2759,28 @@ export default function FoncsDataEntry() {
         </div>
       )}
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Başarı Takip Sistemi</h1>
-          <p className="text-gray-600">Öğrencilerinizin akademik başarılarını yönetin</p>
+        <div className="text-center mb-4 md:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">Başarı Takip Sistemi</h1>
+          <p className="text-sm sm:text-base text-gray-600">Öğrencilerinizin akademik başarılarını yönetin</p>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 mb-8">
-          <div className="flex flex-wrap gap-2">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 mb-4 md:mb-8">
+          <div className="flex flex-wrap gap-1 md:gap-2 overflow-x-auto">
             {TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                className={`px-3 py-2 md:px-6 md:py-3 rounded-lg font-medium text-xs md:text-sm transition-all whitespace-nowrap flex-shrink-0 ${
                   activeTab === tab.key
                     ? 'bg-blue-500 text-white shadow-md'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                {tab.label}
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
               </button>
             ))}
           </div>
@@ -2891,10 +2892,10 @@ const LGSCalculatorTab = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">🧮 LGS Puan Hesaplama</h2>
-        <p className="text-gray-600 mb-8">LGS puanınızı hesaplamak için doğru ve yanlış sayılarınızı girin.</p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">🧮 LGS Puan Hesaplama</h2>
+        <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-8">LGS puanınızı hesaplamak için doğru ve yanlış sayılarınızı girin.</p>
         
         {/* Hesaplama Formu */}
         <div className="space-y-6">
@@ -3027,9 +3028,9 @@ const VanTabanPuanTab = () => {
   const [selectedType, setSelectedType] = useState<'merkezi' | 'yerel' | null>(null);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">🎓 Lise Taban Puanları</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">🎓 Lise Taban Puanları</h2>
         
         {!selectedType ? (
           <>
