@@ -146,6 +146,22 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     return filteredData.reduce((sum, student) => sum + student.averageNet, 0) / filteredData.length;
   }, [filteredData]);
 
+  // Seçilen öğrencinin sınıf ortalamasını hesapla
+  const studentClassAverage = useMemo(() => {
+    if (!selectedStudent) return 0;
+    
+    const student = students.find(s => s.id === selectedStudent);
+    if (!student) return 0;
+    
+    const classStudents = students.filter(s => s.class === student.class);
+    const classPerformanceData = performanceData.filter(p => 
+      classStudents.some(cs => cs.id === p.studentId)
+    );
+    
+    if (classPerformanceData.length === 0) return 0;
+    return classPerformanceData.reduce((sum, p) => sum + p.averageNet, 0) / classPerformanceData.length;
+  }, [selectedStudent, students, performanceData]);
+
   // Trend verilerini hesapla
   const trendData = useMemo(() => {
     if (!selectedStudent) return [];
@@ -162,9 +178,9 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
       matematik: result.nets.matematik || 0,
       fen: result.nets.fen || 0,
       sosyal: result.nets.sosyal || 0,
-      classAverage: classAverage
+      classAverage: studentClassAverage
     }));
-  }, [selectedStudent, results, classAverage]);
+  }, [selectedStudent, results, studentClassAverage]);
 
   const renderOverview = () => (
     <div className="space-y-6">
@@ -318,72 +334,146 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     </div>
   );
 
-  const renderTrends = () => (
-    <div className="space-y-6">
-      {/* Öğrenci Seçimi */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-xl font-bold mb-4">Öğrenci Trendi Analizi</h3>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Öğrenci Seçin:</label>
-          <select
-            value={selectedStudent}
-            onChange={(e) => setSelectedStudent(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Öğrenci seçin...</option>
-            {students.map(student => (
-              <option key={student.id} value={student.id}>
-                {student.name} ({student.class})
-              </option>
-            ))}
-          </select>
+  const renderTrends = () => {
+    const selectedStudentData = students.find(s => s.id === selectedStudent);
+    const hasExamData = trendData.length > 0;
+    
+    return (
+      <div className="space-y-6">
+        {/* Öğrenci Seçimi */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-xl font-bold mb-4">Öğrenci Trendi Analizi</h3>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Öğrenci Seçin:</label>
+            <select
+              value={selectedStudent}
+              onChange={(e) => setSelectedStudent(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Öğrenci seçin...</option>
+              {students.map(student => {
+                const studentExamCount = results.filter(r => r.studentId === student.id).length;
+                return (
+                  <option key={student.id} value={student.id}>
+                    {student.name} ({student.class}) - {studentExamCount} sınav
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          
+          {/* Seçilen Öğrenci Bilgileri */}
+          {selectedStudentData && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-800">Seçilen Öğrenci: {selectedStudentData.name}</h4>
+              <p className="text-blue-600">Sınıf: {selectedStudentData.class}</p>
+              <p className="text-blue-600">Toplam Sınav: {results.filter(r => r.studentId === selectedStudent).length}</p>
+              {studentClassAverage > 0 && (
+                <p className="text-blue-600">Sınıf Ortalaması: {studentClassAverage.toFixed(1)} net</p>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* Trend Grafikleri */}
+        {selectedStudent && hasExamData && (
+          <>
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-xl font-bold mb-4">Net Gelişim Trendi</h3>
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={trendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="tarih" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis 
+                    domain={[0, 'dataMax + 5']}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip 
+                    formatter={(value, name) => [
+                      typeof value === 'number' ? value.toFixed(1) : value,
+                      name
+                    ]}
+                    labelFormatter={(label) => `Tarih: ${label}`}
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="toplamNet" 
+                    stroke="#3B82F6" 
+                    strokeWidth={3} 
+                    name="Toplam Net"
+                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  {studentClassAverage > 0 && (
+                    <Line 
+                      type="monotone" 
+                      dataKey="classAverage" 
+                      stroke="#10B981" 
+                      strokeWidth={2} 
+                      strokeDasharray="5 5" 
+                      name="Sınıf Ortalaması"
+                      dot={false}
+                    />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-xl font-bold mb-4">Konu Bazlı Gelişim</h3>
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={trendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="tarih" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis 
+                    domain={[0, 'dataMax + 2']}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip 
+                    formatter={(value, name) => [
+                      typeof value === 'number' ? value.toFixed(1) : value,
+                      name
+                    ]}
+                    labelFormatter={(label) => `Tarih: ${label}`}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="turkce" stroke="#10B981" strokeWidth={2} name="Türkçe" dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="matematik" stroke="#F59E0B" strokeWidth={2} name="Matematik" dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="fen" stroke="#3B82F6" strokeWidth={2} name="Fen" dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="sosyal" stroke="#8B5CF6" strokeWidth={2} name="Sosyal" dot={{ r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </>
+        )}
+
+        {selectedStudent && !hasExamData && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <p className="text-yellow-800">Seçilen öğrenci için henüz sınav verisi bulunmamaktadır.</p>
+          </div>
+        )}
+        
+        {!selectedStudent && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+            <p className="text-gray-600">Lütfen trend analizi için bir öğrenci seçin.</p>
+          </div>
+        )}
       </div>
-
-      {/* Trend Grafikleri */}
-      {selectedStudent && trendData.length > 0 && (
-        <>
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-xl font-bold mb-4">Net Gelişim Trendi</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="tarih" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="toplamNet" stroke="#3B82F6" strokeWidth={3} name="Toplam Net" />
-                <Line type="monotone" dataKey="classAverage" stroke="#10B981" strokeWidth={2} strokeDasharray="5 5" name="Sınıf Ortalaması" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-xl font-bold mb-4">Konu Bazlı Gelişim</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="tarih" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="turkce" stroke="#10B981" strokeWidth={2} name="Türkçe" />
-                <Line type="monotone" dataKey="matematik" stroke="#F59E0B" strokeWidth={2} name="Matematik" />
-                <Line type="monotone" dataKey="fen" stroke="#3B82F6" strokeWidth={2} name="Fen" />
-                <Line type="monotone" dataKey="sosyal" stroke="#8B5CF6" strokeWidth={2} name="Sosyal" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </>
-      )}
-
-      {selectedStudent && trendData.length === 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <p className="text-yellow-800">Seçilen öğrenci için henüz sınav verisi bulunmamaktadır.</p>
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
