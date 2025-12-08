@@ -508,11 +508,6 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
               </div>
               <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                 <h4 className="font-semibold text-purple-800">Trend Analizi</h4>
-                <p className={`font-semibold ${analysis.trendColor}`}>
-                  {analysis.trend === 'Yükseliş' ? '📈' : analysis.trend === 'Düşüş' ? '📉' : '➡️'} {analysis.trend}
-                </p>
-                <p className="text-purple-600">Değişim: {analysis.improvement >= 0 ? '+' : ''}{analysis.improvement.toFixed(1)} net</p>
-                <p className="text-purple-600">Sınıf Ort: {analysis.classAverageNet.toFixed(1)}</p>
               </div>
             </div>
           )}
@@ -536,11 +531,6 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                 <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                   <h4 className="text-xs font-medium text-green-800 mb-1">Son Deneme Net</h4>
                   <p className="text-lg font-bold text-green-600">{analysis.latestNet.toFixed(1)}</p>
-                  <p className={`text-xs mt-1 ${
-                    analysis.improvement >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {analysis.improvement >= 0 ? '+' : ''}{analysis.improvement.toFixed(1)} Değişim
-                  </p>
                 </div>
 
                 <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
