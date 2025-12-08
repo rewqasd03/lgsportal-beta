@@ -2319,7 +2319,7 @@ function LGSHesaplamaTab() {
   const [result, setResult] = useState(null);
 
   // MEB LGS Taban Puanı
-  const basePoints = 193.492;
+  const basePoints = 193.493;
 
   // LGS Puan Katsayıları (MEB 2025 - 1 net'in getirdiği puan)
   const coefficients = {
@@ -2523,7 +2523,7 @@ function LGSHesaplamaTab() {
               <p className="text-green-800 text-sm">
                 <strong>💡 Bilgi:</strong> Bu hesaplama MEB'in resmi LGS puan hesaplama sistemine uygun olarak yapılmıştır. 
                 Net sayıları = Doğru sayısı - (Yanlış sayısı ÷ 3) formülü ile hesaplanır. 
-                <strong>Taban puan: 193.492</strong> otomatik olarak eklenir.
+                <strong>Taban puan: 193.493</strong> otomatik olarak eklenir.
               </p>
             </div>
           </div>
