@@ -735,82 +735,60 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
               </div>
             </div>
 
-            {/* 4. Ders Bazında Net Dağılımı */}
+            {/* 4. Ders Bazında Net Dağılımı - Çizgi Grafikleri */}
             <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-xl font-bold mb-4">📊 Ders Bazında Net Dağılımı</h3>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={[
-                  {
-                    ders: 'Türkçe',
-                    sonuc: analysis.studentResults[analysis.studentResults.length - 1]?.nets?.turkce || 0,
-                    sinif: analysis.classAverageNet * 0.15, // Yaklaşık sınıf ortalaması
-                    renk: '#10B981'
-                  },
-                  {
-                    ders: 'Matematik',
-                    sonuc: analysis.studentResults[analysis.studentResults.length - 1]?.nets?.matematik || 0,
-                    sinif: analysis.classAverageNet * 0.20,
-                    renk: '#F59E0B'
-                  },
-                  {
-                    ders: 'Fen Bilimleri',
-                    sonuc: analysis.studentResults[analysis.studentResults.length - 1]?.nets?.fen || 0,
-                    sinif: analysis.classAverageNet * 0.18,
-                    renk: '#3B82F6'
-                  },
-                  {
-                    ders: 'Sosyal Bilgiler',
-                    sonuc: analysis.studentResults[analysis.studentResults.length - 1]?.nets?.sosyal || 0,
-                    sinif: analysis.classAverageNet * 0.15,
-                    renk: '#8B5CF6'
-                  },
-                  {
-                    ders: 'Din Kültürü',
-                    sonuc: analysis.studentResults[analysis.studentResults.length - 1]?.nets?.din || 0,
-                    sinif: analysis.classAverageNet * 0.12,
-                    renk: '#EF4444'
-                  },
-                  {
-                    ders: 'İngilizce',
-                    sonuc: analysis.studentResults[analysis.studentResults.length - 1]?.nets?.ingilizce || 0,
-                    sinif: analysis.classAverageNet * 0.20,
-                    renk: '#6366F1'
-                  }
-                ]} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="ders" />
-                  <YAxis domain={[0, 20]} />
-                  <Tooltip 
-                    formatter={(value, name) => [
-                      `${Number(value).toFixed(1)}`, 
-                      name === 'sonuc' ? 'Öğrenci Neti' : 'Sınıf Ortalaması'
-                    ]}
-                  />
-                  <Bar dataKey="sonuc" fill="#3B82F6" name="Öğrenci Neti" />
-                  <Bar dataKey="sinif" fill="#E5E7EB" name="Sınıf Ortalaması" />
-                </BarChart>
-              </ResponsiveContainer>
-              
-              {/* Ders Bazında Detaylı İstatistikler */}
-              <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+              <h3 className="text-xl font-bold mb-4">📊 Ders Bazında Net Trendi</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
-                  { key: 'turkce', name: 'Türkçe', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
-                  { key: 'matematik', name: 'Matematik', color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200' },
-                  { key: 'fen', name: 'Fen Bilimleri', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
-                  { key: 'sosyal', name: 'Sosyal Bilgiler', color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
-                  { key: 'din', name: 'Din Kültürü', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
-                  { key: 'ingilizce', name: 'İngilizce', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' }
+                  { key: 'turkce', name: 'Türkçe', color: '#10B981', bg: 'bg-green-50' },
+                  { key: 'matematik', name: 'Matematik', color: '#F59E0B', bg: 'bg-yellow-50' },
+                  { key: 'fen', name: 'Fen Bilimleri', color: '#3B82F6', bg: 'bg-blue-50' },
+                  { key: 'sosyal', name: 'Sosyal Bilgiler', color: '#8B5CF6', bg: 'bg-purple-50' },
+                  { key: 'din', name: 'Din Kültürü', color: '#EF4444', bg: 'bg-red-50' },
+                  { key: 'ingilizce', name: 'İngilizce', color: '#6366F1', bg: 'bg-indigo-50' }
                 ].map((subject) => {
-                  const lastResult = analysis.studentResults[analysis.studentResults.length - 1];
-                  const subjectNet = lastResult?.nets?.[subject.key as keyof typeof lastResult.nets] || 0;
-                  const avgSubjectNet = analysis.studentResults.reduce((sum, result) => 
-                    sum + (result.nets?.[subject.key as keyof typeof result.nets] || 0), 0) / analysis.studentResults.length;
+                  const subjectData = analysis.studentResults.map((result, index) => ({
+                    exam: `Deneme ${index + 1}`,
+                    net: result.nets?.[subject.key as keyof typeof result.nets] || 0,
+                    classAvg: analysis.classAverageNet * (subject.key === 'matematik' ? 0.20 : subject.key === 'fen' ? 0.18 : subject.key === 'turkce' ? 0.15 : subject.key === 'sosyal' ? 0.15 : subject.key === 'ingilizce' ? 0.20 : 0.12)
+                  }));
                   
                   return (
-                    <div key={subject.key} className={`${subject.bg} p-3 rounded-lg border ${subject.border}`}>
-                      <h5 className={`font-semibold ${subject.color} text-sm`}>{subject.name}</h5>
-                      <p className={`text-lg font-bold ${subject.color}`}>{subjectNet.toFixed(1)}</p>
-                      <p className="text-xs text-gray-600">Ort: {avgSubjectNet.toFixed(1)}</p>
+                    <div key={subject.key} className={`${subject.bg} p-4 rounded-lg border`}>
+                      <h4 className="text-sm font-semibold text-gray-800 mb-3">{subject.name}</h4>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={subjectData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="exam" 
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            interval={0}
+                            tick={{ fontSize: 8 }}
+                          />
+                          <YAxis domain={[0, 20]} />
+                          <Tooltip 
+                            formatter={(value, name) => [`${Number(value).toFixed(1)}`, name]}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="net" 
+                            stroke={subject.color} 
+                            strokeWidth={2}
+                            name="Öğrenci Net"
+                            dot={{ fill: subject.color, strokeWidth: 1, r: 3 }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="classAvg" 
+                            stroke="#9CA3AF" 
+                            strokeWidth={1}
+                            strokeDasharray="2 2"
+                            name="Sınıf Ort."
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </div>
                   );
                 })}
