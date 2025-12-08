@@ -397,7 +397,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     const lastThreeNets = studentResults.slice(-3).map(result => result.nets?.total || 0);
     const lastThreeAvgNet = lastThreeNets.reduce((sum, net) => sum + net, 0) / Math.min(3, lastThreeNets.length);
     const predictedNextScore = lastThreeAvg * 1.03; // %3 artış
-    const predictedNextNet = lastThreeAvgNet * 1.03; // %3 artış
+    const predictedNextNet = lastThreeAvgNet * 1.05; // %5 artış
     
     const latestNet = studentResults[studentResults.length - 1]?.nets?.total || 0;
     const previousNet = studentResults[studentResults.length - 2]?.nets?.total || 0;
