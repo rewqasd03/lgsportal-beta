@@ -334,15 +334,118 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     </div>
   );
 
+  // Detaylı öğrenci analizi için yardımcı fonksiyonlar
+  const getStudentDetailedAnalysis = (studentId: string) => {
+    const studentResults = results
+      .filter(result => result.studentId === studentId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+    if (studentResults.length === 0) return null;
+
+    // İstatistikleri hesapla
+    const totalNet = studentResults.reduce((sum, result) => sum + (result.nets?.total || 0), 0);
+    const avgNet = totalNet / studentResults.length;
+    const scores = studentResults.map(result => result.nets?.total || 0);
+    const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
+    const stdDev = Math.sqrt(variance);
+    
+    const latestNet = studentResults[studentResults.length - 1]?.nets?.total || 0;
+    const previousNet = studentResults[studentResults.length - 2]?.nets?.total || 0;
+    const improvement = latestNet - previousNet;
+    
+    const latestScore = studentResults[studentResults.length - 1]?.scores?.puan ? 
+      parseFloat(studentResults[studentResults.length - 1].scores?.puan) : 
+      (studentResults[studentResults.length - 1]?.puan || 0);
+    const previousScore = studentResults[studentResults.length - 2]?.scores?.puan ?
+      parseFloat(studentResults[studentResults.length - 2].scores?.puan) :
+      (studentResults[studentResults.length - 2]?.puan || 0);
+    const scoreImprovement = latestScore - previousScore;
+    
+    // Trend analizi
+    const trend = improvement > 2 ? 'Yükseliş' : improvement < -2 ? 'Düşüş' : 'Stabil';
+    const trendColor = improvement > 2 ? 'text-green-600' : improvement < -2 ? 'text-red-600' : 'text-yellow-600';
+
+    // Sınıf ortalamaları
+    const student = students.find(s => s.id === studentId);
+    const classResults = results.filter(r => {
+      const rStudent = students.find(s => s.id === r.studentId);
+      return rStudent?.class === student?.class;
+    });
+    
+    const classAverageNet = classResults.length > 0 
+      ? classResults.reduce((sum, r) => sum + (r.nets?.total || 0), 0) / classResults.length
+      : 0;
+    
+    const classAverageScore = classResults.length > 0
+      ? classResults.reduce((sum, r) => {
+          const score = r.scores?.puan ? parseFloat(r.scores.puan) : (r.puan || 0);
+          return sum + score;
+        }, 0) / classResults.length
+      : 0;
+
+    // Grafik verileri
+    const netChartData = studentResults.map((result, index) => {
+      const examResult = result;
+      return {
+        exam: `Deneme ${index + 1}`,
+        öğrenci: examResult.nets?.total || 0,
+        sınıf: classAverageNet,
+        genel: classAverageNet // Sadece sınıf ortalaması kullanıyoruz
+      };
+    });
+    
+    const scoreChartData = studentResults.map((result, index) => {
+      const examResult = result;
+      const score = examResult.scores?.puan ? parseFloat(examResult.scores.puan) : (examResult.puan || 0);
+      return {
+        exam: `Deneme ${index + 1}`,
+        öğrenci: score,
+        sınıf: classAverageScore,
+        genel: classAverageScore
+      };
+    });
+
+    return {
+      student,
+      studentResults,
+      totalNet,
+      avgNet,
+      stdDev,
+      latestNet,
+      previousNet,
+      improvement,
+      latestScore,
+      previousScore,
+      scoreImprovement,
+      trend,
+      trendColor,
+      classAverageNet,
+      classAverageScore,
+      netChartData,
+      scoreChartData
+    };
+  };
+
   const renderTrends = () => {
     const selectedStudentData = students.find(s => s.id === selectedStudent);
-    const hasExamData = trendData.length > 0;
+    const analysis = selectedStudent ? getStudentDetailedAnalysis(selectedStudent) : null;
+    const hasExamData = analysis && analysis.studentResults.length > 0;
     
+    const subjects = [
+      { name: 'Türkçe', color: '#10B981', key: 'turkce' },
+      { name: 'Matematik', color: '#F59E0B', key: 'matematik' },
+      { name: 'Fen Bilimleri', color: '#3B82F6', key: 'fen' },
+      { name: 'Sosyal Bilgiler', color: '#8B5CF6', key: 'sosyal' },
+      { name: 'Din Kültürü', color: '#EF4444', key: 'din' },
+      { name: 'İngilizce', color: '#6366F1', key: 'ingilizce' }
+    ];
+
     return (
       <div className="space-y-6">
         {/* Öğrenci Seçimi */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-xl font-bold mb-4">Öğrenci Trendi Analizi</h3>
+          <h3 className="text-xl font-bold mb-4">📊 Kapsamlı Öğrenci Trendi Analizi</h3>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">Öğrenci Seçin:</label>
             <select
@@ -363,110 +466,340 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
           </div>
           
           {/* Seçilen Öğrenci Bilgileri */}
-          {selectedStudentData && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-800">Seçilen Öğrenci: {selectedStudentData.name}</h4>
-              <p className="text-blue-600">Sınıf: {selectedStudentData.class}</p>
-              <p className="text-blue-600">Toplam Sınav: {results.filter(r => r.studentId === selectedStudent).length}</p>
-              {studentClassAverage > 0 && (
-                <p className="text-blue-600">Sınıf Ortalaması: {studentClassAverage.toFixed(1)} net</p>
-              )}
+          {selectedStudentData && analysis && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h4 className="font-semibold text-blue-800">Öğrenci Bilgileri</h4>
+                <p className="text-blue-600">👤 {selectedStudentData.name}</p>
+                <p className="text-blue-600">🏫 {selectedStudentData.class}</p>
+                <p className="text-blue-600">📝 Toplam Sınav: {analysis.studentResults.length}</p>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <h4 className="font-semibold text-green-800">Sonuçlar</h4>
+                <p className="text-green-600">📈 Son Net: {analysis.latestNet.toFixed(1)}</p>
+                <p className="text-green-600">📊 Ortalama Net: {analysis.avgNet.toFixed(1)}</p>
+                <p className="text-green-600">📈 Son Puan: {analysis.latestScore.toFixed(0)}</p>
+              </div>
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <h4 className="font-semibold text-purple-800">Trend Analizi</h4>
+                <p className={`font-semibold ${analysis.trendColor}`}>
+                  {analysis.trend === 'Yükseliş' ? '📈' : analysis.trend === 'Düşüş' ? '📉' : '➡️'} {analysis.trend}
+                </p>
+                <p className="text-purple-600">Değişim: {analysis.improvement >= 0 ? '+' : ''}{analysis.improvement.toFixed(1)} net</p>
+                <p className="text-purple-600">Sınıf Ort: {analysis.classAverageNet.toFixed(1)}</p>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Trend Grafikleri */}
-        {selectedStudent && hasExamData && (
+        {/* Ana İçerik */}
+        {selectedStudent && hasExamData && analysis ? (
           <>
+            {/* 1. Genel Görünüm - İstatistik Kartları */}
             <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-xl font-bold mb-4">Net Gelişim Trendi</h3>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={trendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="tarih" 
-                    tick={{ fontSize: 12 }}
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                  />
-                  <YAxis 
-                    domain={[0, 'dataMax + 5']}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip 
-                    formatter={(value, name) => [
-                      typeof value === 'number' ? value.toFixed(1) : value,
-                      name
-                    ]}
-                    labelFormatter={(label) => `Tarih: ${label}`}
-                  />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="toplamNet" 
-                    stroke="#3B82F6" 
-                    strokeWidth={3} 
-                    name="Toplam Net"
-                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                  {studentClassAverage > 0 && (
+              <h3 className="text-xl font-bold mb-4">📊 Genel Performans Özeti</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h4 className="text-xs font-medium text-blue-800 mb-1">Ortalama Net</h4>
+                  <p className="text-lg font-bold text-blue-600">{analysis.avgNet.toFixed(1)}</p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Sınıf: <span className="font-semibold">{analysis.classAverageNet.toFixed(1)}</span>
+                  </p>
+                </div>
+
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <h4 className="text-xs font-medium text-green-800 mb-1">Son Deneme Net</h4>
+                  <p className="text-lg font-bold text-green-600">{analysis.latestNet.toFixed(1)}</p>
+                  <p className={`text-xs mt-1 ${
+                    analysis.improvement >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {analysis.improvement >= 0 ? '+' : ''}{analysis.improvement.toFixed(1)} Değişim
+                  </p>
+                </div>
+
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <h4 className="text-xs font-medium text-purple-800 mb-1">Son Deneme Puan</h4>
+                  <p className="text-lg font-bold text-purple-600">{analysis.latestScore.toFixed(0)}</p>
+                  <p className={`text-xs mt-1 ${
+                    analysis.scoreImprovement >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {analysis.scoreImprovement >= 0 ? '+' : ''}{analysis.scoreImprovement.toFixed(0)} Değişim
+                  </p>
+                </div>
+
+                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                  <h4 className="text-xs font-medium text-orange-800 mb-1">Standart Sapma</h4>
+                  <p className="text-lg font-bold text-orange-600">{analysis.stdDev.toFixed(1)}</p>
+                  <p className="text-xs text-gray-600 mt-1">Performans tutarlılığı</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Net ve Puan Gelişim Grafikleri */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Net Gelişim Trendi */}
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h3 className="text-lg font-bold mb-4">📈 Net Gelişim Trendi</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={analysis.netChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="exam" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      interval={0}
+                      tick={{ fontSize: 10 }}
+                    />
+                    <YAxis domain={[0, 'dataMax + 5']} />
+                    <Tooltip 
+                      formatter={(value, name) => [`${Number(value).toFixed(1)}`, name]}
+                      labelFormatter={(label) => `Deneme: ${label}`}
+                    />
+                    <Legend />
                     <Line 
                       type="monotone" 
-                      dataKey="classAverage" 
-                      stroke="#10B981" 
-                      strokeWidth={2} 
-                      strokeDasharray="5 5" 
-                      name="Sınıf Ortalaması"
-                      dot={false}
+                      dataKey="öğrenci" 
+                      stroke="#3B82F6" 
+                      strokeWidth={2}
+                      name="Öğrenci Net"
+                      dot={{ fill: '#3B82F6', strokeWidth: 1, r: 4 }}
                     />
-                  )}
-                </LineChart>
-              </ResponsiveContainer>
+                    <Line 
+                      type="monotone" 
+                      dataKey="sınıf" 
+                      stroke="#10B981" 
+                      strokeWidth={1}
+                      strokeDasharray="5 5"
+                      name="Sınıf Ortalaması"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Puan Gelişim Trendi */}
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h3 className="text-lg font-bold mb-4">📊 Puan Gelişim Trendi</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={analysis.scoreChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="exam" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      interval={0}
+                      tick={{ fontSize: 10 }}
+                    />
+                    <YAxis domain={[0, 500]} />
+                    <Tooltip 
+                      formatter={(value, name) => [`${Number(value).toFixed(0)}`, name]}
+                      labelFormatter={(label) => `Deneme: ${label}`}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="öğrenci" 
+                      stroke="#8B5CF6" 
+                      strokeWidth={2}
+                      name="Öğrenci Puanı"
+                      dot={{ fill: '#8B5CF6', strokeWidth: 1, r: 4 }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="sınıf" 
+                      stroke="#10B981" 
+                      strokeWidth={1}
+                      strokeDasharray="5 5"
+                      name="Sınıf Ortalama Puan"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
+            {/* 3. Ders Bazında Gelişim */}
             <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-xl font-bold mb-4">Konu Bazlı Gelişim</h3>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={trendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="tarih" 
-                    tick={{ fontSize: 12 }}
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                  />
-                  <YAxis 
-                    domain={[0, 'dataMax + 2']}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip 
-                    formatter={(value, name) => [
-                      typeof value === 'number' ? value.toFixed(1) : value,
-                      name
-                    ]}
-                    labelFormatter={(label) => `Tarih: ${label}`}
-                  />
-                  <Legend />
-                  <Line type="monotone" dataKey="turkce" stroke="#10B981" strokeWidth={2} name="Türkçe" dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="matematik" stroke="#F59E0B" strokeWidth={2} name="Matematik" dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="fen" stroke="#3B82F6" strokeWidth={2} name="Fen" dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="sosyal" stroke="#8B5CF6" strokeWidth={2} name="Sosyal" dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
+              <h3 className="text-xl font-bold mb-4">🎯 Ders Bazında Net Dağılımı</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {(() => {
+                  const lastResult = analysis.studentResults[analysis.studentResults.length - 1];
+                  const nets = lastResult?.nets || {};
+                  
+                  return subjects.map((subject) => {
+                    const subjectNet = nets[subject.key] || 0;
+                    
+                    return (
+                      <div key={subject.name} className="bg-gray-50 p-4 rounded-lg border-l-4" style={{borderColor: subject.color}}>
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">{subject.name}</h4>
+                        <p className="text-xl font-bold" style={{color: subject.color}}>
+                          {subjectNet.toFixed(1)}
+                        </p>
+                        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                          <div 
+                            className="h-2 rounded-full" 
+                            style={{
+                              backgroundColor: subject.color,
+                              width: `${Math.min((subjectNet / 20) * 100, 100)}%`
+                            }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Maks: 20 net
+                        </p>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+
+            {/* 4. Detaylı Deneme Tablosu */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-xl font-bold mb-4">📋 Deneme Detayları ve Gelişim Analizi</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-2 text-left">Deneme</th>
+                      <th className="px-4 py-2 text-center">Tarih</th>
+                      <th className="px-4 py-2 text-center">Toplam Net</th>
+                      <th className="px-4 py-2 text-center">Türkçe</th>
+                      <th className="px-4 py-2 text-center">Matematik</th>
+                      <th className="px-4 py-2 text-center">Fen</th>
+                      <th className="px-4 py-2 text-center">Sosyal</th>
+                      <th className="px-4 py-2 text-center">Puan</th>
+                      <th className="px-4 py-2 text-center">Gelişim</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analysis.studentResults.map((result, index) => {
+                      const previousNet = index > 0 ? analysis.studentResults[index-1]?.nets?.total || 0 : 0;
+                      const currentNet = result.nets?.total || 0;
+                      const development = index > 0 ? (currentNet - previousNet) : 0;
+                      const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
+                      
+                      return (
+                        <tr key={result.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="px-4 py-2 font-medium text-blue-600">Deneme {index + 1}</td>
+                          <td className="px-4 py-2 text-center text-gray-600">
+                            {new Date(result.createdAt).toLocaleDateString('tr-TR')}
+                          </td>
+                          <td className="px-4 py-2 text-center">
+                            <span className={`font-semibold ${
+                              currentNet >= 60 ? 'text-green-600' : 
+                              currentNet >= 40 ? 'text-yellow-600' : 'text-red-600'
+                            }`}>
+                              {currentNet.toFixed(1)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-center text-green-600 font-medium">
+                            {(result.nets?.turkce || 0).toFixed(1)}
+                          </td>
+                          <td className="px-4 py-2 text-center text-orange-600 font-medium">
+                            {(result.nets?.matematik || 0).toFixed(1)}
+                          </td>
+                          <td className="px-4 py-2 text-center text-blue-600 font-medium">
+                            {(result.nets?.fen || 0).toFixed(1)}
+                          </td>
+                          <td className="px-4 py-2 text-center text-purple-600 font-medium">
+                            {(result.nets?.sosyal || 0).toFixed(1)}
+                          </td>
+                          <td className="px-4 py-2 text-center font-medium text-blue-600">
+                            {score.toFixed(0)}
+                          </td>
+                          <td className="px-4 py-2 text-center">
+                            {index > 0 ? (
+                              <span className={`flex items-center justify-center ${
+                                development > 0 ? 'text-green-600' : 
+                                development < 0 ? 'text-red-600' : 'text-gray-500'
+                              }`}>
+                                {development > 0 ? '↗️' : development < 0 ? '↘️' : '➡️'} 
+                                {Math.abs(development).toFixed(1)}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* 5. Trend Tahmini ve Öneriler */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-xl font-bold mb-4">🔮 Gelişim Trend Tahmini</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg">
+                  <h4 className="text-xs font-medium opacity-90">Son 3 Deneme Ortalaması</h4>
+                  <p className="text-xl font-bold">
+                    {(analysis.netChartData.slice(-3).reduce((sum, d) => sum + d.öğrenci, 0) / Math.min(3, analysis.netChartData.length)).toFixed(1)}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg">
+                  <h4 className="text-xs font-medium opacity-90">En Yüksek Net</h4>
+                  <p className="text-xl font-bold">
+                    {Math.max(...analysis.netChartData.map(d => d.öğrenci || 0)).toFixed(1)}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-lg">
+                  <h4 className="text-xs font-medium opacity-90">En Düşük Net</h4>
+                  <p className="text-xl font-bold">
+                    {Math.min(...analysis.netChartData.map(d => d.öğrenci || 0)).toFixed(1)}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-lg">
+                  <h4 className="text-xs font-medium opacity-90">Performans Tutarlılığı</h4>
+                  <p className="text-xl font-bold">
+                    {analysis.stdDev.toFixed(1)}
+                  </p>
+                  <p className="text-xs opacity-75">
+                    {analysis.stdDev < 3 ? 'Çok İyi' : analysis.stdDev < 5 ? 'İyi' : 'Gelişmeli'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Öneriler */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-semibold text-blue-800 mb-2">💡 Öğrenci Gelişim Önerileri</h4>
+                <div className="text-sm text-blue-700 space-y-1">
+                  {analysis.improvement > 0 ? (
+                    <p>✅ Öğrenci pozitif trend gösteriyor. Mevcut çalışma yöntemlerini devam ettirebilir.</p>
+                  ) : analysis.improvement < -2 ? (
+                    <p>⚠️ Öğrencinin performansında düşüş var. Ek çalışma ve motivasyon desteği gerekebilir.</p>
+                  ) : (
+                    <p>➡️ Öğrencinin performansı stabil. Küçük iyileştirmeler hedeflenebilir.</p>
+                  )}
+                  
+                  {(() => {
+                    const lastResult = analysis.studentResults[analysis.studentResults.length - 1];
+                    if (!lastResult) return null;
+                    
+                    const weakestSubject = subjects.reduce((weakest, subject) => {
+                      const current = lastResult?.nets?.[subject.key] || 0;
+                      const weakestNet = lastResult?.nets?.[weakest.key] || 0;
+                      return current < weakestNet ? subject : weakest;
+                    }, subjects[0]);
+                    
+                    return (
+                      <p>🎯 En çok geliştirilmesi gereken ders: <strong>{weakestSubject.name}</strong></p>
+                    );
+                  })()}
+                  
+                  <p>📈 Son 3 deneme ortalamasını LGS hedefi ile karşılaştırarak çalışma planı oluşturulabilir.</p>                  
+                  <p>📈 3 deneme ortalaması Son ile LGS hedefini karşılaştırarak çalışma planı oluşturulabilir.</p>
+                </div>
+              </div>
             </div>
           </>
-        )}
-
-        {selectedStudent && !hasExamData && (
+        ) : selectedStudent && !hasExamData ? (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
             <p className="text-yellow-800">Seçilen öğrenci için henüz sınav verisi bulunmamaktadır.</p>
           </div>
-        )}
-        
-        {!selectedStudent && (
+        ) : (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
             <p className="text-gray-600">Lütfen trend analizi için bir öğrenci seçin.</p>
           </div>
