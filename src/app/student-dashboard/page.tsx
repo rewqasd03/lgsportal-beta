@@ -363,7 +363,7 @@ function StudentDashboardContent() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img 
@@ -387,9 +387,9 @@ function StudentDashboardContent() {
       </div>
 
       {/* İçerik */}
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6">
         {/* Öğrenci Bilgileri Kartı */}
-        <div className="mb-8 bg-white rounded-lg shadow p-6">
+        <div className="mb-4 sm:mb-8 bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg">
               <h3 className="text-xs font-medium text-blue-800 mb-1">Sınıf</h3>
@@ -408,7 +408,7 @@ function StudentDashboardContent() {
 
         {/* Eğer sonuç yoksa mesaj göster */}
         {reportData.examResults.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6 lg:p-8 text-center">
             <div className="text-6xl mb-4">📚</div>
             <h3 className="text-sm font-semibold text-gray-800 mb-2">Henüz Sınav Sonucunuz Bulunmuyor</h3>
             <p className="text-gray-600">İlk sınavınızı verdikten sonra burada detaylı raporunuzu görüntüleyebilirsiniz.</p>
