@@ -1102,7 +1102,7 @@ const TABS: Tab[] = [
   { key: "bireysel", label: "👨‍🎓 Bireysel Veri" },
   { key: "toplu", label: "👥 Toplu Veri" },
   { key: "excel-import", label: "📊 Excel İçe Aktar" },
-  { key: "pdf-import", label: "📄 PDF İçe Aktar" },
+
   { key: "hedef", label: "🎯 Hedef Belirleme" },
   { key: "lgs-hesaplama", label: "🧮 LGS Puan Hesaplama" },
   { key: "analytics", label: "📊 Analitik & Raporlar" },
@@ -3775,7 +3775,7 @@ export default function FoncsDataEntry() {
       case "bireysel": return <IndividualTab />;
       case "toplu": return <BulkTab />;
       case "excel-import": return <ExcelImportTab students={students} exams={exams} onDataUpdate={loadDataFromFirebase} />;
-      case "pdf-import": return <PDFImportTab students={students} exams={exams} onDataUpdate={loadDataFromFirebase} />;
+
       case "hedef": return <TargetTab />;
       case "lgs-hesaplama": return <LGSCalculatorTab />;
       case "analytics": return <AnalyticsTab students={students} results={results} exams={exams} />;
