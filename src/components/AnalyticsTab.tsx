@@ -393,6 +393,12 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     const lowestScore = Math.min(...studentScores);
     const lastThreeAvg = studentScores.slice(-3).reduce((sum, score) => sum + score, 0) / Math.min(3, studentScores.length);
     
+    // Son 3 deneme net ortalaması ve tahminler
+    const lastThreeNets = studentResults.slice(-3).map(result => result.nets?.total || 0);
+    const lastThreeAvgNet = lastThreeNets.reduce((sum, net) => sum + net, 0) / Math.min(3, lastThreeNets.length);
+    const predictedNextScore = lastThreeAvg * 1.03; // %3 artış
+    const predictedNextNet = lastThreeAvgNet * 1.03; // %3 artış
+    
     const latestNet = studentResults[studentResults.length - 1]?.nets?.total || 0;
     const previousNet = studentResults[studentResults.length - 2]?.nets?.total || 0;
     const improvement = latestNet - previousNet;
@@ -436,6 +442,9 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
       highestScore,
       lowestScore,
       lastThreeAvg,
+      lastThreeAvgNet,
+      predictedNextScore,
+      predictedNextNet,
       latestNet,
       previousNet,
       improvement,
@@ -524,7 +533,8 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                   <h4 className="text-xs font-medium text-blue-800 mb-1">Ortalama Net</h4>
                   <p className="text-lg font-bold text-blue-600">{analysis.avgNet.toFixed(1)}</p>
                   <p className="text-xs text-gray-600 mt-1">
-                    Sınıf: <span className="font-semibold">{analysis.classAverageNet.toFixed(1)}</span>
+                    Sınıf: <span className="font-semibold">{analysis.classAverageNet.toFixed(1)}</span><br/>
+                    Genel: <span className="font-semibold">{analysis.generalAverageNet.toFixed(1)}</span>
                   </p>
                 </div>
 
@@ -536,17 +546,19 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                 <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                   <h4 className="text-xs font-medium text-purple-800 mb-1">Son Deneme Puan</h4>
                   <p className="text-lg font-bold text-purple-600">{analysis.latestScore.toFixed(0)}</p>
-                  <p className={`text-xs mt-1 ${
-                    analysis.scoreImprovement >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {analysis.scoreImprovement >= 0 ? '+' : ''}{analysis.scoreImprovement.toFixed(0)} Değişim
+                  <p className="text-xs text-gray-600 mt-1">
+                    Sınıf: <span className="font-semibold">{analysis.classAverageScore.toFixed(0)}</span><br/>
+                    Genel: <span className="font-semibold">{analysis.generalAverageScore.toFixed(0)}</span>
                   </p>
                 </div>
 
                 <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
                   <h4 className="text-xs font-medium text-orange-800 mb-1">Ortalama Puan</h4>
                   <p className="text-lg font-bold text-orange-600">{analysis.avgScore.toFixed(0)}</p>
-                  <p className="text-xs text-gray-600 mt-1">Tüm denemeler ortalaması</p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Sınıf: <span className="font-semibold">{analysis.classAverageScore.toFixed(0)}</span><br/>
+                    Genel: <span className="font-semibold">{analysis.generalAverageScore.toFixed(0)}</span>
+                  </p>
                 </div>
               </div>
             </div>
@@ -740,7 +752,8 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                   const subjectData = analysis.studentResults.map((result, index) => ({
                     exam: `Deneme ${index + 1}`,
                     net: result.nets?.[subject.key as keyof typeof result.nets] || 0,
-                    classAvg: analysis.classAverageNet * (subject.key === 'matematik' ? 0.20 : subject.key === 'fen' ? 0.18 : subject.key === 'turkce' ? 0.15 : subject.key === 'sosyal' ? 0.15 : subject.key === 'ingilizce' ? 0.20 : 0.12)
+                    classAvg: analysis.classAverageNet * (subject.key === 'matematik' ? 0.20 : subject.key === 'fen' ? 0.18 : subject.key === 'turkce' ? 0.15 : subject.key === 'sosyal' ? 0.15 : subject.key === 'ingilizce' ? 0.20 : 0.12),
+                    generalAvg: analysis.generalAverageNet * (subject.key === 'matematik' ? 0.20 : subject.key === 'fen' ? 0.18 : subject.key === 'turkce' ? 0.15 : subject.key === 'sosyal' ? 0.15 : subject.key === 'ingilizce' ? 0.20 : 0.12)
                   }));
                   
                   return (
@@ -777,6 +790,14 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                             strokeDasharray="2 2"
                             name="Sınıf Ort."
                           />
+                          <Line 
+                            type="monotone" 
+                            dataKey="generalAvg" 
+                            stroke="#F59E0B" 
+                            strokeWidth={1}
+                            strokeDasharray="1 1"
+                            name="Genel Ort."
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -788,23 +809,29 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
             {/* 5. Trend Tahmini ve Öneriler */}
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-xl font-bold mb-4">🔮 Gelişim Trend Tahmini</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg">
-                  <h4 className="text-xs font-medium opacity-90">Son 3 Deneme Ortalaması (Puan)</h4>
+                  <h4 className="text-xs font-medium opacity-90">Son 3 Deneme Ort. (Puan)</h4>
                   <p className="text-xl font-bold">
                     {analysis.lastThreeAvg.toFixed(0)}
                   </p>
                 </div>
                 <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg">
-                  <h4 className="text-xs font-medium opacity-90">En Yüksek Puan</h4>
+                  <h4 className="text-xs font-medium opacity-90">Sonraki Deneme Tahmini (Puan)</h4>
                   <p className="text-xl font-bold">
-                    {analysis.highestScore.toFixed(0)}
+                    {analysis.predictedNextScore.toFixed(0)}
                   </p>
                 </div>
                 <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-lg">
-                  <h4 className="text-xs font-medium opacity-90">En Düşük Puan</h4>
+                  <h4 className="text-xs font-medium opacity-90">Son 3 Deneme Ort. (Net)</h4>
                   <p className="text-xl font-bold">
-                    {analysis.lowestScore.toFixed(0)}
+                    {analysis.lastThreeAvgNet.toFixed(1)}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-lg">
+                  <h4 className="text-xs font-medium opacity-90">Sonraki Deneme Tahmini (Net)</h4>
+                  <p className="text-xl font-bold">
+                    {analysis.predictedNextNet.toFixed(1)}
                   </p>
                 </div>
               </div>
