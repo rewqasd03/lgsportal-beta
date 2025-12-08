@@ -6,6 +6,508 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { getStudents, getExams, getResults, addStudent, addExam, addResult, deleteStudent, deleteExam, deleteResult, updateStudent, updateResult, updateExam, saveStudentTargets, getAllTargets, getStudentScoreTarget, mapDashboardKeysToPanel, mapPanelKeysToDashboard, db, doc, getDoc, Student, Exam, Result } from "../../firebase";
 import AnalyticsTab from "../../components/AnalyticsTab";
+// PDF İçe Aktarım Tab Component
+const PDFImportTab = ({ students, exams, onDataUpdate }: { 
+  students: Student[], 
+  exams: Exam[], 
+  onDataUpdate: () => void 
+}) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [parsedData, setParsedData] = useState<any[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [examInfo, setExamInfo] = useState({
+    title: '',
+    date: new Date().toISOString().split('T')[0],
+    classes: [] as string[]
+  });
+  const [importResults, setImportResults] = useState<{
+    total: number;
+    added: number;
+    updated: number;
+    errors: string[];
+  }>({ total: 0, added: 0, updated: 0, errors: [] });
+
+  // PDF'den text çıkarma fonksiyonu
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          // PDF.js benzeri basit text extraction
+          // Bu basit bir implementasyondur, gerçek projede pdf-lib kullanılabilir
+          const text = new TextDecoder().decode(arrayBuffer);
+          resolve(text);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  // PDF içeriğini parse etme fonksiyonu
+  const parsePDFContent = (text: string): any[] => {
+    const students: any[] = [];
+    const lines = text.split('\n');
+    
+    let currentStudent: any = null;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // Öğrenci adını yakala (genellikle başlıkta veya özel formatta)
+      const nameMatch = line.match(/([A-Za-zÇçĞğİıÖöŞşÜü\s]+)\s+(\d+)\s+(\d+-[A-Z])/);
+      if (nameMatch) {
+        // Önceki öğrenciyi kaydet
+        if (currentStudent) {
+          students.push(currentStudent);
+        }
+        
+        // Yeni öğrenci başlat
+        currentStudent = {
+          name: nameMatch[1].trim(),
+          number: nameMatch[2],
+          class: nameMatch[3],
+          scores: {}
+        };
+        continue;
+      }
+      
+      // Ders skorlarını yakala
+      const scoreMatch = line.match(/(Türkçe|Matematik|Fen|Sosyal|İngilizce|Din)\s+(\d+)\s+(\d+)\s+([\d.]+)\s+(\d+)/);
+      if (scoreMatch && currentStudent) {
+        const subject = scoreMatch[1];
+        const dogru = parseInt(scoreMatch[2]);
+        const yanlis = parseInt(scoreMatch[3]);
+        const net = parseFloat(scoreMatch[4]);
+        const bos = parseInt(scoreMatch[5]);
+        
+        currentStudent.scores[subject.toLowerCase()] = {
+          D: dogru,
+          Y: yanlis,
+          N: net,
+          B: bos
+        };
+        continue;
+      }
+      
+      // Toplam puanı yakala
+      const totalScoreMatch = line.match(/Toplam\s+Puan\s+([\d.]+)/);
+      if (totalScoreMatch && currentStudent) {
+        currentStudent.puan = parseFloat(totalScoreMatch[1]);
+        continue;
+      }
+    }
+    
+    // Son öğrenciyi kaydet
+    if (currentStudent) {
+      students.push(currentStudent);
+    }
+    
+    return students;
+  };
+
+  // Dosya seçme işlemi
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === 'application/pdf') {
+      setSelectedFile(file);
+      setParsedData([]);
+    } else {
+      alert('Lütfen bir PDF dosyası seçin.');
+    }
+  };
+
+  // PDF'i işleme
+  const processPDF = async () => {
+    if (!selectedFile) return;
+    
+    setIsProcessing(true);
+    try {
+      const text = await extractTextFromPDF(selectedFile);
+      const parsed = parsePDFContent(text);
+      setParsedData(parsed);
+    } catch (error) {
+      console.error('PDF processing error:', error);
+      alert('PDF işlenirken bir hata oluştu.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Firebase'e veri aktarımı
+  const importToFirebase = async () => {
+    if (parsedData.length === 0) return;
+    
+    setIsProcessing(true);
+    const results = {
+      total: parsedData.length,
+      added: 0,
+      updated: 0,
+      errors: [] as string[]
+    };
+
+    try {
+      // Deneme bilgilerini kontrol et/oluştur
+      let examId = '';
+      const existingExam = exams.find(e => 
+        e.title === examInfo.title && e.date === examInfo.date
+      );
+      
+      if (existingExam) {
+        examId = existingExam.id;
+      } else {
+        // Yeni deneme oluştur
+        const newExam: Omit<Exam, 'id'> = {
+          title: examInfo.title,
+          date: examInfo.date,
+          classes: examInfo.classes.length > 0 ? examInfo.classes : undefined
+        };
+        
+        examId = await addExam(newExam);
+      }
+
+      // Her öğrenci için sonuç oluştur
+      for (const studentData of parsedData) {
+        try {
+          // Mevcut öğrenciyi bul veya oluştur
+          let student = students.find(s => 
+            s.name === studentData.name && s.class === studentData.class
+          );
+          
+          if (!student) {
+            // Yeni öğrenci oluştur
+            const newStudent: Omit<Student, 'id'> = {
+              name: studentData.name,
+              class: studentData.class,
+              number: studentData.number || "0",
+              viewCount: 0,
+              lastViewDate: new Date().toISOString(),
+              createdAt: new Date().toISOString()
+            };
+            
+            const studentId = await addStudent(newStudent);
+            student = { ...newStudent, id: studentId };
+            results.added++;
+          } else {
+            results.updated++;
+          }
+
+          // Sonuç oluştur
+          const nets: Result['nets'] = { total: 0 };
+          let totalNet = 0;
+          Object.entries(studentData.scores || {}).forEach(([subject, scores]: [string, any]) => {
+            const netValue = scores.N || 0;
+            (nets as any)[subject] = netValue;
+            totalNet += netValue;
+          });
+          nets.total = totalNet;
+
+          const newResult: Omit<Result, 'id'> = {
+            studentId: student.id,
+            examId,
+            nets,
+            scores: {
+              puan: studentData.puan || 0,
+              ...studentData.scores
+            },
+            createdAt: new Date().toISOString()
+          };
+          
+          const resultId = await addResult(newResult);
+        } catch (error) {
+          console.error('Student import error:', error);
+          results.errors.push(`Öğrenci ${studentData.name}: ${error}`);
+        }
+      }
+      
+      setImportResults(results);
+      onDataUpdate();
+      alert(`İçe aktarım tamamlandı! ${results.added} yeni öğrenci eklendi, ${results.updated} güncellendi.`);
+      
+    } catch (error) {
+      console.error('Firebase import error:', error);
+      alert('Firebase\'e aktarım sırasında bir hata oluştu.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* 📄 PDF İçe Aktarım Header */}
+      <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-8 text-white">
+        <h1 className="text-3xl font-bold mb-2">📄 PDF İçe Aktarım</h1>
+        <p className="text-purple-100 text-xs">
+          PDF dosyasından otomatik olarak öğrenci verilerini çıkarın ve sisteme aktarın
+        </p>
+      </div>
+
+      {/* 📤 PDF Yükleme Alanı */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <span className="text-purple-600 mr-3">📁</span>
+          PDF Dosyası Seçin
+        </h3>
+        
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-purple-400 transition-colors">
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={handleFileSelect}
+            className="hidden"
+            id="pdf-upload"
+          />
+          <label htmlFor="pdf-upload" className="cursor-pointer">
+            <div className="text-purple-600 mb-4">
+              <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <p className="text-lg font-medium text-gray-900 mb-2">
+              {selectedFile ? selectedFile.name : 'PDF dosyasını buraya sürükleyin veya seçin'}
+            </p>
+            <p className="text-sm text-gray-500">
+              Sadece PDF dosyaları desteklenmektedir
+            </p>
+          </label>
+        </div>
+
+        {selectedFile && (
+          <div className="mt-4 flex justify-between items-center">
+            <div className="flex items-center text-green-600">
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium">Dosya seçildi: {selectedFile.name}</span>
+            </div>
+            <button
+              onClick={processPDF}
+              disabled={isProcessing}
+              className="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50"
+            >
+              {isProcessing ? 'İşleniyor...' : '📄 PDF\'i İşle'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 📊 Deneme Bilgileri */}
+      {parsedData.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="text-blue-600 mr-3">📋</span>
+            Deneme Bilgileri
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Deneme Adı *
+              </label>
+              <input
+                type="text"
+                value={examInfo.title}
+                onChange={(e) => setExamInfo(prev => ({ ...prev, title: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Deneme adını girin"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Deneme Tarihi *
+              </label>
+              <input
+                type="date"
+                value={examInfo.date}
+                onChange={(e) => setExamInfo(prev => ({ ...prev, date: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              İlgili Sınıflar (Opsiyonel)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {CLASS_OPTIONS.map(cls => (
+                <label key={cls} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={examInfo.classes.includes(cls)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setExamInfo(prev => ({
+                          ...prev,
+                          classes: [...prev.classes, cls]
+                        }));
+                      } else {
+                        setExamInfo(prev => ({
+                          ...prev,
+                          classes: prev.classes.filter(c => c !== cls)
+                        }));
+                      }
+                    }}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">{cls}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 📋 Parse Edilen Veri Önizlemesi */}
+      {parsedData.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="text-green-600 mr-3">👥</span>
+            Parse Edilen Öğrenci Verileri ({parsedData.length} öğrenci)
+          </h3>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse border border-gray-300">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="border border-gray-300 px-4 py-2 text-left">Öğrenci Adı</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Sınıf</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Numara</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Türkçe Net</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Matematik Net</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Fen Net</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">Toplam Puan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {parsedData.map((student, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-2">{student.name}</td>
+                    <td className="border border-gray-300 px-4 py-2">{student.class}</td>
+                    <td className="border border-gray-300 px-4 py-2">{student.number}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {student.scores?.turkce?.N || 0}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {student.scores?.matematik?.N || 0}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {student.scores?.fen?.N || 0}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 font-semibold">
+                      {student.puan || 0}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={importToFirebase}
+              disabled={isProcessing || !examInfo.title}
+              className="bg-green-500 text-white px-8 py-3 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 font-semibold"
+            >
+              {isProcessing ? 'Aktarılıyor...' : `🚀 ${parsedData.length} Öğrenciyi Firebase'e Aktar`}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 📈 İçe Aktarım Sonuçları */}
+      {importResults.total > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="text-indigo-600 mr-3">📊</span>
+            İçe Aktarım Sonuçları
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="text-2xl font-bold text-blue-600">{importResults.total}</div>
+              <div className="text-blue-800">Toplam Öğrenci</div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="text-2xl font-bold text-green-600">{importResults.added}</div>
+              <div className="text-green-800">Yeni Eklenen</div>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="text-2xl font-bold text-orange-600">{importResults.updated}</div>
+              <div className="text-orange-800">Güncellenen</div>
+            </div>
+          </div>
+
+          {importResults.errors.length > 0 && (
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+              <h4 className="font-semibold text-red-800 mb-2">Hatalar:</h4>
+              <ul className="text-sm text-red-700 space-y-1">
+                {importResults.errors.map((error, index) => (
+                  <li key={index}>• {error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 📚 Yardım Bilgileri */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+          <span className="text-blue-600 mr-3">💡</span>
+          Nasıl Kullanılır?
+        </h3>
+        
+        <div className="space-y-3 text-blue-800">
+          <div className="flex items-start">
+            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+            <div>
+              <p className="font-medium">PDF Dosyası Yükleyin</p>
+              <p className="text-sm">Deneme sonuçlarınızın bulunduğu PDF dosyasını seçin.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+            <div>
+              <p className="font-medium">PDF'i İşleyin</p>
+              <p className="text-sm">Sistem PDF'den öğrenci bilgilerini ve skorları otomatik olarak çıkarır.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
+            <div>
+              <p className="font-medium">Deneme Bilgilerini Girin</p>
+              <p className="text-sm">Deneme adı ve tarihini girin, ilgili sınıfları seçin.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
+            <div>
+              <p className="font-medium">Firebase'e Aktarın</p>
+              <p className="text-sm">Parse edilen verileri kontrol edin ve sisteme aktarın.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 p-4 bg-blue-100 rounded-lg">
+          <p className="text-blue-900 text-sm">
+            <strong>📋 Not:</strong> PDF formatınız desteklenmiyorsa, lütfen PDF'in düzenli bir formatta olduğundan emin olun. 
+            Öğrenci adları, sınıf bilgileri ve ders skorları açık bir şekilde görünmelidir.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Ana Tab Interface
 interface Tab {
   key: string;
@@ -3045,509 +3547,6 @@ const LGSCalculatorTab = () => {
     </div>
   );
 };
-
-// PDF İçe Aktarım Tab Component
-const PDFImportTab = ({ students, exams, onDataUpdate }: { 
-  students: Student[], 
-  exams: Exam[], 
-  onDataUpdate: () => void 
-}) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [parsedData, setParsedData] = useState<any[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [examInfo, setExamInfo] = useState({
-    title: '',
-    date: new Date().toISOString().split('T')[0],
-    classes: [] as string[]
-  });
-  const [importResults, setImportResults] = useState<{
-    total: number;
-    added: number;
-    updated: number;
-    errors: string[];
-  }>({ total: 0, added: 0, updated: 0, errors: [] });
-
-  // PDF'den text çıkarma fonksiyonu
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const arrayBuffer = e.target?.result as ArrayBuffer;
-          // PDF.js benzeri basit text extraction
-          // Bu basit bir implementasyondur, gerçek projede pdf-lib kullanılabilir
-          const text = new TextDecoder().decode(arrayBuffer);
-          resolve(text);
-        } catch (error) {
-          reject(error);
-        }
-      };
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
-    });
-  };
-
-  // PDF içeriğini parse etme fonksiyonu
-  const parsePDFContent = (text: string): any[] => {
-    const students: any[] = [];
-    const lines = text.split('\n');
-    
-    let currentStudent: any = null;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      // Öğrenci adını yakala (genellikle başlıkta veya özel formatta)
-      const nameMatch = line.match(/([A-Za-zÇçĞğİıÖöŞşÜü\s]+)\s+(\d+)\s+(\d+-[A-Z])/);
-      if (nameMatch) {
-        // Önceki öğrenciyi kaydet
-        if (currentStudent) {
-          students.push(currentStudent);
-        }
-        
-        // Yeni öğrenci başlat
-        currentStudent = {
-          name: nameMatch[1].trim(),
-          number: nameMatch[2],
-          class: nameMatch[3],
-          scores: {}
-        };
-        continue;
-      }
-      
-      // Ders skorlarını yakala
-      const scoreMatch = line.match(/(Türkçe|Matematik|Fen|Sosyal|İngilizce|Din)\s+(\d+)\s+(\d+)\s+([\d.]+)\s+(\d+)/);
-      if (scoreMatch && currentStudent) {
-        const subject = scoreMatch[1];
-        const dogru = parseInt(scoreMatch[2]);
-        const yanlis = parseInt(scoreMatch[3]);
-        const net = parseFloat(scoreMatch[4]);
-        const bos = parseInt(scoreMatch[5]);
-        
-        currentStudent.scores[subject.toLowerCase()] = {
-          D: dogru,
-          Y: yanlis,
-          N: net,
-          B: bos
-        };
-        continue;
-      }
-      
-      // Toplam puanı yakala
-      const totalScoreMatch = line.match(/Toplam\s+Puan\s+([\d.]+)/);
-      if (totalScoreMatch && currentStudent) {
-        currentStudent.puan = parseFloat(totalScoreMatch[1]);
-        continue;
-      }
-    }
-    
-    // Son öğrenciyi kaydet
-    if (currentStudent) {
-      students.push(currentStudent);
-    }
-    
-    return students;
-  };
-
-  // Dosya seçme işlemi
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setSelectedFile(file);
-      setParsedData([]);
-    } else {
-      alert('Lütfen bir PDF dosyası seçin.');
-    }
-  };
-
-  // PDF'i işleme
-  const processPDF = async () => {
-    if (!selectedFile) return;
-    
-    setIsProcessing(true);
-    try {
-      const text = await extractTextFromPDF(selectedFile);
-      const parsed = parsePDFContent(text);
-      setParsedData(parsed);
-    } catch (error) {
-      console.error('PDF processing error:', error);
-      alert('PDF işlenirken bir hata oluştu.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Firebase'e veri aktarımı
-  const importToFirebase = async () => {
-    if (parsedData.length === 0) return;
-    
-    setIsProcessing(true);
-    const results = {
-      total: parsedData.length,
-      added: 0,
-      updated: 0,
-      errors: [] as string[]
-    };
-
-    try {
-      // Deneme bilgilerini kontrol et/oluştur
-      let examId = '';
-      const existingExam = exams.find(e => 
-        e.title === examInfo.title && e.date === examInfo.date
-      );
-      
-      if (existingExam) {
-        examId = existingExam.id;
-      } else {
-        // Yeni deneme oluştur
-        const newExam: Omit<Exam, 'id'> = {
-          title: examInfo.title,
-          date: examInfo.date,
-          classes: examInfo.classes.length > 0 ? examInfo.classes : undefined
-        };
-        
-        examId = await addExam(newExam);
-      }
-
-      // Her öğrenci için sonuç oluştur
-      for (const studentData of parsedData) {
-        try {
-          // Mevcut öğrenciyi bul veya oluştur
-          let student = students.find(s => 
-            s.name === studentData.name && s.class === studentData.class
-          );
-          
-          if (!student) {
-            // Yeni öğrenci oluştur
-            const newStudent: Omit<Student, 'id'> = {
-              name: studentData.name,
-              class: studentData.class,
-              number: studentData.number || "0",
-              viewCount: 0,
-              lastViewDate: new Date().toISOString(),
-              createdAt: new Date().toISOString()
-            };
-            
-            const studentId = await addStudent(newStudent);
-            student = { ...newStudent, id: studentId };
-            results.added++;
-          } else {
-            results.updated++;
-          }
-
-          // Sonuç oluştur
-          const nets: Result['nets'] = { total: 0 };
-          let totalNet = 0;
-          Object.entries(studentData.scores || {}).forEach(([subject, scores]: [string, any]) => {
-            const netValue = scores.N || 0;
-            (nets as any)[subject] = netValue;
-            totalNet += netValue;
-          });
-          nets.total = totalNet;
-
-          const newResult: Omit<Result, 'id'> = {
-            studentId: student.id,
-            examId,
-            nets,
-            scores: {
-              puan: studentData.puan || 0,
-              ...studentData.scores
-            },
-            createdAt: new Date().toISOString()
-          };
-          
-          const resultId = await addResult(newResult);
-        } catch (error) {
-          console.error('Student import error:', error);
-          results.errors.push(`Öğrenci ${studentData.name}: ${error}`);
-        }
-      }
-      
-      setImportResults(results);
-      onDataUpdate();
-      alert(`İçe aktarım tamamlandı! ${results.added} yeni öğrenci eklendi, ${results.updated} güncellendi.`);
-      
-    } catch (error) {
-      console.error('Firebase import error:', error);
-      alert('Firebase\'e aktarım sırasında bir hata oluştu.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  return (
-    <div className="space-y-8">
-      {/* 📄 PDF İçe Aktarım Header */}
-      <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">📄 PDF İçe Aktarım</h1>
-        <p className="text-purple-100 text-xs">
-          PDF dosyasından otomatik olarak öğrenci verilerini çıkarın ve sisteme aktarın
-        </p>
-      </div>
-
-      {/* 📤 PDF Yükleme Alanı */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-          <span className="text-purple-600 mr-3">📁</span>
-          PDF Dosyası Seçin
-        </h3>
-        
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-purple-400 transition-colors">
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={handleFileSelect}
-            className="hidden"
-            id="pdf-upload"
-          />
-          <label htmlFor="pdf-upload" className="cursor-pointer">
-            <div className="text-purple-600 mb-4">
-              <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
-            <p className="text-lg font-medium text-gray-900 mb-2">
-              {selectedFile ? selectedFile.name : 'PDF dosyasını buraya sürükleyin veya seçin'}
-            </p>
-            <p className="text-sm text-gray-500">
-              Sadece PDF dosyaları desteklenmektedir
-            </p>
-          </label>
-        </div>
-
-        {selectedFile && (
-          <div className="mt-4 flex justify-between items-center">
-            <div className="flex items-center text-green-600">
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span className="font-medium">Dosya seçildi: {selectedFile.name}</span>
-            </div>
-            <button
-              onClick={processPDF}
-              disabled={isProcessing}
-              className="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50"
-            >
-              {isProcessing ? 'İşleniyor...' : '📄 PDF\'i İşle'}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* 📊 Deneme Bilgileri */}
-      {parsedData.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <span className="text-blue-600 mr-3">📋</span>
-            Deneme Bilgileri
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Deneme Adı *
-              </label>
-              <input
-                type="text"
-                value={examInfo.title}
-                onChange={(e) => setExamInfo(prev => ({ ...prev, title: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Deneme adını girin"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Deneme Tarihi *
-              </label>
-              <input
-                type="date"
-                value={examInfo.date}
-                onChange={(e) => setExamInfo(prev => ({ ...prev, date: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              İlgili Sınıflar (Opsiyonel)
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {CLASS_OPTIONS.map(cls => (
-                <label key={cls} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={examInfo.classes.includes(cls)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setExamInfo(prev => ({
-                          ...prev,
-                          classes: [...prev.classes, cls]
-                        }));
-                      } else {
-                        setExamInfo(prev => ({
-                          ...prev,
-                          classes: prev.classes.filter(c => c !== cls)
-                        }));
-                      }
-                    }}
-                    className="mr-2"
-                  />
-                  <span className="text-sm">{cls}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 📋 Parse Edilen Veri Önizlemesi */}
-      {parsedData.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <span className="text-green-600 mr-3">👥</span>
-            Parse Edilen Öğrenci Verileri ({parsedData.length} öğrenci)
-          </h3>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="border border-gray-300 px-4 py-2 text-left">Öğrenci Adı</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Sınıf</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Numara</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Türkçe Net</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Matematik Net</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Fen Net</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Toplam Puan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {parsedData.map((student, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-2">{student.name}</td>
-                    <td className="border border-gray-300 px-4 py-2">{student.class}</td>
-                    <td className="border border-gray-300 px-4 py-2">{student.number}</td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {student.scores?.turkce?.N || 0}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {student.scores?.matematik?.N || 0}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {student.scores?.fen?.N || 0}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2 font-semibold">
-                      {student.puan || 0}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-6 flex justify-center">
-            <button
-              onClick={importToFirebase}
-              disabled={isProcessing || !examInfo.title}
-              className="bg-green-500 text-white px-8 py-3 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 font-semibold"
-            >
-              {isProcessing ? 'Aktarılıyor...' : `🚀 ${parsedData.length} Öğrenciyi Firebase'e Aktar`}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 📈 İçe Aktarım Sonuçları */}
-      {importResults.total > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <span className="text-indigo-600 mr-3">📊</span>
-            İçe Aktarım Sonuçları
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div className="text-2xl font-bold text-blue-600">{importResults.total}</div>
-              <div className="text-blue-800">Toplam Öğrenci</div>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <div className="text-2xl font-bold text-green-600">{importResults.added}</div>
-              <div className="text-green-800">Yeni Eklenen</div>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-              <div className="text-2xl font-bold text-orange-600">{importResults.updated}</div>
-              <div className="text-orange-800">Güncellenen</div>
-            </div>
-          </div>
-
-          {importResults.errors.length > 0 && (
-            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-              <h4 className="font-semibold text-red-800 mb-2">Hatalar:</h4>
-              <ul className="text-sm text-red-700 space-y-1">
-                {importResults.errors.map((error, index) => (
-                  <li key={index}>• {error}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 📚 Yardım Bilgileri */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
-          <span className="text-blue-600 mr-3">💡</span>
-          Nasıl Kullanılır?
-        </h3>
-        
-        <div className="space-y-3 text-blue-800">
-          <div className="flex items-start">
-            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
-            <div>
-              <p className="font-medium">PDF Dosyası Yükleyin</p>
-              <p className="text-sm">Deneme sonuçlarınızın bulunduğu PDF dosyasını seçin.</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start">
-            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
-            <div>
-              <p className="font-medium">PDF'i İşleyin</p>
-              <p className="text-sm">Sistem PDF'den öğrenci bilgilerini ve skorları otomatik olarak çıkarır.</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start">
-            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
-            <div>
-              <p className="font-medium">Deneme Bilgilerini Girin</p>
-              <p className="text-sm">Deneme adı ve tarihini girin, ilgili sınıfları seçin.</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start">
-            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
-            <div>
-              <p className="font-medium">Firebase'e Aktarın</p>
-              <p className="text-sm">Parse edilen verileri kontrol edin ve sisteme aktarın.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 p-4 bg-blue-100 rounded-lg">
-          <p className="text-blue-900 text-sm">
-            <strong>📋 Not:</strong> PDF formatınız desteklenmiyorsa, lütfen PDF'in düzenli bir formatta olduğundan emin olun. 
-            Öğrenci adları, sınıf bilgileri ve ders skorları açık bir şekilde görünmelidir.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // Lise Taban Puanları Tab Component
 const VanTabanPuanTab = () => {
   const [selectedType, setSelectedType] = useState<'merkezi' | 'yerel' | null>(null);
