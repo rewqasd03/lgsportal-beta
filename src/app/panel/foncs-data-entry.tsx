@@ -5093,10 +5093,8 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
     
     if (!exam) return 0;
 
-    // Puan hesaplama (daha önceki kodlardaki gibi)
-    const totalScore = Object.values(latestResult.subjects || {}).reduce((sum: number, score: any) => {
-      return sum + (typeof score === 'number' ? score : parseFloat(score) || 0);
-    }, 0);
+    // Result tipinde nets.total kullan (Firebase'deki gerçek field)
+    const totalScore = latestResult.nets?.total || 0;
 
     return Math.round(totalScore);
   }, [exams, results]);
