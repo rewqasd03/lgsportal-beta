@@ -5093,18 +5093,36 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
     
     if (!exam) return 0;
 
+    // DEBUG: Tüm puan değerlerini logla
+    console.log('🔍 DEBUG - Latest Result:', latestResult);
+    console.log('🔍 puan field:', latestResult.puan);
+    console.log('🔍 totalScore field:', latestResult.totalScore);
+    console.log('🔍 nets.total:', latestResult.nets?.total);
+    console.log('🔍 scores field:', latestResult.scores);
+
     // Önce manuel girilen puanı kontrol et (en doğru değer)
     let totalScore = latestResult.puan;
+    
+    // Eğer puan string ise parse et
+    if (totalScore && typeof totalScore === 'string') {
+      totalScore = parseFloat(totalScore);
+    }
     
     // Eğer puan yoksa, totalScore field'ını kontrol et
     if (!totalScore && latestResult.totalScore) {
       totalScore = latestResult.totalScore;
+      if (typeof totalScore === 'string') {
+        totalScore = parseFloat(totalScore);
+      }
     }
     
     // Eğer hala yoksa, nets.total kullan
     if (!totalScore && latestResult.nets?.total) {
       totalScore = latestResult.nets.total;
     }
+    
+    // Son debug log
+    console.log('🔍 Final totalScore:', totalScore);
 
     return Math.round(totalScore || 0);
   }, [exams, results]);
