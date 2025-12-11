@@ -149,7 +149,8 @@ function StudentDashboardContent() {
         const exam = examsData.find(e => e.id === result.examId);
         if (!exam) continue;
 
-        // Sınıf ortalamasını hesapla (aynı sınıftaki öğrencilerin toplam net ortalaması, 0 puanlı öğrenciler hariç)
+        // Sınıf ortalamasını hesapla (aynı sınıftaki öğrencilerin toplam net ortalaması)
+        // NOT: 0 puanlı öğrenciler ortalamadan hariç tutulur ama deneme sayısına dahildir
         const classResults = resultsData.filter(r => r.examId === result.examId && 
           studentsData.find(s => s.id === r.studentId)?.class === studentData.class);
         const classResultsFiltered = classResults.filter(r => (r.nets?.total || 0) > 0);
@@ -157,7 +158,8 @@ function StudentDashboardContent() {
           ? classResultsFiltered.reduce((sum, r) => sum + (r.nets?.total || 0), 0) / classResultsFiltered.length
           : 0;
 
-        // Sınıf ortalama puanını hesapla (0 puanlı öğrenciler hariç)
+        // Sınıf ortalama puanını hesapla
+        // NOT: 0 puanlı öğrenciler ortalamadan hariç tutulur ama deneme sayısına dahildir
         const classResultsWithScore = resultsData.filter(r => r.examId === result.examId && 
           studentsData.find(s => s.id === r.studentId)?.class === studentData.class && 
           (typeof r.scores?.puan === 'string' || typeof r.puan === 'number' || typeof r.totalScore === 'number'));

@@ -2843,7 +2843,8 @@ export default function FoncsDataEntry() {
         
 
         
-        // Ortalama hesapla (eğer veri varsa, 0 değerleri hariç)
+        // Ortalama hesapla (eğer veri varsa)
+        // NOT: 0 değerleri ortalamadan hariç tutulur ama deneme sayısına dahildir
         const filteredScores = subjectScores.filter(score => score > 0);
         const average = filteredScores.length > 0 
           ? filteredScores.reduce((sum, net) => sum + net, 0) / filteredScores.length 
@@ -3474,10 +3475,11 @@ export default function FoncsDataEntry() {
     const calculateClassTotals = useCallback(() => {
       let classTotals = { totalD: 0, totalY: 0, totalB: 0, totalNet: 0 };
       
-      // Sadece geçerli puanı olan (0 olmayan) öğrencileri say
+      // Sadece geçerli puanı olan (0 olmayan) öğrencileri ortalamaya dahil et
+      // NOT: 0 puanlı öğrenciler ortalamadan hariç tutulur ama deneme sayısına dahildir
       const validStudents = Object.values(bulkScores).filter(studentScores => {
         const totals = calculateStudentTotal(studentScores);
-        return totals.totalNet > 0; // Sadece 0 olmayan neti olan öğrencileri dahil et
+        return totals.totalNet > 0; // Sadece 0 olmayan neti olan öğrencileri ortalamaya dahil et
       });
       const studentCount = validStudents.length;
       
@@ -3489,7 +3491,8 @@ export default function FoncsDataEntry() {
         classTotals.totalNet += totals.totalNet;
       });
       
-      // Puan ortalamasını ayrı hesapla (0 puanlı öğrenciler hariç)
+      // Puan ortalamasını ayrı hesapla
+      // NOT: 0 puanlı öğrenciler ortalamadan hariç tutulur ama deneme sayısına dahildir
       const puanValues = Object.values(studentPuan)
         .map(p => parseFloat(p) || 0)
         .filter(p => p > 0); // 0 puanlı öğrencileri hariç tut
