@@ -3861,7 +3861,7 @@ export default function FoncsDataEntry() {
       case "lgs-hesaplama": return <LGSCalculatorTab />;
       case "analytics": return <AnalyticsTab students={students} results={results} exams={exams} />;
       case "van-taban-puan": return <VanTabanPuanTab />;
-      case "lise-tercih": return <LiseTercihTab />;
+      case "lise-tercih": return <LiseTercihTab students={students} />;
       default: return <HomeTab />;
     }
   };
@@ -4876,7 +4876,7 @@ const YerelYerlestirmePuanlariPanel = () => {
   );
 };
 // Lise Tercih Sistemi Tab Component
-const LiseTercihTab = () => {
+const LiseTercihTab = ({ students }: { students: Student[] }) => {
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [studentPreferences, setStudentPreferences] = useState<any[]>([]);
   const [predictionResult, setPredictionResult] = useState<any>(null);
