@@ -5093,10 +5093,20 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
     
     if (!exam) return 0;
 
-    // Result tipinde nets.total kullan (Firebase'deki gerçek field)
-    const totalScore = latestResult.nets?.total || 0;
+    // Önce manuel girilen puanı kontrol et (en doğru değer)
+    let totalScore = latestResult.puan;
+    
+    // Eğer puan yoksa, totalScore field'ını kontrol et
+    if (!totalScore && latestResult.totalScore) {
+      totalScore = latestResult.totalScore;
+    }
+    
+    // Eğer hala yoksa, nets.total kullan
+    if (!totalScore && latestResult.nets?.total) {
+      totalScore = latestResult.nets.total;
+    }
 
-    return Math.round(totalScore);
+    return Math.round(totalScore || 0);
   }, [exams, results]);
 
   // Seçili öğrenci değiştiğinde puanı güncelle
