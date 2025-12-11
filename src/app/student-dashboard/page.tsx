@@ -1267,6 +1267,134 @@ function StudentDashboardContent() {
                     </div>
                   </div>
                 </div>
+
+                {/* Lise Tercih Önerileri */}
+                <div className="bg-gradient-to-r from-blue-500 to-green-600 text-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold mb-3">🏫 Lise Tercih Önerilerin</h3>
+                  
+                  {/* Öğrenci Puan Bilgisi */}
+                  <div className="mb-4 bg-white bg-opacity-10 p-3 rounded-lg">
+                    <div className="text-sm font-medium">
+                      Seni Puanın: <span className="text-lg font-bold">{studentAverageScore.toFixed(0)}</span> 
+                      <span className="text-xs opacity-75 ml-2">(Son deneme ortalaması)</span>
+                    </div>
+                  </div>
+                  
+                  {/* Dinamik Lise Önerileri */}
+                  {(() => {
+                    // Lise veritabanı
+                    const highSchools = [
+                      { name: "Van Fen Lisesi", type: "Fen Lisesi", score: 485, capacity: 120 },
+                      { name: "Van Anadolu Lisesi", type: "Anadolu Lisesi", score: 465, capacity: 180 },
+                      { name: "Atatürk Anadolu Lisesi", type: "Anadolu Lisesi", score: 450, capacity: 150 },
+                      { name: "Van İmam Hatip Lisesi", type: "İmam Hatip Lisesi", score: 420, capacity: 100 },
+                      { name: "Gençlik Anadolu Lisesi", type: "Anadolu Lisesi", score: 385, capacity: 200 },
+                      { name: "Muradiye Anadolu", type: "Anadolu Lisesi", score: 350, capacity: 180 },
+                      { name: "Erciş Anadolu", type: "Anadolu Lisesi", score: 320, capacity: 160 },
+                      { name: "Tuşba Anadolu", type: "Anadolu Lisesi", score: 290, capacity: 200 }
+                    ];
+                    
+                    const currentScore = studentAverageScore;
+                    
+                    // Öğrencinin puanına göre kategorize et
+                    const categorizedSchools = highSchools.map(school => {
+                      let category = "";
+                      let probability = 0;
+                      
+                      if (currentScore >= school.score + 25) {
+                        category = "guvenli";
+                        probability = 95;
+                      } else if (currentScore >= school.score + 10) {
+                        category = "guvenli";
+                        probability = 85;
+                      } else if (currentScore >= school.score) {
+                        category = "orta";
+                        probability = 70;
+                      } else if (currentScore >= school.score - 15) {
+                        category = "orta";
+                        probability = 50;
+                      } else {
+                        category = "riskli";
+                        probability = 25;
+                      }
+                      
+                      return {
+                        ...school,
+                        category,
+                        probability
+                      };
+                    });
+                    
+                    const guvenli = categorizedSchools.filter(s => s.category === "guvenli").slice(0, 2);
+                    const orta = categorizedSchools.filter(s => s.category === "orta").slice(0, 2);
+                    const riskli = categorizedSchools.filter(s => s.category === "riskli").slice(0, 2);
+                    
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Güvenli Liseler */}
+                        <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                          <h4 className="text-xs font-medium opacity-90 mb-2 flex items-center">
+                            ✅ Güvenli Tercihler
+                          </h4>
+                          <div className="space-y-2">
+                            {guvenli.length > 0 ? guvenli.map(school => (
+                              <div key={school.name} className="bg-white bg-opacity-10 p-2 rounded">
+                                <div className="text-sm font-medium">{school.name}</div>
+                                <div className="text-xs opacity-75">{school.score} taban • %{school.probability} yerleşme</div>
+                              </div>
+                            )) : (
+                              <div className="text-xs opacity-75">Henüz güvenli seçenek bulunmuyor</div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Orta Risk */}
+                        <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                          <h4 className="text-xs font-medium opacity-90 mb-2 flex items-center">
+                            ⚠️ Orta Risk
+                          </h4>
+                          <div className="space-y-2">
+                            {orta.length > 0 ? orta.map(school => (
+                              <div key={school.name} className="bg-white bg-opacity-10 p-2 rounded">
+                                <div className="text-sm font-medium">{school.name}</div>
+                                <div className="text-xs opacity-75">{school.score} taban • %{school.probability} yerleşme</div>
+                              </div>
+                            )) : (
+                              <div className="text-xs opacity-75">Orta risk seçenek bulunmuyor</div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Riskli */}
+                        <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                          <h4 className="text-xs font-medium opacity-90 mb-2 flex items-center">
+                            ⚡ Riskli Seçenekler
+                          </h4>
+                          <div className="space-y-2">
+                            {riskli.length > 0 ? riskli.map(school => (
+                              <div key={school.name} className="bg-white bg-opacity-10 p-2 rounded">
+                                <div className="text-sm font-medium">{school.name}</div>
+                                <div className="text-xs opacity-75">{school.score} taban • %{school.probability} yerleşme</div>
+                              </div>
+                            )) : (
+                              <div className="text-xs opacity-75">Düşük puanlı seçenekler</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  
+                  {/* Tercih Tavsiyesi */}
+                  <div className="mt-4 bg-white bg-opacity-10 p-3 rounded-lg">
+                    <h4 className="text-xs font-medium opacity-90 mb-2">🎯 Önerilen Tercih Stratejin:</h4>
+                    <div className="text-sm space-y-1">
+                      <div>• İlk 3 tercihi: Güvenli liseler</div>
+                      <div>• 4-6. tercihler: Orta risk liseler</div>
+                      <div>• Son 3 tercihi: Riskli ama istediğin liseler</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
