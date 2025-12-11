@@ -307,6 +307,7 @@ function StudentDashboardContent() {
     ? reportData.examResults.reduce((sum, item) => sum + (item.classAverage || 0), 0) / reportData.examResults.length
     : 0;
   
+  // Sınıf ortalaması: Tüm denemelerdeki sınıf ortalama puanlarının ortalaması
   const classAverageScore = reportData.examResults.length > 0
     ? reportData.examResults.reduce((sum, item) => sum + (item.classAverageScore || 0), 0) / reportData.examResults.length
     : 0;
@@ -316,13 +317,19 @@ function StudentDashboardContent() {
     ? reportData.examResults.reduce((sum, item) => sum + (item.generalAverage || 0), 0) / reportData.examResults.length
     : 0;
   
+  // Öğrenci ortalama puanı: Öğrencinin tüm denemelerdeki puanlarının ortalaması
+  const studentAverageScore = reportData.examResults.length > 0
+    ? reportData.examResults.reduce((sum, item) => sum + (item.studentTotalScore || 0), 0) / reportData.examResults.length
+    : 0;
+  
+  // Genel ortalama puan: Tüm denemelerdeki genel ortalama puanların ortalaması
   const generalAverageScore = reportData.examResults.length > 0
     ? reportData.examResults.reduce((sum, item) => sum + (item.generalAverageScore || 0), 0) / reportData.examResults.length
     : 0;
   
   // Genel görünümdeki ortalama puan açıklaması
   const averageScoreExplanation = reportData.examResults.length > 0 
-    ? `Tüm denemelerin puan ortalaması (${reportData.examResults.length} deneme)` 
+    ? `Öğrencinin ${reportData.examResults.length} denemedeki puan ortalaması` 
     : 'Henüz puan verisi yok';
   
   const latestNet = reportData.examResults[reportData.examResults.length - 1]?.studentTotalNet || 0;
@@ -463,7 +470,7 @@ function StudentDashboardContent() {
 
                   <div className="bg-white rounded-lg shadow p-1">
                     <h3 className="text-xs font-medium text-gray-500 mb-2">Ortalama Puan</h3>
-                    <p className="text-sm font-bold text-green-600">{generalAverageScore.toFixed(0)}</p>
+                    <p className="text-sm font-bold text-green-600">{studentAverageScore.toFixed(0)}</p>
                     <p className="text-xs text-gray-600 mt-1">
                       Sınıf: <span className="font-semibold">{classAverageScore.toFixed(0)}</span>
                     </p>
