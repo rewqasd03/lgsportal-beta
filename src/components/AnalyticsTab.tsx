@@ -696,11 +696,27 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                   { key: 'din', name: 'Din Kültürü', color: '#EF4444', bg: 'bg-red-50' },
                   { key: 'ingilizce', name: 'İngilizce', color: '#6366F1', bg: 'bg-indigo-50' }
                 ].map((subject) => {
+                  // Her ders için gerçek sınıf ve genel ortalamaları hesapla
+                  const classSubjectAvg = results
+                    .filter(r => {
+                      const rStudent = students.find(s => s.id === r.studentId);
+                      return rStudent?.class === analysis.student?.class;
+                    })
+                    .reduce((sum, r) => sum + (r.nets?.[subject.key as keyof typeof r.nets] || 0), 0) /
+                    results.filter(r => {
+                      const rStudent = students.find(s => s.id === r.studentId);
+                      return rStudent?.class === analysis.student?.class;
+                    }).length || 0;
+                  
+                  const generalSubjectAvg = results
+                    .reduce((sum, r) => sum + (r.nets?.[subject.key as keyof typeof r.nets] || 0), 0) /
+                    results.length || 0;
+
                   const subjectData = analysis.studentResults.map((result, index) => ({
                     exam: `Deneme ${index + 1}`,
                     net: result.nets?.[subject.key as keyof typeof result.nets] || 0,
-                    classAvg: analysis.classAverageNet * (subject.key === 'matematik' ? 0.20 : subject.key === 'fen' ? 0.18 : subject.key === 'turkce' ? 0.15 : subject.key === 'sosyal' ? 0.15 : subject.key === 'ingilizce' ? 0.20 : 0.12),
-                    generalAvg: analysis.generalAverageNet * (subject.key === 'matematik' ? 0.20 : subject.key === 'fen' ? 0.18 : subject.key === 'turkce' ? 0.15 : subject.key === 'sosyal' ? 0.15 : subject.key === 'ingilizce' ? 0.20 : 0.12)
+                    classAvg: classSubjectAvg,
+                    generalAvg: generalSubjectAvg
                   }));
                   
                   return (
@@ -753,7 +769,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
               </div>
             </div>
 
-            {/* 5. Trend Tahmini ve Öneriler */}
+            {/* 5. Trend Tahmini (Öneriler bölümü kaldırıldı) */}
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-xl font-bold mb-4">🔮 Gelişim Trend Tahmini</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -780,38 +796,6 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                   <p className="text-xl font-bold">
                     {analysis.predictedNextNet.toFixed(1)}
                   </p>
-                </div>
-              </div>
-
-              {/* Öneriler */}
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-semibold text-blue-800 mb-2">💡 Öğrenci Gelişim Önerileri</h4>
-                <div className="text-sm text-blue-700 space-y-1">
-                  {analysis.improvement > 0 ? (
-                    <p>✅ Öğrenci pozitif trend gösteriyor. Mevcut çalışma yöntemlerini devam ettirebilir.</p>
-                  ) : analysis.improvement < -2 ? (
-                    <p>⚠️ Öğrencinin performansında düşüş var. Ek çalışma ve motivasyon desteği gerekebilir.</p>
-                  ) : (
-                    <p>➡️ Öğrencinin performansı stabil. Küçük iyileştirmeler hedeflenebilir.</p>
-                  )}
-                  
-                  {(() => {
-                    const lastResult = analysis.studentResults[analysis.studentResults.length - 1];
-                    if (!lastResult) return null;
-                    
-                    const weakestSubject = subjects.reduce((weakest, subject) => {
-                      const current = lastResult?.nets?.[subject.key] || 0;
-                      const weakestNet = lastResult?.nets?.[weakest.key] || 0;
-                      return current < weakestNet ? subject : weakest;
-                    }, subjects[0]);
-                    
-                    return (
-                      <p>🎯 En çok geliştirilmesi gereken ders: <strong>{weakestSubject.name}</strong></p>
-                    );
-                  })()}
-                  
-                  <p>📈 Son 3 deneme ortalamasını LGS hedefi ile karşılaştırarak çalışma planı oluşturulabilir.</p>                  
-                  <p>📈 3 deneme ortalaması Son ile LGS hedefini karşılaştırarak çalışma planı oluşturulabilir.</p>
                 </div>
               </div>
             </div>

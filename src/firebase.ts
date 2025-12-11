@@ -619,6 +619,34 @@ export const updateStudent = async (studentId: string, updates: Partial<Student>
   }
 };
 
+// Öğrenci görüntülenme sayısını artır
+export const incrementStudentViewCount = async (studentId: string) => {
+  try {
+    const studentRef = doc(db, 'students', studentId);
+    const studentDoc = await getDoc(studentRef);
+    
+    if (studentDoc.exists()) {
+      const currentViewCount = studentDoc.data().viewCount || 0;
+      const currentLastViewDate = studentDoc.data().lastViewDate || '';
+      
+      // Eğer bugün daha önce görüntülenmişse sayma
+      const today = new Date().toISOString().split('T')[0];
+      if (currentLastViewDate !== today) {
+        await updateDoc(studentRef, {
+          viewCount: currentViewCount + 1,
+          lastViewDate: today
+        });
+        return currentViewCount + 1;
+      }
+      return currentViewCount;
+    }
+    return 0;
+  } catch (error) {
+    console.error('Error incrementing view count:', error);
+    return 0;
+  }
+};
+
 export const deleteStudent = async (studentId: string) => {
   try {
     const studentRef = doc(db, 'students', studentId);
