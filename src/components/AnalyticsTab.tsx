@@ -67,6 +67,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [viewType, setViewType] = useState<'overview' | 'comparison' | 'trends'>('overview');
   const [selectedStudent, setSelectedStudent] = useState<string>('');
+  const [trendsViewType, setTrendsViewType] = useState<'net' | 'puan'>('net');
 
   // Performans verilerini hesapla
   const performanceData = useMemo((): PerformanceComparison[] => {
@@ -508,102 +509,103 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
             </div>
 
             {/* 2. Net ve Puan Gelişim Grafikleri - student-dashboard ile aynı */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Net Gelişim Trendi */}
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-bold mb-4">📈 Net Gelişim Trendi</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={analysis.netChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="exam" 
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                      interval={0}
-                      tick={{ fontSize: 10 }}
-                    />
-                    <YAxis domain={[0, 90]} />
-                    <Tooltip 
-                      formatter={(value, name) => [`${Number(value).toFixed(1)}`, name]}
-                      labelFormatter={(label) => `Deneme: ${label}`}
-                    />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="öğrenci" 
-                      stroke="#3B82F6" 
-                      strokeWidth={2}
-                      name="Öğrenci"
-                      dot={{ fill: '#3B82F6', strokeWidth: 1, r: 4 }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="sınıf" 
-                      stroke="#10B981" 
-                      strokeWidth={1}
-                      strokeDasharray="5 5"
-                      name="Sınıf Ortalaması"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="genel" 
-                      stroke="#F59E0B" 
-                      strokeWidth={1}
-                      strokeDasharray="3 3"
-                      name="Genel Ortalama"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Puan Gelişim Trendi */}
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-bold mb-4">📊 Puan Gelişim Trendi</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={analysis.scoreChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="exam" 
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                      interval={0}
-                      tick={{ fontSize: 10 }}
-                    />
-                    <YAxis domain={[0, 500]} />
-                    <Tooltip 
-                      formatter={(value, name) => [`${Number(value).toFixed(0)}`, name]}
-                      labelFormatter={(label) => `Deneme: ${label}`}
-                    />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="öğrenci" 
-                      stroke="#8B5CF6" 
-                      strokeWidth={2}
-                      name="Öğrenci Puanı"
-                      dot={{ fill: '#8B5CF6', strokeWidth: 1, r: 4 }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="sınıf" 
-                      stroke="#10B981" 
-                      strokeWidth={1}
-                      strokeDasharray="5 5"
-                      name="Sınıf Ortalama Puan"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="genel" 
-                      stroke="#F59E0B" 
-                      strokeWidth={1}
-                      strokeDasharray="3 3"
-                      name="Genel Ortalama Puan"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+            <div className="grid grid-cols-1 gap-6">
+              {/* Seçilen Görünüme Göre Grafik */}
+              {trendsViewType === 'net' ? (
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h3 className="text-lg font-bold mb-4">📈 Net Gelişim Trendi</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={analysis.netChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="exam" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                        tick={{ fontSize: 10 }}
+                      />
+                      <YAxis domain={[0, 90]} />
+                      <Tooltip 
+                        formatter={(value, name) => [`${Number(value).toFixed(1)}`, name]}
+                        labelFormatter={(label) => `Deneme: ${label}`}
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="öğrenci" 
+                        stroke="#3B82F6" 
+                        strokeWidth={2}
+                        name="Öğrenci Net"
+                        dot={{ fill: '#3B82F6', strokeWidth: 1, r: 4 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="sınıf" 
+                        stroke="#10B981" 
+                        strokeWidth={1}
+                        strokeDasharray="5 5"
+                        name="Sınıf Ortalaması"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="genel" 
+                        stroke="#F59E0B" 
+                        strokeWidth={1}
+                        strokeDasharray="3 3"
+                        name="Genel Ortalama"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h3 className="text-lg font-bold mb-4">📊 Puan Gelişim Trendi</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={analysis.scoreChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="exam" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                        tick={{ fontSize: 10 }}
+                      />
+                      <YAxis domain={[0, 500]} />
+                      <Tooltip 
+                        formatter={(value, name) => [`${Number(value).toFixed(0)}`, name]}
+                        labelFormatter={(label) => `Deneme: ${label}`}
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="öğrenci" 
+                        stroke="#8B5CF6" 
+                        strokeWidth={2}
+                        name="Öğrenci Puanı"
+                        dot={{ fill: '#8B5CF6', strokeWidth: 1, r: 4 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="sınıf" 
+                        stroke="#10B981" 
+                        strokeWidth={1}
+                        strokeDasharray="5 5"
+                        name="Sınıf Ortalama Puan"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="genel" 
+                        stroke="#F59E0B" 
+                        strokeWidth={1}
+                        strokeDasharray="3 3"
+                        name="Genel Ortalama Puan"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
 
             {/* 4. Detaylı Deneme Tablosu */}
@@ -615,12 +617,11 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                     <tr>
                       <th className="px-4 py-2 text-left">Deneme</th>
                       <th className="px-4 py-2 text-center">Tarih</th>
-                      <th className="px-4 py-2 text-center">Toplam Net</th>
+                      <th className="px-4 py-2 text-center">{trendsViewType === 'net' ? 'Toplam Net' : 'Puan'}</th>
                       <th className="px-4 py-2 text-center">Türkçe</th>
                       <th className="px-4 py-2 text-center">Matematik</th>
                       <th className="px-4 py-2 text-center">Fen</th>
                       <th className="px-4 py-2 text-center">Sosyal</th>
-                      <th className="px-4 py-2 text-center">Puan</th>
                       <th className="px-4 py-2 text-center">Gelişim</th>
                     </tr>
                   </thead>
@@ -639,10 +640,15 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                           </td>
                           <td className="px-4 py-2 text-center">
                             <span className={`font-semibold ${
-                              currentNet >= 60 ? 'text-green-600' : 
-                              currentNet >= 40 ? 'text-yellow-600' : 'text-red-600'
+                              trendsViewType === 'net' ? (
+                                currentNet >= 60 ? 'text-green-600' : 
+                                currentNet >= 40 ? 'text-yellow-600' : 'text-red-600'
+                              ) : (
+                                score >= 400 ? 'text-green-600' : 
+                                score >= 300 ? 'text-yellow-600' : 'text-red-600'
+                              )
                             }`}>
-                              {currentNet.toFixed(1)}
+                              {trendsViewType === 'net' ? currentNet.toFixed(1) : score.toFixed(0)}
                             </span>
                           </td>
                           <td className="px-4 py-2 text-center text-green-600 font-medium">
@@ -656,9 +662,6 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                           </td>
                           <td className="px-4 py-2 text-center text-purple-600 font-medium">
                             {(result.nets?.sosyal || 0).toFixed(1)}
-                          </td>
-                          <td className="px-4 py-2 text-center font-medium text-blue-600">
-                            {score.toFixed(0)}
                           </td>
                           <td className="px-4 py-2 text-center">
                             {index > 0 ? (
@@ -870,6 +873,32 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
               {tab.label}
             </button>
           ))}
+          
+          {/* Trend Analizi için Net/Puan Toggle */}
+          {viewType === 'trends' && selectedStudent && (
+            <div className="flex ml-4 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setTrendsViewType('net')}
+                className={`px-3 py-1 rounded-md font-medium transition-all text-sm ${
+                  trendsViewType === 'net'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                📊 Net
+              </button>
+              <button
+                onClick={() => setTrendsViewType('puan')}
+                className={`px-3 py-1 rounded-md font-medium transition-all text-sm ${
+                  trendsViewType === 'puan'
+                    ? 'bg-white text-purple-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                🎯 Puan
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
