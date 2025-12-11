@@ -1106,7 +1106,8 @@ const TABS: Tab[] = [
   { key: "hedef", label: "🎯 Hedef Belirleme" },
   { key: "lgs-hesaplama", label: "🧮 LGS Puan Hesaplama" },
   { key: "analytics", label: "📊 Analitik & Raporlar" },
-  { key: "van-taban-puan", label: "🎓 Lise Taban Puanları" }
+  { key: "van-taban-puan", label: "🎓 Lise Taban Puanları" },
+  { key: "lise-tercih", label: "🏫 Lise Tercih Sistemi" }
 ];
 
 // 📊 DERS RENK KODLAMASI - Görsel iyileştirme
@@ -3860,6 +3861,7 @@ export default function FoncsDataEntry() {
       case "lgs-hesaplama": return <LGSCalculatorTab />;
       case "analytics": return <AnalyticsTab students={students} results={results} exams={exams} />;
       case "van-taban-puan": return <VanTabanPuanTab />;
+      case "lise-tercih": return <LiseTercihTab />;
       default: return <HomeTab />;
     }
   };
@@ -4869,6 +4871,321 @@ const YerelYerlestirmePuanlariPanel = () => {
             <strong>Not:</strong> Bu puanlar 2025 OBP sonuçlarına göre yerel yerleştirme taban puanlarıdır ve MEB verilerine dayanmaktadır.
           </p>
         </div>
+      </div>
+    </div>
+  );
+};
+// Lise Tercih Sistemi Tab Component
+const LiseTercihTab = () => {
+  const [selectedStudent, setSelectedStudent] = useState<string>('');
+  const [studentPreferences, setStudentPreferences] = useState<any[]>([]);
+  const [predictionResult, setPredictionResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Örnek lise veritabanı (gerçek projede Firebase'den gelecek)
+  const highSchools = [
+    {
+      id: 1,
+      name: "Van Fen Lisesi",
+      type: "Fen Lisesi",
+      district: "İpekyolu",
+      score: 485,
+      capacity: 120,
+      successRate: 92,
+      category: "en-iyi"
+    },
+    {
+      id: 2,
+      name: "Van Anadolu Lisesi",
+      type: "Anadolu Lisesi", 
+      district: "Tuşba",
+      score: 465,
+      capacity: 180,
+      successRate: 85,
+      category: "iyi"
+    },
+    {
+      id: 3,
+      name: "Atatürk Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      district: "İpekyolu", 
+      score: 450,
+      capacity: 150,
+      successRate: 78,
+      category: "orta"
+    },
+    {
+      id: 4,
+      name: "Van İmam Hatip Lisesi",
+      type: "İmam Hatip Lisesi",
+      district: "Tuşba",
+      score: 420,
+      capacity: 100,
+      successRate: 75,
+      category: "orta"
+    },
+    {
+      id: 5,
+      name: "Gençlik Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      district: "Tuşba",
+      score: 385,
+      capacity: 200,
+      successRate: 68,
+      category: "normal"
+    }
+  ];
+
+  // Akıllı tercih önerisi algoritması
+  const generateRecommendations = (studentScore: number) => {
+    const recommendations = highSchools.map(school => {
+      let category = "riskli";
+      let probability = 0;
+      
+      if (studentScore >= school.score + 20) {
+        category = "guvenli";
+        probability = 95;
+      } else if (studentScore >= school.score) {
+        category = "orta";
+        probability = 75;
+      } else if (studentScore >= school.score - 15) {
+        category = "riskli";
+        probability = 45;
+      } else {
+        category = "cok-riskli";
+        probability = 15;
+      }
+
+      return {
+        ...school,
+        category,
+        probability,
+        recommendation: category === "guvenli" ? "✅ Kesin yerleşir" :
+                      category === "orta" ? "⚠️ Muhtemelen yerleşir" :
+                      category === "riskli" ? "⚡ Risk var" : "❌ Çok riskli"
+      };
+    }).sort((a, b) => b.score - a.score);
+
+    return recommendations;
+  };
+
+  // Tercih listesi simülasyonu
+  const simulatePlacement = (preferences: any[], studentScore: number) => {
+    const placed = preferences.findIndex(pref => 
+      studentScore >= pref.score || 
+      (pref.category === "orta" && studentScore >= pref.score - 10)
+    );
+    
+    return placed >= 0 ? preferences[placed] : null;
+  };
+
+  // Seçili öğrencinin tercih önerilerini al
+  const getStudentRecommendations = () => {
+    if (!selectedStudent) return [];
+    
+    // Örnek: Öğrencinin son puanını al (gerçek projede hesaplanacak)
+    const mockStudentScore = 440; // Örnek puan
+    
+    return generateRecommendations(mockStudentScore);
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Başlık */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
+        <h2 className="text-3xl font-bold mb-4">🏫 Lise Tercih Sistemi</h2>
+        <p className="text-blue-100 text-lg">
+          Öğrencileriniz için akıllı lise tercih önerileri ve yerleştirme tahminleri
+        </p>
+      </div>
+
+      {/* Öğrenci Seçimi */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-xl font-semibold text-gray-800 mb-6">👨‍🎓 Öğrenci Seçimi</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Öğrenci Seçin
+            </label>
+            <select
+              value={selectedStudent}
+              onChange={(e) => setSelectedStudent(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Öğrenci seçin...</option>
+              {students.map(student => (
+                <option key={student.id} value={student.id}>
+                  {student.name} ({student.class})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Öğrenci Puanı
+            </label>
+            <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <span className="text-lg font-bold text-gray-800">440 puan</span>
+              <span className="text-sm text-gray-500 ml-2">(Son deneme ortalaması)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tercih Önerileri */}
+      {selectedStudent && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">🎯 Akıllı Tercih Önerileri</h3>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* Güvenli Liseler */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-semibold text-green-800 mb-4 flex items-center">
+                ✅ Güvenli Tercihler
+              </h4>
+              <div className="space-y-3">
+                {getStudentRecommendations()
+                  .filter(school => school.category === "guvenli")
+                  .map(school => (
+                    <div key={school.id} className="bg-white p-3 rounded border">
+                      <div className="font-medium text-gray-800">{school.name}</div>
+                      <div className="text-sm text-gray-600">{school.type}</div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-sm font-medium text-green-600">
+                          {school.score} puan
+                        </span>
+                        <span className="text-xs text-green-600">
+                          %{school.probability} yerleşme
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Orta Risk Liseler */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h4 className="font-semibold text-yellow-800 mb-4 flex items-center">
+                ⚠️ Orta Risk
+              </h4>
+              <div className="space-y-3">
+                {getStudentRecommendations()
+                  .filter(school => school.category === "orta")
+                  .map(school => (
+                    <div key={school.id} className="bg-white p-3 rounded border">
+                      <div className="font-medium text-gray-800">{school.name}</div>
+                      <div className="text-sm text-gray-600">{school.type}</div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-sm font-medium text-yellow-600">
+                          {school.score} puan
+                        </span>
+                        <span className="text-xs text-yellow-600">
+                          %{school.probability} yerleşme
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Riskli Liseler */}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <h4 className="font-semibold text-red-800 mb-4 flex items-center">
+                ⚡ Riskli Tercihler
+              </h4>
+              <div className="space-y-3">
+                {getStudentRecommendations()
+                  .filter(school => school.category === "riskli" || school.category === "cok-riskli")
+                  .map(school => (
+                    <div key={school.id} className="bg-white p-3 rounded border">
+                      <div className="font-medium text-gray-800">{school.name}</div>
+                      <div className="text-sm text-gray-600">{school.type}</div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-sm font-medium text-red-600">
+                          {school.score} puan
+                        </span>
+                        <span className="text-xs text-red-600">
+                          %{school.probability} yerleşme
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tüm Liseler Listesi */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-xl font-semibold text-gray-800 mb-6">📋 Tüm Liseler</h3>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b">
+                <th className="p-4 text-left font-semibold text-gray-700">Lise Adı</th>
+                <th className="p-4 text-left font-semibold text-gray-700">Tür</th>
+                <th className="p-4 text-center font-semibold text-gray-700">İlçe</th>
+                <th className="p-4 text-center font-semibold text-gray-700">Taban Puan</th>
+                <th className="p-4 text-center font-semibold text-gray-700">Kontenjan</th>
+                <th className="p-4 text-center font-semibold text-gray-700">Başarı Oranı</th>
+                <th className="p-4 text-center font-semibold text-gray-700">Durum</th>
+              </tr>
+            </thead>
+            <tbody>
+              {highSchools.map(school => {
+                const recommendation = getStudentRecommendations().find(r => r.id === school.id);
+                return (
+                  <tr key={school.id} className="border-b hover:bg-gray-50">
+                    <td className="p-4 font-medium text-gray-800">{school.name}</td>
+                    <td className="p-4 text-gray-600">{school.type}</td>
+                    <td className="p-4 text-center text-gray-600">{school.district}</td>
+                    <td className="p-4 text-center font-bold text-blue-600">{school.score}</td>
+                    <td className="p-4 text-center text-gray-700">{school.capacity}</td>
+                    <td className="p-4 text-center">
+                      <div className="flex items-center justify-center">
+                        <div className="w-12 bg-gray-200 rounded-full h-2 mr-2">
+                          <div 
+                            className="bg-green-500 h-2 rounded-full" 
+                            style={{width: `${school.successRate}%`}}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-600">%{school.successRate}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      {recommendation ? (
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          recommendation.category === "guvenli" ? "bg-green-100 text-green-800" :
+                          recommendation.category === "orta" ? "bg-yellow-100 text-yellow-800" :
+                          "bg-red-100 text-red-800"
+                        }`}>
+                          {recommendation.recommendation}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-sm">-</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Bilgi Kutusu */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h4 className="font-semibold text-blue-800 mb-3">💡 Nasıl Çalışır?</h4>
+        <ul className="text-blue-700 space-y-2 text-sm">
+          <li>• <strong>Güvenli:</strong> Puanınız taban puandan 20+ fazla</li>
+          <li>• <strong>Orta Risk:</strong> Puanınız taban puana yakın (±10 puan)</li>
+          <li>• <strong>Riskli:</strong> Puanınız taban puandan düşük</li>
+          <li>• <strong>Başarı Oranı:</strong> Mezun olan öğrencilerin üniversite kazanma oranı</li>
+        </ul>
       </div>
     </div>
   );
