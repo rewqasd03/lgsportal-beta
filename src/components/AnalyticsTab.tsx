@@ -162,8 +162,10 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
 
   // Sınıf ortalaması
   const classAverage = useMemo(() => {
-    if (filteredData.length === 0) return 0;
-    return filteredData.reduce((sum, student) => sum + student.averageNet, 0) / filteredData.length;
+    // Sadece puanı > 0 olan öğrencileri hesaba kat
+    const validStudents = filteredData.filter(student => student.averageNet > 0);
+    if (validStudents.length === 0) return 0;
+    return validStudents.reduce((sum, student) => sum + student.averageNet, 0) / validStudents.length;
   }, [filteredData]);
 
   // Seçilen öğrencinin sınıf ortalamasını hesapla
@@ -175,7 +177,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     
     const classStudents = students.filter(s => s.class === student.class);
     const classPerformanceData = performanceData.filter(p => 
-      classStudents.some(cs => cs.id === p.studentId)
+      classStudents.some(cs => cs.id === p.studentId) && p.averageNet > 0 // Sadece puanı > 0 olanları dahil et
     );
     
     if (classPerformanceData.length === 0) return 0;
@@ -408,26 +410,38 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     
     const allResults = results; // Tüm öğrencilerin sonuçları
     
-    const classAverageNet = classResults.length > 0 
-      ? classResults.reduce((sum, r) => sum + (r.nets?.total || 0), 0) / classResults.length
+    // Sadece puanı > 0 olan sonuçları dahil et
+    const validClassResults = classResults.filter(r => {
+      const score = r.scores?.puan ? parseFloat(r.scores.puan) : (r.puan || 0);
+      return score > 0;
+    });
+    
+    const classAverageNet = validClassResults.length > 0 
+      ? validClassResults.reduce((sum, r) => sum + (r.nets?.total || 0), 0) / validClassResults.length
       : 0;
     
-    const classAverageScore = classResults.length > 0
-      ? classResults.reduce((sum, r) => {
+    const classAverageScore = validClassResults.length > 0
+      ? validClassResults.reduce((sum, r) => {
           const score = r.scores?.puan ? parseFloat(r.scores.puan) : (r.puan || 0);
           return sum + score;
-        }, 0) / classResults.length
+        }, 0) / validClassResults.length
       : 0;
     
-    const generalAverageNet = allResults.length > 0
-      ? allResults.reduce((sum, r) => sum + (r.nets?.total || 0), 0) / allResults.length
+    // Sadece puanı > 0 olan tüm sonuçları dahil et
+    const validAllResults = allResults.filter(r => {
+      const score = r.scores?.puan ? parseFloat(r.scores.puan) : (r.puan || 0);
+      return score > 0;
+    });
+    
+    const generalAverageNet = validAllResults.length > 0
+      ? validAllResults.reduce((sum, r) => sum + (r.nets?.total || 0), 0) / validAllResults.length
       : 0;
     
-    const generalAverageScore = allResults.length > 0
-      ? allResults.reduce((sum, r) => {
+    const generalAverageScore = validAllResults.length > 0
+      ? validAllResults.reduce((sum, r) => {
           const score = r.scores?.puan ? parseFloat(r.scores.puan) : (r.puan || 0);
           return sum + score;
-        }, 0) / allResults.length
+        }, 0) / validAllResults.length
       : 0;
 
     // İstatistikleri hesapla
@@ -807,21 +821,25 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                   { key: 'din', name: 'Din Kültürü', color: '#EF4444', bg: 'bg-red-50' },
                   { key: 'ingilizce', name: 'İngilizce', color: '#6366F1', bg: 'bg-indigo-50' }
                 ].map((subject) => {
-                  // Her ders için gerçek sınıf ve genel ortalamaları hesapla
-                  const classSubjectAvg = results
-                    .filter(r => {
-                      const rStudent = students.find(s => s.id === r.studentId);
-                      return rStudent?.class === analysis.student?.class;
-                    })
-                    .reduce((sum, r) => sum + (r.nets?.[subject.key as keyof typeof r.nets] || 0), 0) /
-                    results.filter(r => {
-                      const rStudent = students.find(s => s.id === r.studentId);
-                      return rStudent?.class === analysis.student?.class;
-                    }).length || 0;
+                  // Her ders için gerçek sınıf ve genel ortalamaları hesapla (puanı > 0 olanları dahil et)
+                  const validClassResults = results.filter(r => {
+                    const rStudent = students.find(s => s.id === r.studentId);
+                    const score = r.scores?.puan ? parseFloat(r.scores.puan) : (r.puan || 0);
+                    return rStudent?.class === analysis.student?.class && score > 0;
+                  });
                   
-                  const generalSubjectAvg = results
-                    .reduce((sum, r) => sum + (r.nets?.[subject.key as keyof typeof r.nets] || 0), 0) /
-                    results.length || 0;
+                  const classSubjectAvg = validClassResults.length > 0
+                    ? validClassResults.reduce((sum, r) => sum + (r.nets?.[subject.key as keyof typeof r.nets] || 0), 0) / validClassResults.length
+                    : 0;
+                  
+                  const validAllResults = results.filter(r => {
+                    const score = r.scores?.puan ? parseFloat(r.scores.puan) : (r.puan || 0);
+                    return score > 0;
+                  });
+                  
+                  const generalSubjectAvg = validAllResults.length > 0
+                    ? validAllResults.reduce((sum, r) => sum + (r.nets?.[subject.key as keyof typeof r.nets] || 0), 0) / validAllResults.length
+                    : 0;
 
                   const subjectData = analysis.studentResults.map((result, index) => ({
                     exam: `Deneme ${index + 1}`,

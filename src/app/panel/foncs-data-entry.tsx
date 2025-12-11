@@ -2843,9 +2843,10 @@ export default function FoncsDataEntry() {
         
 
         
-        // Ortalama hesapla (eğer veri varsa)
-        const average = subjectScores.length > 0 
-          ? subjectScores.reduce((sum, net) => sum + net, 0) / subjectScores.length 
+        // Ortalama hesapla (eğer veri varsa, 0 değerleri hariç)
+        const filteredScores = subjectScores.filter(score => score > 0);
+        const average = filteredScores.length > 0 
+          ? filteredScores.reduce((sum, net) => sum + net, 0) / filteredScores.length 
           : 0;
         
 
@@ -3472,9 +3473,15 @@ export default function FoncsDataEntry() {
 
     const calculateClassTotals = useCallback(() => {
       let classTotals = { totalD: 0, totalY: 0, totalB: 0, totalNet: 0 };
-      const studentCount = Object.keys(bulkScores).length;
       
-      Object.values(bulkScores).forEach(studentScores => {
+      // Sadece geçerli puanı olan (0 olmayan) öğrencileri say
+      const validStudents = Object.values(bulkScores).filter(studentScores => {
+        const totals = calculateStudentTotal(studentScores);
+        return totals.totalNet > 0; // Sadece 0 olmayan neti olan öğrencileri dahil et
+      });
+      const studentCount = validStudents.length;
+      
+      validStudents.forEach(studentScores => {
         const totals = calculateStudentTotal(studentScores);
         classTotals.totalD += totals.totalD;
         classTotals.totalY += totals.totalY;
@@ -3482,10 +3489,12 @@ export default function FoncsDataEntry() {
         classTotals.totalNet += totals.totalNet;
       });
       
-      // Puan ortalamasını ayrı hesapla
-      const puanValues = Object.values(studentPuan).map(p => parseFloat(p) || 0);
+      // Puan ortalamasını ayrı hesapla (0 puanlı öğrenciler hariç)
+      const puanValues = Object.values(studentPuan)
+        .map(p => parseFloat(p) || 0)
+        .filter(p => p > 0); // 0 puanlı öğrencileri hariç tut
       const totalPuan = puanValues.reduce((sum, p) => sum + p, 0);
-      const averagePuan = studentCount > 0 ? totalPuan / studentCount : 0;
+      const averagePuan = puanValues.length > 0 ? totalPuan / puanValues.length : 0;
       
       // Ortalamaları hesapla
       return {
