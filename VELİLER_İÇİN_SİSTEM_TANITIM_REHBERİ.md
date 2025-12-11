@@ -407,9 +407,10 @@ Hedefler gerçekçi ve ulaşılabilir olmalıdır.
 
 ## 📞 İletişim ve Destek
 
-**Teknik Destek**: [destek@lgsportal.com](mailto:destek@lgsportal.com)
-**Eğitim Danışmanlığı**: [egitim@lgsportal.com](mailto:egitim@lgsportal.com)
-**Acil Durum**: 7/24 canlı destek hattı
+**Proje Koordinatörü**: Murat UYSAL  
+**E-posta**: [uysal.mu07@gmail.com](mailto:uysal.mu07@gmail.com)  
+**Telefon**: 0506 162 2347  
+**Destek Saatleri**: Hafta içi 09:00-18:00, Hafta sonu 10:00-16:00
 
 ---
 
