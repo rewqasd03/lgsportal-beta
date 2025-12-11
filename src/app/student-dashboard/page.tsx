@@ -149,23 +149,30 @@ function StudentDashboardContent() {
         const exam = examsData.find(e => e.id === result.examId);
         if (!exam) continue;
 
-        // Sınıf ortalamasını hesapla (aynı sınıftaki öğrencilerin toplam net ortalaması)
+        // Sınıf ortalamasını hesapla (aynı sınıftaki öğrencilerin toplam net ortalaması, 0 puanlı öğrenciler hariç)
         const classResults = resultsData.filter(r => r.examId === result.examId && 
           studentsData.find(s => s.id === r.studentId)?.class === studentData.class);
-        const classAverage = classResults.length > 0 
-          ? classResults.reduce((sum, r) => sum + (r.nets?.total || 0), 0) / classResults.length
+        const classResultsFiltered = classResults.filter(r => (r.nets?.total || 0) > 0);
+        const classAverage = classResultsFiltered.length > 0 
+          ? classResultsFiltered.reduce((sum, r) => sum + (r.nets?.total || 0), 0) / classResultsFiltered.length
           : 0;
 
-        // Sınıf ortalama puanını hesapla
+        // Sınıf ortalama puanını hesapla (0 puanlı öğrenciler hariç)
         const classResultsWithScore = resultsData.filter(r => r.examId === result.examId && 
           studentsData.find(s => s.id === r.studentId)?.class === studentData.class && 
           (typeof r.scores?.puan === 'string' || typeof r.puan === 'number' || typeof r.totalScore === 'number'));
-        const classAverageScore = classResultsWithScore.length > 0 
-          ? classResultsWithScore.reduce((sum, r) => sum + (
+        const classResultsWithScoreFiltered = classResultsWithScore.filter(r => {
+          const score = typeof r.scores?.puan === 'string' ? parseFloat(r.scores.puan) :
+                       typeof r.puan === 'number' ? r.puan : 
+                       (typeof r.totalScore === 'number' ? r.totalScore : 0);
+          return score > 0;
+        });
+        const classAverageScore = classResultsWithScoreFiltered.length > 0 
+          ? classResultsWithScoreFiltered.reduce((sum, r) => sum + (
             typeof r.scores?.puan === 'string' ? parseFloat(r.scores.puan) :
             typeof r.puan === 'number' ? r.puan : 
             (typeof r.totalScore === 'number' ? r.totalScore : 0)
-          ), 0) / classResultsWithScore.length
+          ), 0) / classResultsWithScoreFiltered.length
           : 0;
 
         // Genel ortalamaları hesapla (deneme yönetimindeki sınıf genel ortalamalarından)
