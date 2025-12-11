@@ -1216,6 +1216,135 @@ export default function FoncsDataEntry() {
   const [activeTab, setActiveTab] = useState("home");
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   
+  // Lise veritabanı (LGS ve OBP verileri)
+  const lgsSchools = [
+    {
+      name: "Van Türk Telekom Fen Lisesi",
+      type: "Fen Lisesi", 
+      score: "460.91",
+      percentile: "2.51",
+      capacity: "150",
+      district: "Edremit"
+    },
+    {
+      name: "İpekyolu Borsa İstanbul Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "441.61",
+      percentile: "4.67",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Tuşba TOBB Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "422.90",
+      percentile: "7.20",
+      capacity: "150",
+      district: "Tuşba"
+    },
+    {
+      name: "Niyazi Türkmenoğlu Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "416.75",
+      percentile: "8.09",
+      capacity: "120",
+      district: "İpekyolu"
+    },
+    {
+      name: "Erciş Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "402.18",
+      percentile: "10.39",
+      capacity: "150",
+      district: "Erciş"
+    },
+    {
+      name: "Kazım Karabekir Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "400.23",
+      percentile: "10.71",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Şehit Erdoğan Cınbıroğlu Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "412.45",
+      percentile: "9.12",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Van Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "408.32",
+      percentile: "9.87",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Atatürk Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "405.78",
+      percentile: "10.23",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Mehmet Akif Ersoy Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "402.15",
+      percentile: "10.58",
+      capacity: "150",
+      district: "İpekyolu"
+    }
+  ];
+
+  const obpSchools = [
+    {
+      name: "Mesut Özata Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "91.09",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Özen Adalı Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "89.66",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Mehmet Akif Ersoy Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "88.96",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Arif Nihat Asya Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "89.39",
+      capacity: "150",
+      district: "Erciş"
+    },
+    {
+      name: "Faki Teyran Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "85.96",
+      capacity: "150",
+      district: "Edremit"
+    },
+    {
+      name: "İki Nisan Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "84.93",
+      capacity: "150",
+      district: "İpekyolu"
+    }
+  ];
+  
   // Hedef Belirleme için state'ler
   const [studentTargets, setStudentTargets] = useState<{[studentId: string]: {[subject: string]: number}}>({});
   const [studentScoreTargets, setStudentScoreTargets] = useState<{[studentId: string]: number}>({});
@@ -3860,7 +3989,7 @@ export default function FoncsDataEntry() {
       case "hedef": return <TargetTab />;
       case "lgs-hesaplama": return <LGSCalculatorTab />;
       case "analytics": return <AnalyticsTab students={students} results={results} exams={exams} />;
-      case "van-taban-puan": return <VanTabanPuanTab />;
+      case "van-taban-puan": return <VanTabanPuanTab lgsSchools={lgsSchools} obpSchools={obpSchools} />;
       case "lise-tercih": return <LiseTercihTab students={students} lgsSchools={lgsSchools} obpSchools={obpSchools} />;
       default: return <HomeTab />;
     }
@@ -4213,7 +4342,23 @@ const LGSCalculatorTab = () => {
   );
 };
 // Lise Taban Puanları Tab Component
-const VanTabanPuanTab = () => {
+const VanTabanPuanTab = ({ lgsSchools, obpSchools }: {
+  lgsSchools: Array<{
+    name: string;
+    type: string;
+    score: string;
+    percentile: string;
+    capacity: string;
+    district: string;
+  }>,
+  obpSchools: Array<{
+    name: string;
+    type: string;
+    score: string;
+    capacity: string;
+    district: string;
+  }>
+}) => {
   const [selectedType, setSelectedType] = useState<'merkezi' | 'yerel' | null>(null);
 
   return (
