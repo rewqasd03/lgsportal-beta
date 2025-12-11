@@ -2808,7 +2808,8 @@ export default function FoncsDataEntry() {
 
       // İlk sonucun örnek yapısını göster
       if (studentResults.length > 0) {
-
+        // İlk sonuç için debug bilgisi
+        console.log('🎯 İlk sonuç yapısı:', studentResults[0]);
       }
 
       // Her ders için ortalama hesapla
@@ -2836,7 +2837,7 @@ export default function FoncsDataEntry() {
               subjectScores.push(net);
             }
           } else {
-
+            // Bu ders için veri yok, skor hesaplanmayacak
           }
         });
         
