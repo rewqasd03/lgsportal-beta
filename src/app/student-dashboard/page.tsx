@@ -2587,7 +2587,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "460.91",
       capacity: "150",
       district: "Edremit",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "2.51"
     },
     {
       name: "İpekyolu Borsa İstanbul Fen Lisesi",
@@ -2595,7 +2596,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "441.61",
       capacity: "150",
       district: "İpekyolu",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "4.67"
     },
     {
       name: "Tuşba TOBB Fen Lisesi",
@@ -2603,7 +2605,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "422.90",
       capacity: "150",
       district: "Tuşba",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "7.20"
     },
     {
       name: "Niyazi Türkmenoğlu Anadolu Lisesi",
@@ -2611,7 +2614,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "416.75",
       capacity: "120",
       district: "İpekyolu",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "8.09"
     },
     {
       name: "Erciş Fen Lisesi",
@@ -2619,7 +2623,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "402.18",
       capacity: "150",
       district: "Erciş",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "10.39"
     },
     {
       name: "Kazım Karabekir Anadolu Lisesi",
@@ -2627,7 +2632,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "400.23",
       capacity: "150",
       district: "İpekyolu",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "10.71"
     },
     {
       name: "Türkiye Yardımsevenler Derneği Anadolu Lisesi",
@@ -2635,7 +2641,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "387.01",
       capacity: "120",
       district: "Edremit",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "12.92"
     },
     {
       name: "Van Atatürk Anadolu Lisesi",
@@ -2643,7 +2650,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "379.46",
       capacity: "180",
       district: "İpekyolu",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "14.26"
     },
     {
       name: "Abdurrahman Gazi Borsa İstanbul Anadolu Lisesi",
@@ -2651,7 +2659,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "367.20",
       capacity: "150",
       district: "Tuşba",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "16.52"
     },
     {
       name: "Muradiye Alpaslan Fen Lisesi",
@@ -2659,7 +2668,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "366.59",
       capacity: "120",
       district: "Muradiye",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "16.63"
     },
     {
       name: "Erciş Sosyal Bilimler Lisesi",
@@ -2667,7 +2677,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "366.09",
       capacity: "120",
       district: "Erciş",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "20.09"
     },
     {
       name: "Van Anadolu İmam Hatip Lisesi",
@@ -2675,7 +2686,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "360.29",
       capacity: "120",
       district: "İpekyolu",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "19.06"
     },
     {
       name: "Van-Borsa İstanbul Mesleki ve Teknik Anadolu Lisesi",
@@ -2683,7 +2695,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "349.74",
       capacity: "180",
       district: "Edremit",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "23.59"
     },
     {
       name: "Sevim Kürüm Anadolu Lisesi",
@@ -2691,7 +2704,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "349.08",
       capacity: "120",
       district: "Erciş",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "18.31"
     },
     {
       name: "İskele Kız Anadolu İmam Hatip Lisesi",
@@ -2699,7 +2713,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "325.31",
       capacity: "120",
       district: "İpekyolu",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "27.46"
     },
     {
       name: "Edremit Anadolu İmam Hatip Lisesi",
@@ -2707,7 +2722,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "312.80",
       capacity: "120",
       district: "Edremit",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "39.48"
     },
     {
       name: "Mehmet Erdemoğlu Mesleki ve Teknik Anadolu Lisesi",
@@ -2715,7 +2731,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "305.71",
       capacity: "150",
       district: "İpekyolu",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "30.94"
     },
     {
       name: "Şehit Polis Halil Hamuryen Kız Anadolu İmam Hatip Lisesi",
@@ -2723,7 +2740,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "308.52",
       capacity: "120",
       district: "Erciş",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "40.76"
     },
     {
       name: "Tevfik İleri Anadolu İmam Hatip Lisesi",
@@ -2731,7 +2749,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "294.42",
       capacity: "120",
       district: "Erciş",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "45.03"
     },
     {
       name: "Erciş Mesleki ve Teknik Anadolu Lisesi",
@@ -2739,7 +2758,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "293.47",
       capacity: "150",
       district: "Erciş",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "50.02"
     },
     {
       name: "Mizancı Murat Anadolu İmam Hatip Lisesi",
@@ -2747,7 +2767,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "293.21",
       capacity: "120",
       district: "Edremit",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "55.88"
     },
     {
       name: "Gevaş Anadolu İmam Hatip Lisesi",
@@ -2755,7 +2776,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "267.96",
       capacity: "120",
       district: "Gevaş",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "98.45"
     },
     {
       name: "Hüseyin Çelik Kız Anadolu İmam Hatip Lisesi",
@@ -2763,7 +2785,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "263.42",
       capacity: "120",
       district: "Tuşba",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "48.81"
     },
     {
       name: "Özalp Kız Anadolu İmam Hatip Lisesi",
@@ -2771,7 +2794,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "255.88",
       capacity: "120",
       district: "Özalp",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "89.83"
     },
     {
       name: "Tuşba Şehit Ferhat Arslan Anadolu İmam Hatip Lisesi",
@@ -2779,7 +2803,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "251.82",
       capacity: "120",
       district: "Tuşba",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "97.98"
     },
     {
       name: "Şehit Haluk Varlı Anadolu İmam Hatip Lisesi",
@@ -2787,7 +2812,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "221.47",
       capacity: "120",
       district: "Gürpınar",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "94.06"
     },
     {
       name: "Muradiye Anadolu İmam Hatip Lisesi",
@@ -2795,7 +2821,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "208.61",
       capacity: "120",
       district: "Muradiye",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "97.43"
     },
     {
       name: "Başkale Anadolu İmam Hatip Lisesi",
@@ -2803,7 +2830,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "199.41",
       capacity: "120",
       district: "Başkale",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "99.80"
     },
     {
       name: "Çaldıran Anadolu İmam Hatip Lisesi",
@@ -2811,7 +2839,8 @@ function MerkeziYerlestirmePuanlari() {
       score: "197.30",
       capacity: "120",
       district: "Çaldıran",
-      yertip: "Merkezi Yerleştirme"
+      yertip: "Merkezi Yerleştirme",
+      percentile: "82.62"
     }
   ];
 
@@ -2834,6 +2863,7 @@ function MerkeziYerlestirmePuanlari() {
                 <th className="text-left p-3 font-semibold text-gray-800">Tür</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Yerleştirme Türü</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Taban Puan</th>
+                <th className="text-center p-3 font-semibold text-gray-800">Yüzdelik Dilim</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Kontenjan</th>
                 <th className="text-left p-3 font-semibold text-gray-800">İlçe</th>
               </tr>
@@ -2861,6 +2891,7 @@ function MerkeziYerlestirmePuanlari() {
                     </span>
                   </td>
                   <td className="p-3 text-center font-bold text-blue-600">{school.score}</td>
+                  <td className="p-3 text-center font-bold text-purple-600 text-lg">{school.percentile}%</td>
                   <td className="p-3 text-center text-gray-700">{school.capacity}</td>
                   <td className="p-3 text-gray-600">{school.district}</td>
                 </tr>
@@ -2888,7 +2919,8 @@ function YerelYerlestirmePuanlari() {
       score: "91.09",
       capacity: "150",
       district: "İpekyolu",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "5.2"
     },
     {
       name: "Özen Adalı Anadolu Lisesi",
@@ -2896,7 +2928,8 @@ function YerelYerlestirmePuanlari() {
       score: "89.66",
       capacity: "150",
       district: "İpekyolu",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "7.8"
     },
     {
       name: "Mehmet Akif Ersoy Anadolu Lisesi",
@@ -2904,7 +2937,8 @@ function YerelYerlestirmePuanlari() {
       score: "88.96",
       capacity: "150",
       district: "İpekyolu",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "8.5"
     },
     {
       name: "Arif Nihat Asya Anadolu Lisesi",
@@ -2912,7 +2946,8 @@ function YerelYerlestirmePuanlari() {
       score: "89.39",
       capacity: "150",
       district: "Erciş",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "7.1"
     },
     {
       name: "Faki Teyran Anadolu Lisesi",
@@ -2920,7 +2955,8 @@ function YerelYerlestirmePuanlari() {
       score: "85.96",
       capacity: "150",
       district: "Edremit",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "12.3"
     },
     {
       name: "İki Nisan Anadolu Lisesi",
@@ -2928,7 +2964,8 @@ function YerelYerlestirmePuanlari() {
       score: "84.93",
       capacity: "150",
       district: "İpekyolu",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "14.1"
     },
     {
       name: "Çaldıran Anadolu Lisesi",
@@ -2936,7 +2973,8 @@ function YerelYerlestirmePuanlari() {
       score: "84.30",
       capacity: "120",
       district: "Çaldıran",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "15.2"
     },
     {
       name: "İzzeddin Şir Anadolu Lisesi",
@@ -2944,7 +2982,8 @@ function YerelYerlestirmePuanlari() {
       score: "83.69",
       capacity: "120",
       district: "Gevaş",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "16.8"
     },
     {
       name: "Van-Borsa İstanbul Mesleki ve Teknik Anadolu Lisesi",
@@ -2952,7 +2991,8 @@ function YerelYerlestirmePuanlari() {
       score: "84.09",
       capacity: "150",
       district: "Edremit",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "15.7"
     },
     {
       name: "Said Nursi Anadolu İmam Hatip Lisesi",
@@ -2960,7 +3000,8 @@ function YerelYerlestirmePuanlari() {
       score: "65.83",
       capacity: "120",
       district: "İpekyolu",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "45.2"
     },
     {
       name: "Evliya Çelebi Mesleki ve Teknik Anadolu Lisesi",
@@ -2968,7 +3009,8 @@ function YerelYerlestirmePuanlari() {
       score: "45.72",
       capacity: "150",
       district: "Edremit",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "78.5"
     },
     {
       name: "Kalecik Mesleki ve Teknik Anadolu Lisesi",
@@ -2976,7 +3018,8 @@ function YerelYerlestirmePuanlari() {
       score: "43.85",
       capacity: "120",
       district: "Tuşba",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "82.1"
     },
     {
       name: "Tuşba Mesleki ve Teknik Anadolu Lisesi",
@@ -2984,7 +3027,8 @@ function YerelYerlestirmePuanlari() {
       score: "42.18",
       capacity: "120",
       district: "Tuşba",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "85.3"
     },
     {
       name: "Başkale Anadolu Lisesi",
@@ -2992,7 +3036,8 @@ function YerelYerlestirmePuanlari() {
       score: "41.65",
       capacity: "120",
       district: "Başkale",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "86.7"
     },
     {
       name: "Muradiye Anadolu Lisesi",
@@ -3000,7 +3045,8 @@ function YerelYerlestirmePuanlari() {
       score: "39.24",
       capacity: "120",
       district: "Muradiye",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "91.2"
     },
     {
       name: "Gürpınar Anadolu Lisesi",
@@ -3008,7 +3054,8 @@ function YerelYerlestirmePuanlari() {
       score: "38.97",
       capacity: "120",
       district: "Gürpınar",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "92.4"
     },
     {
       name: "Özalp Anadolu Lisesi",
@@ -3016,7 +3063,8 @@ function YerelYerlestirmePuanlari() {
       score: "35.82",
       capacity: "120",
       district: "Özalp",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "95.8"
     },
     {
       name: "Saray Anadolu Lisesi",
@@ -3024,7 +3072,8 @@ function YerelYerlestirmePuanlari() {
       score: "34.15",
       capacity: "120",
       district: "Saray",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "97.1"
     },
     {
       name: "Bahçesaray Anadolu Lisesi",
@@ -3032,7 +3081,8 @@ function YerelYerlestirmePuanlari() {
       score: "32.48",
       capacity: "120",
       district: "Bahçesaray",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "97.9"
     },
     {
       name: "Gevaş Anadolu Lisesi",
@@ -3040,7 +3090,8 @@ function YerelYerlestirmePuanlari() {
       score: "30.76",
       capacity: "120",
       district: "Gevaş",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "98.5"
     },
     {
       name: "Akdamar Anadolu Lisesi",
@@ -3048,7 +3099,8 @@ function YerelYerlestirmePuanlari() {
       score: "29.31",
       capacity: "120",
       district: "Gevaş",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "98.9"
     },
     {
       name: "Çatak Anadolu Lisesi",
@@ -3056,7 +3108,8 @@ function YerelYerlestirmePuanlari() {
       score: "27.84",
       capacity: "120",
       district: "Çatak",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "99.2"
     },
     {
       name: "Gevaş Kız Anadolu İmam Hatip Lisesi",
@@ -3064,7 +3117,8 @@ function YerelYerlestirmePuanlari() {
       score: "26.45",
       capacity: "120",
       district: "Gevaş",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "99.5"
     },
     {
       name: "Başkale Kız Anadolu İmam Hatip Lisesi",
@@ -3072,7 +3126,8 @@ function YerelYerlestirmePuanlari() {
       score: "24.89",
       capacity: "120",
       district: "Başkale",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "99.7"
     },
     {
       name: "Çatak Kız Anadolu İmam Hatip Lisesi",
@@ -3080,7 +3135,8 @@ function YerelYerlestirmePuanlari() {
       score: "23.68",
       capacity: "120",
       district: "Çatak",
-      yertip: "Yerel Yerleştirme"
+      yertip: "Yerel Yerleştirme",
+      percentile: "99.9"
     }
   ];
 
@@ -3103,6 +3159,7 @@ function YerelYerlestirmePuanlari() {
                 <th className="text-left p-3 font-semibold text-gray-800">Tür</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Yerleştirme Türü</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Taban Puan</th>
+                <th className="text-center p-3 font-semibold text-gray-800">Yüzdelik Dilim</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Kontenjan</th>
                 <th className="text-left p-3 font-semibold text-gray-800">İlçe</th>
               </tr>
@@ -3130,6 +3187,7 @@ function YerelYerlestirmePuanlari() {
                     </span>
                   </td>
                   <td className="p-3 text-center font-bold text-green-600">{school.score}</td>
+                  <td className="p-3 text-center font-bold text-purple-600 text-lg">{school.percentile}%</td>
                   <td className="p-3 text-center text-gray-700">{school.capacity}</td>
                   <td className="p-3 text-gray-600">{school.district}</td>
                 </tr>
