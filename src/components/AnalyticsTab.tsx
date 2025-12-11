@@ -78,7 +78,16 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     return students.map(student => {
       const studentResults = results.filter(result => result.studentId === student.id);
       
-      if (studentResults.length === 0) {
+      // Sadece gerçek denemeye katılan sonuçları al (0 puanlı denemeler hariç)
+      const validStudentResults = studentResults.filter(result => {
+        const net = result.nets?.total || 0;
+        const score = result.scores?.puan ? parseFloat(result.scores.puan) : 
+                     (result.puan || result.totalScore || 0);
+        return net > 0 || score > 0;
+      });
+      
+      // Eğer öğrencinin hiç gerçek denemesi yoksa, boş veri döndür
+      if (validStudentResults.length === 0) {
         return {
           studentId: student.id,
           studentName: student.name,
@@ -95,13 +104,13 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
         };
       }
 
-      const nets = studentResults.map(result => result.nets.total);
+      const nets = validStudentResults.map(result => result.nets.total);
       const averageNet = nets.reduce((sum, net) => sum + net, 0) / nets.length;
       const bestPerformance = Math.max(...nets);
       const worstPerformance = Math.min(...nets);
 
       // Puan verilerini hesapla
-      const scores = studentResults.map(result => {
+      const scores = validStudentResults.map(result => {
         const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
         return score;
       });
@@ -113,10 +122,10 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
 
       // Konu bazlı ortalamalar
       const subjectAverages = {
-        turkce: studentResults.reduce((sum, result) => sum + (result.nets.turkce || 0), 0) / studentResults.length,
-        matematik: studentResults.reduce((sum, result) => sum + (result.nets.matematik || 0), 0) / studentResults.length,
-        fen: studentResults.reduce((sum, result) => sum + (result.nets.fen || 0), 0) / studentResults.length,
-        sosyal: studentResults.reduce((sum, result) => sum + (result.nets.sosyal || 0), 0) / studentResults.length
+        turkce: validStudentResults.reduce((sum, result) => sum + (result.nets.turkce || 0), 0) / validStudentResults.length,
+        matematik: validStudentResults.reduce((sum, result) => sum + (result.nets.matematik || 0), 0) / validStudentResults.length,
+        fen: validStudentResults.reduce((sum, result) => sum + (result.nets.fen || 0), 0) / validStudentResults.length,
+        sosyal: validStudentResults.reduce((sum, result) => sum + (result.nets.sosyal || 0), 0) / validStudentResults.length
       };
 
       return {
@@ -125,7 +134,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
         averageNet,
         bestPerformance,
         worstPerformance,
-        totalExams: studentResults.length,
+        totalExams: validStudentResults.length,
         classRank: 0, // Daha sonra hesaplanacak
         // Puan verileri
         averageScore,
@@ -133,7 +142,8 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
         worstScore,
         subjectAverages
       };
-    }).sort((a, b) => b.averageNet - a.averageNet)
+    }).filter(student => student.totalExams > 0) // Sadece gerçek denemeye katılan öğrencileri göster
+      .sort((a, b) => b.averageNet - a.averageNet)
       .map((student, index) => ({ ...student, classRank: index + 1 }));
   }, [students, results]);
 
