@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { getStudents, getExams, getResults, addStudent, addExam, addResult, deleteStudent, deleteExam, deleteResult, updateStudent, updateResult, updateExam, saveStudentTargets, getAllTargets, getStudentScoreTarget, mapDashboardKeysToPanel, mapPanelKeysToDashboard, db, doc, getDoc, Student, Exam, Result } from "../../firebase";
+import { getStudents, getExams, getResults, addStudent, addExam, addResult, deleteStudent, deleteExam, deleteResult, updateStudent, updateResult, updateExam, saveStudentTargets, getAllTargets, getStudentScoreTarget, mapDashboardKeysToPanel, mapPanelKeysToDashboard, db, doc, getDoc, incrementStudentViewCount, Student, Exam, Result } from "../../firebase";
 import AnalyticsTab from "../../components/AnalyticsTab";
 // PDF İçe Aktarım Tab Component
 const PDFImportTab = ({ students, exams, onDataUpdate }: { 
@@ -1219,6 +1219,7 @@ export default function FoncsDataEntry() {
   const [studentTargets, setStudentTargets] = useState<{[studentId: string]: {[subject: string]: number}}>({});
   const [studentScoreTargets, setStudentScoreTargets] = useState<{[studentId: string]: number}>({});
   const [selectedStudentForTarget, setSelectedStudentForTarget] = useState<string>('');
+  const [selectedTargetClass, setSelectedTargetClass] = useState<string | undefined>();
 
   // Data loading
   const loadData = async () => {
@@ -2772,17 +2773,17 @@ export default function FoncsDataEntry() {
     const [selectedClass, setSelectedClass] = useState<string>('');
     const [selectedStudent, setSelectedStudent] = useState<string>('');
     const [studentTargetForm, setStudentTargetForm] = useState<{[subject: string]: number}>({});
-    const [studentScoreTarget, setStudentScoreTarget] = useState<number>(450);
+    const [studentScoreTarget, setStudentScoreTarget] = useState<number>(0);
     const [loading, setLoading] = useState(false);
 
-    // LGS Dersleri için varsayılan hedefler
+    // LGS Dersleri için varsayılan hedefler (0 olarak değiştirildi)
     const lgsSubjects = [
-      { key: 'turkce', label: 'Türkçe', target: 17 },
-      { key: 'sosyal', label: 'Sosyal Bilgiler', target: 18 },
-      { key: 'din', label: 'Din Kültürü', target: 19 },
-      { key: 'ingilizce', label: 'İngilizce', target: 16 },
-      { key: 'matematik', label: 'Matematik', target: 16 },
-      { key: 'fen', label: 'Fen Bilimleri', target: 17 }
+      { key: 'turkce', label: 'Türkçe', target: 0 },
+      { key: 'sosyal', label: 'Sosyal Bilgiler', target: 0 },
+      { key: 'din', label: 'Din Kültürü', target: 0 },
+      { key: 'ingilizce', label: 'İngilizce', target: 0 },
+      { key: 'matematik', label: 'Matematik', target: 0 },
+      { key: 'fen', label: 'Fen Bilimleri', target: 0 }
     ];
 
     // Öğrencinin mevcut ortalamalarını hesapla
@@ -2917,7 +2918,7 @@ export default function FoncsDataEntry() {
               const data = targetsSnapshot.data();
               const dashboardTargets = data.targets || {};
               const panelTargets = mapDashboardKeysToPanel(dashboardTargets);
-              const scoreTarget = data.targetScore || 450;
+              const scoreTarget = data.targetScore || 0;
               
               const formData: {[subject: string]: number} = {};
               
@@ -2937,7 +2938,7 @@ export default function FoncsDataEntry() {
                 formData[subject.key] = subject.target;
               });
               setStudentTargetForm(formData);
-              setStudentScoreTarget(450);
+              setStudentScoreTarget(0);
               console.log('📋 Hedef bulunamadı, varsayılan değerler yüklendi');
             }
             
@@ -3089,7 +3090,7 @@ export default function FoncsDataEntry() {
                     max="500"
                     value={studentScoreTarget}
                     onChange={(e) => {
-                      const newValue = Number(e.target.value) || 450;
+                      const newValue = Number(e.target.value) || 0;
                       setStudentScoreTarget(newValue);
                     }}
                     className="w-full px-4 py-3 border border-white/20 rounded-lg bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50"
@@ -3235,11 +3236,33 @@ export default function FoncsDataEntry() {
               </div>
             </div>
 
+            {/* Sınıf Filtreleme */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+              <h3 className="text-sm font-semibold text-gray-800 mb-4">📊 Sınıf Bazında Hedef Belirleme</h3>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Sınıf Seçin:</label>
+                <select 
+                  value={selectedTargetClass || ''} 
+                  onChange={(e) => setSelectedTargetClass(e.target.value || undefined)}
+                  className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Tüm Sınıflar</option>
+                  {Array.from(new Set(students.map(s => s.class))).map(className => (
+                    <option key={className} value={className}>{className}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="text-xs text-gray-600">
+                {selectedTargetClass ? `${selectedTargetClass} sınıfı için hedef belirleme` : 'Tüm sınıflar için hedef belirleme'}
+              </div>
+            </div>
+
             {/* Öğrenci Listesi - Hızlı Hedef Belirleme */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <h3 className="text-xs font-semibold text-gray-800 mb-4">Tüm Öğrenciler İçin Toplu Hedef Belirleme</h3>
+              <h3 className="text-xs font-semibold text-gray-800 mb-4">📝 Öğrenci Hedefleri</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(selectedTargetClass ? students.filter(s => s.class === selectedTargetClass) : students).map((student) => {
                 {students.map((student) => {
                   const studentTarget = studentTargets[student.id];
                   const totalTarget = studentTarget ? Object.values(studentTarget).reduce((sum, target) => sum + target, 0) : 0;
@@ -4278,6 +4301,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Van Türk Telekom Fen Lisesi",
       type: "Fen Lisesi", 
       score: "460.91",
+      percentile: "2.51",
       capacity: "150",
       district: "Edremit"
     },
@@ -4285,6 +4309,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "İpekyolu Borsa İstanbul Fen Lisesi",
       type: "Fen Lisesi",
       score: "441.61",
+      percentile: "4.67",
       capacity: "150",
       district: "İpekyolu"
     },
@@ -4292,6 +4317,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Tuşba TOBB Fen Lisesi",
       type: "Fen Lisesi",
       score: "422.90",
+      percentile: "7.20",
       capacity: "150",
       district: "Tuşba"
     },
@@ -4299,6 +4325,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Niyazi Türkmenoğlu Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "416.75",
+      percentile: "8.09",
       capacity: "120",
       district: "İpekyolu"
     },
@@ -4306,6 +4333,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Erciş Fen Lisesi",
       type: "Fen Lisesi",
       score: "402.18",
+      percentile: "10.39",
       capacity: "150",
       district: "Erciş"
     },
@@ -4313,6 +4341,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Kazım Karabekir Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "400.23",
+      percentile: "10.71",
       capacity: "150",
       district: "İpekyolu"
     },
@@ -4320,6 +4349,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Türkiye Yardımsevenler Derneği Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "387.01",
+      percentile: "12.92",
       capacity: "120",
       district: "Edremit"
     },
@@ -4327,6 +4357,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Van Atatürk Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "379.46",
+      percentile: "14.26",
       capacity: "180",
       district: "İpekyolu"
     },
@@ -4334,6 +4365,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Abdurrahman Gazi Borsa İstanbul Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "367.20",
+      percentile: "16.52",
       capacity: "150",
       district: "Tuşba"
     },
@@ -4341,6 +4373,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Muradiye Alpaslan Fen Lisesi",
       type: "Fen Lisesi",
       score: "366.59",
+      percentile: "16.63",
       capacity: "120",
       district: "Muradiye"
     },
@@ -4348,6 +4381,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Erciş Sosyal Bilimler Lisesi",
       type: "Sosyal Bilimler Lisesi",
       score: "366.09",
+      percentile: "20.09",
       capacity: "120",
       district: "Erciş"
     },
@@ -4355,6 +4389,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Van Anadolu İmam Hatip Lisesi",
       type: "Anadolu İmam Hatip Lisesi",
       score: "360.29",
+      percentile: "19.06",
       capacity: "120",
       district: "İpekyolu"
     },
@@ -4362,6 +4397,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Van-Borsa İstanbul Mesleki ve Teknik Anadolu Lisesi",
       type: "Mesleki ve Teknik Anadolu Lisesi",
       score: "349.74",
+      percentile: "23.59",
       capacity: "180",
       district: "Edremit"
     },
@@ -4369,9 +4405,131 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       name: "Sevim Kürüm Anadolu Lisesi",
       type: "Anadolu Lisesi",
       score: "349.08",
+      percentile: "18.31",
       capacity: "120",
       district: "Erciş"
     },
+    {
+      name: "İskele Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "325.31",
+      percentile: "27.46",
+      capacity: "120",
+      district: "İpekyolu"
+    },
+    {
+      name: "Edremit Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "312.80",
+      percentile: "39.48",
+      capacity: "120",
+      district: "Edremit"
+    },
+    {
+      name: "Mehmet Erdemoğlu Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "305.71",
+      percentile: "30.94",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Şehit Polis Halil Hamuryen Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "308.52",
+      percentile: "40.76",
+      capacity: "120",
+      district: "Erciş"
+    },
+    {
+      name: "Tevfik İleri Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "294.42",
+      percentile: "45.03",
+      capacity: "120",
+      district: "Erciş"
+    },
+    {
+      name: "Erciş Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "293.47",
+      percentile: "50.02",
+      capacity: "150",
+      district: "Erciş"
+    },
+    {
+      name: "Mizancı Murat Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "293.21",
+      percentile: "55.88",
+      capacity: "120",
+      district: "Edremit"
+    },
+    {
+      name: "Gevaş Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "267.96",
+      percentile: "98.45",
+      capacity: "120",
+      district: "Gevaş"
+    },
+    {
+      name: "Hüseyin Çelik Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "263.42",
+      percentile: "48.81",
+      capacity: "120",
+      district: "Tuşba"
+    },
+    {
+      name: "Özalp Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "255.88",
+      percentile: "89.83",
+      capacity: "120",
+      district: "Özalp"
+    },
+    {
+      name: "Tuşba Şehit Ferhat Arslan Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "251.82",
+      percentile: "97.98",
+      capacity: "120",
+      district: "Tuşba"
+    },
+    {
+      name: "Şehit Haluk Varlı Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "221.47",
+      percentile: "94.06",
+      capacity: "120",
+      district: "Gürpınar"
+    },
+    {
+      name: "Muradiye Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "208.61",
+      percentile: "97.43",
+      capacity: "120",
+      district: "Muradiye"
+    },
+    {
+      name: "Başkale Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "199.41",
+      percentile: "99.80",
+      capacity: "120",
+      district: "Başkale"
+    },
+    {
+      name: "Çaldıran Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "197.30",
+      percentile: "82.62",
+      capacity: "120",
+      district: "Çaldıran"
+    }
+  ];
     {
       name: "İskele Kız Anadolu İmam Hatip Lisesi",
       type: "Anadolu İmam Hatip Lisesi",
@@ -4497,6 +4655,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
                 <th className="text-left p-4 font-semibold text-gray-800">Lise Adı</th>
                 <th className="text-left p-4 font-semibold text-gray-800">Tür</th>
                 <th className="text-center p-4 font-semibold text-gray-800">Taban Puan</th>
+                <th className="text-center p-4 font-semibold text-gray-800">Yüzdelik Dilim</th>
                 <th className="text-center p-4 font-semibold text-gray-800">Kontenjan</th>
                 <th className="text-left p-4 font-semibold text-gray-800">İlçe</th>
               </tr>
@@ -4515,6 +4674,7 @@ const MerkeziYerlestirmePuanlariPanel = () => {
                     </span>
                   </td>
                   <td className="p-4 text-center font-bold text-blue-600 text-lg">{school.score}</td>
+                  <td className="p-4 text-center font-bold text-purple-600 text-lg">{school.percentile}%</td>
                   <td className="p-4 text-center text-gray-700">{school.capacity}</td>
                   <td className="p-4 text-gray-600">{school.district}</td>
                 </tr>

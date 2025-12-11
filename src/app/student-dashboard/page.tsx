@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
-import { Student, Exam, Result, getStudentTargets, getStudentScoreTarget } from '../../firebase';
+import { Student, Exam, Result, getStudentTargets, getStudentScoreTarget, incrementStudentViewCount } from '../../firebase';
 import { initializeApp } from 'firebase/app';
 
 const firebaseConfig = {
@@ -249,6 +249,16 @@ function StudentDashboardContent() {
       }
     } finally {
       setLoading(false);
+      
+      // View count artırma (sadece başarılı yüklemede)
+      if (studentId && !error) {
+        try {
+          await incrementStudentViewCount(studentId);
+          console.log('✅ View count güncellendi');
+        } catch (viewError) {
+          console.warn('View count güncellenirken hata:', viewError);
+        }
+      }
     }
   };
 
