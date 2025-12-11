@@ -3159,7 +3159,6 @@ function YerelYerlestirmePuanlari() {
                 <th className="text-left p-3 font-semibold text-gray-800">Tür</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Yerleştirme Türü</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Taban Puan</th>
-                <th className="text-center p-3 font-semibold text-gray-800">Yüzdelik Dilim</th>
                 <th className="text-center p-3 font-semibold text-gray-800">Kontenjan</th>
                 <th className="text-left p-3 font-semibold text-gray-800">İlçe</th>
               </tr>
@@ -3187,7 +3186,6 @@ function YerelYerlestirmePuanlari() {
                     </span>
                   </td>
                   <td className="p-3 text-center font-bold text-green-600">{school.score}</td>
-                  <td className="p-3 text-center font-bold text-purple-600 text-lg">{school.percentile}%</td>
                   <td className="p-3 text-center text-gray-700">{school.capacity}</td>
                   <td className="p-3 text-gray-600">{school.district}</td>
                 </tr>
