@@ -2410,7 +2410,18 @@ export default function FoncsDataEntry() {
     // Sınıf seçildiğinde öğrenci ve deneme listelerini güncelle
     useEffect(() => {
       if (selectedClass) {
-        const filteredStudents = students.filter(student => student.class === selectedClass);
+        // Sadece gerçek denemeye katılan öğrencileri göster
+        const filteredStudents = students.filter(student => {
+          const studentResults = results.filter(r => r.studentId === student.id);
+          const validExams = studentResults.filter(r => {
+            const net = r.nets?.total || 0;
+            const score = r.scores?.puan ? parseFloat(r.scores.puan) : 
+                         (r.puan || r.totalScore || 0);
+            return net > 0 || score > 0;
+          });
+          return validExams.length > 0;
+        }).filter(student => student.class === selectedClass);
+        
         setAvailableStudentsIndividual(filteredStudents);
         
         const filteredExams = exams.filter(exam => 
@@ -3057,7 +3068,19 @@ export default function FoncsDataEntry() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 <option value="">Öğrenci seçin</option>
-                {students.filter(student => student.class === selectedClass).map((student) => (
+                {students
+                  .filter(student => {
+                    const studentResults = results.filter(r => r.studentId === student.id);
+                    const validExams = studentResults.filter(r => {
+                      const net = r.nets?.total || 0;
+                      const score = r.scores?.puan ? parseFloat(r.scores.puan) : 
+                                   (r.puan || r.totalScore || 0);
+                      return net > 0 || score > 0;
+                    });
+                    return validExams.length > 0;
+                  })
+                  .filter(student => student.class === selectedClass)
+                  .map((student) => (
                   <option key={student.id} value={student.id}>
                     {student.name}
                   </option>
@@ -3265,7 +3288,29 @@ export default function FoncsDataEntry() {
               <h3 className="text-xs font-semibold text-gray-800 mb-4">📝 Öğrenci Hedefleri</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(selectedTargetClass ? students.filter(s => s.class === selectedTargetClass) : students).map((student) => {
+                {(selectedTargetClass ? 
+                  students.filter(student => {
+                    const studentResults = results.filter(r => r.studentId === student.id);
+                    const validExams = studentResults.filter(r => {
+                      const net = r.nets?.total || 0;
+                      const score = r.scores?.puan ? parseFloat(r.scores.puan) : 
+                                   (r.puan || r.totalScore || 0);
+                      return net > 0 || score > 0;
+                    });
+                    return validExams.length > 0;
+                  }).filter(s => s.class === selectedTargetClass) 
+                  : 
+                  students.filter(student => {
+                    const studentResults = results.filter(r => r.studentId === student.id);
+                    const validExams = studentResults.filter(r => {
+                      const net = r.nets?.total || 0;
+                      const score = r.scores?.puan ? parseFloat(r.scores.puan) : 
+                                   (r.puan || r.totalScore || 0);
+                      return net > 0 || score > 0;
+                    });
+                    return validExams.length > 0;
+                  })
+                ).map((student) => {
                   const studentTarget = studentTargets[student.id];
                   const totalTarget = studentTarget ? Object.values(studentTarget).reduce((sum, target) => sum + target, 0) : 0;
                   

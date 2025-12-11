@@ -1613,9 +1613,19 @@ function StudentDashboardContent() {
                   if (!selectedExamResult) return null;
 
                   // Bu denemeye ait tüm öğrencilerin sonuçlarını al ve sırala
+                  // NOT: Sadece gerçek denemeye katılan öğrencileri dahil et (0 puanlı denemeler hariç)
                   const examResults = allResultsData.filter(result => result.examId === selectedExamId);
+                  const validExamResults = examResults.filter(result => {
+                    const nets: Record<string, number> = result.nets || {};
+                    const totalNet = (nets.turkce || 0) + (nets.sosyal || 0) + (nets.din || 0) + 
+                                   (nets.ingilizce || 0) + (nets.matematik || 0) + (nets.fen || 0);
+                    const score = typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
+                                  typeof result.puan === 'number' ? result.puan : 
+                                  (typeof result.totalScore === 'number' ? result.totalScore : 0);
+                    return totalNet > 0 || score > 0;
+                  });
                   
-                  const studentsWithScores = examResults.map(result => {
+                  const studentsWithScores = validExamResults.map(result => {
                     const student = allStudentsData.find(s => s.id === result.studentId);
                     const score = typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
                                   typeof result.puan === 'number' ? result.puan : 
