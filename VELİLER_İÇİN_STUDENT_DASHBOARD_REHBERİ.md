@@ -12,6 +12,7 @@
 
 ![Student Dashboard](student_dashboard_tabs.png)
 
+**Proje Koordinatörü: Murat UYSAL**  
 **E-posta:** uysal.mu07@gmail.com  
 **Telefon:** 0506 162 2347
 
@@ -437,8 +438,8 @@ Geleneksel eğitim sisteminde **"nasıl gidiyor?"** sorusuna verilen cevaplar ge
 
 ## 📞 İletişim ve Destek
 
-### 👨‍💼 **Proje Sahibi**
-**Uysal AKKUŞ**  
+### 👨‍💼 **Proje Koordinatörü**
+**Murat UYSAL**  
 📧 **E-posta:** uysal.mu07@gmail.com  
 📱 **Telefon:** 0506 162 2347  
 
@@ -495,7 +496,8 @@ Artık elinizde:
 ![Success](student_dashboard_tabs.png)
 
 **📧 uysal.mu07@gmail.com**  
-**📱 0506 162 2347**
+**📱 0506 162 2347**  
+**Proje Koordinatörü: Murat UYSAL**
 
 ---
 
