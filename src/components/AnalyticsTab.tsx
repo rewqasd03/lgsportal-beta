@@ -49,6 +49,10 @@ interface PerformanceComparison {
   worstPerformance: number;
   totalExams: number;
   classRank: number;
+  // Puan verileri
+  averageScore: number;
+  bestScore: number;
+  worstScore: number;
   subjectAverages: {
     turkce: number;
     matematik: number;
@@ -83,6 +87,10 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
           worstPerformance: 0,
           totalExams: 0,
           classRank: 0,
+          // Puan verileri
+          averageScore: 0,
+          bestScore: 0,
+          worstScore: 0,
           subjectAverages: { turkce: 0, matematik: 0, fen: 0, sosyal: 0 }
         };
       }
@@ -91,6 +99,15 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
       const averageNet = nets.reduce((sum, net) => sum + net, 0) / nets.length;
       const bestPerformance = Math.max(...nets);
       const worstPerformance = Math.min(...nets);
+
+      // Puan verilerini hesapla
+      const scores = studentResults.map(result => {
+        const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
+        return score;
+      });
+      const averageScore = scores.length > 0 ? scores.reduce((sum, score) => sum + score, 0) / scores.length : 0;
+      const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
+      const worstScore = scores.length > 0 ? Math.min(...scores) : 0;
 
 
 
@@ -110,6 +127,10 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
         worstPerformance,
         totalExams: studentResults.length,
         classRank: 0, // Daha sonra hesaplanacak
+        // Puan verileri
+        averageScore,
+        bestScore,
+        worstScore,
         subjectAverages
       };
     }).sort((a, b) => b.averageNet - a.averageNet)
@@ -183,6 +204,32 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
 
   const renderOverview = () => (
     <div className="space-y-6">
+      {/* Net/Puan Toggle */}
+      <div className="flex justify-center mb-4">
+        <div className="flex bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => setTrendsViewType('net')}
+            className={`px-4 py-2 rounded-md font-medium transition-all ${
+              trendsViewType === 'net'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            📊 Net
+          </button>
+          <button
+            onClick={() => setTrendsViewType('puan')}
+            className={`px-4 py-2 rounded-md font-medium transition-all ${
+              trendsViewType === 'puan'
+                ? 'bg-white text-purple-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            🎯 Puan
+          </button>
+        </div>
+      </div>
+
       {/* İstatistik Kartları */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-6 rounded-lg shadow">
@@ -191,12 +238,27 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Sınıf Ortalaması</h3>
-          <p className="text-3xl font-bold text-green-600">{classAverage.toFixed(1)}</p>
+          <p className="text-3xl font-bold text-green-600">
+            {trendsViewType === 'net' 
+              ? classAverage.toFixed(1) 
+              : (filteredData.length > 0 ? 
+                  (filteredData.reduce((sum, s) => sum + s.averageScore, 0) / filteredData.length).toFixed(0)
+                  : '0')
+            }
+          </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">En Yüksek Net</h3>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            En {trendsViewType === 'net' ? 'Yüksek Net' : 'Yüksek Puan'}
+          </h3>
           <p className="text-3xl font-bold text-purple-600">
-            {filteredData.length > 0 ? Math.max(...filteredData.map(s => s.bestPerformance)).toFixed(1) : '0'}
+            {filteredData.length > 0 
+              ? (trendsViewType === 'net' 
+                  ? Math.max(...filteredData.map(s => s.bestPerformance)).toFixed(1)
+                  : Math.max(...filteredData.map(s => s.bestScore)).toFixed(0)
+                )
+              : '0'
+            }
           </p>
         </div>
 
@@ -212,8 +274,16 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="averageNet" fill="#3B82F6" name="Ortalama Net" />
-            <Bar dataKey="bestPerformance" fill="#10B981" name="En İyi Performans" />
+            <Bar 
+              dataKey={trendsViewType === 'net' ? 'averageNet' : 'averageScore'} 
+              fill="#3B82F6" 
+              name={trendsViewType === 'net' ? 'Ortalama Net' : 'Ortalama Puan'} 
+            />
+            <Bar 
+              dataKey={trendsViewType === 'net' ? 'bestPerformance' : 'bestScore'} 
+              fill="#10B981" 
+              name={trendsViewType === 'net' ? 'En İyi Net' : 'En İyi Puan'} 
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -222,6 +292,32 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
 
   const renderComparison = () => (
     <div className="space-y-6">
+      {/* Net/Puan Toggle */}
+      <div className="flex justify-center mb-4">
+        <div className="flex bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => setTrendsViewType('net')}
+            className={`px-4 py-2 rounded-md font-medium transition-all ${
+              trendsViewType === 'net'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            📊 Net
+          </button>
+          <button
+            onClick={() => setTrendsViewType('puan')}
+            className={`px-4 py-2 rounded-md font-medium transition-all ${
+              trendsViewType === 'puan'
+                ? 'bg-white text-purple-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            🎯 Puan
+          </button>
+        </div>
+      </div>
+
       {/* Karşılaştırma Tablosu */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b">
@@ -233,7 +329,9 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sıra</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Öğrenci</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ortalama Net</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ortalama {trendsViewType === 'net' ? 'Net' : 'Puan'}
+                </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">En İyi</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">En Kötü</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Sınav Sayısı</th>
@@ -250,18 +348,31 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      student.averageNet >= 15 ? 'bg-green-100 text-green-800' :
-                      student.averageNet >= 10 ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
+                      trendsViewType === 'net' 
+                        ? (student.averageNet >= 15 ? 'bg-green-100 text-green-800' :
+                           student.averageNet >= 10 ? 'bg-yellow-100 text-yellow-800' :
+                           'bg-red-100 text-red-800')
+                        : (student.averageScore >= 400 ? 'bg-green-100 text-green-800' :
+                           student.averageScore >= 300 ? 'bg-yellow-100 text-yellow-800' :
+                           'bg-red-100 text-red-800')
                     }`}>
-                      {student.averageNet.toFixed(1)}
+                      {trendsViewType === 'net' 
+                        ? student.averageNet.toFixed(1)
+                        : student.averageScore.toFixed(0)
+                      }
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-green-600 font-semibold">
-                    {student.bestPerformance.toFixed(1)}
+                    {trendsViewType === 'net' 
+                      ? student.bestPerformance.toFixed(1)
+                      : student.bestScore.toFixed(0)
+                    }
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600 font-semibold">
-                    {student.worstPerformance.toFixed(1)}
+                    {trendsViewType === 'net' 
+                      ? student.worstPerformance.toFixed(1)
+                      : student.worstScore.toFixed(0)
+                    }
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
