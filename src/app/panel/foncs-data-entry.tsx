@@ -4000,19 +4000,19 @@ const LGSCalculatorTab = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 sm:p-4 lg:p-6">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">🧮 LGS Puan Hesaplama</h2>
-        <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-8">LGS puanınızı hesaplamak için doğru ve yanlış sayılarınızı girin.</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">🧮 LGS Puan Hesaplama</h2>
+        <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-6">LGS puanınızı hesaplamak için doğru ve yanlış sayılarınızı girin.</p>
         
         {/* Hesaplama Formu */}
-        <div className="space-y-6">
+        <div className="space-y-3 sm:space-y-4">
           {/* İstenen ders sıralaması: Türkçe, Sosyal, Din, İngilizce, Matematik, Fen */}
           {['turkce', 'sosyal', 'din', 'ingilizce', 'matematik', 'fen'].map(subject => (
-            <div key={subject} className="border rounded-lg p-6 bg-gray-50">
-              <h4 className="font-semibold text-gray-800 mb-4 flex items-center justify-between">
+            <div key={subject} className="border rounded-lg p-3 sm:p-4 bg-gray-50">
+              <h4 className="font-semibold text-gray-800 mb-3 flex items-center justify-between">
                 <div className="flex items-center">
-                  <span className="text-blue-600 mr-3 text-2xl">
+                  <span className="text-blue-600 mr-2 text-lg sm:text-xl">
                     {subject === 'turkce' && '📝'}
                     {subject === 'matematik' && '🔢'}
                     {subject === 'fen' && '🧪'}
@@ -4020,15 +4020,15 @@ const LGSCalculatorTab = () => {
                     {subject === 'din' && '🕌'}
                     {subject === 'ingilizce' && '🇺🇸'}
                   </span>
-                  {subjectNames[subject]}
+                  <span className="text-sm sm:text-base">{subjectNames[subject]}</span>
                 </div>
-                <span className="text-xs text-gray-500 bg-gray-200 px-3 py-1 rounded">
+                <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
                   {questionCounts[subject]} soru
                 </span>
               </h4>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     Doğru Sayısı
                   </label>
                   <input
@@ -4036,11 +4036,11 @@ const LGSCalculatorTab = () => {
                     min="0"
                     value={scores[subject].dogru}
                     onChange={(e) => handleScoreChange(subject, 'dogru', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-md sm:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     Yanlış Sayısı
                   </label>
                   <input
@@ -4048,7 +4048,7 @@ const LGSCalculatorTab = () => {
                     min="0"
                     value={scores[subject].yanlis}
                     onChange={(e) => handleScoreChange(subject, 'yanlis', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-md sm:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
                 </div>
               </div>
@@ -4056,16 +4056,16 @@ const LGSCalculatorTab = () => {
           ))}
 
           {/* Hesapla Butonları */}
-          <div className="flex gap-4">
+          <div className="flex gap-2 sm:gap-3">
             <button
               onClick={calculateLGSPoints}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-md sm:rounded-lg font-medium transition-colors flex items-center justify-center text-sm sm:text-base"
             >
               🧮 Puanı Hesapla
             </button>
             <button
               onClick={resetForm}
-              className="px-6 py-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
+              className="px-3 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-md sm:rounded-lg hover:bg-gray-50 transition-colors flex items-center text-sm sm:text-base"
             >
               🔄 Temizle
             </button>
@@ -4074,27 +4074,27 @@ const LGSCalculatorTab = () => {
 
         {/* Sonuçlar */}
         {result && (
-          <div className="mt-8 space-y-6">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-8">
-              <h4 className="text-2xl font-bold mb-3">🎯 LGS Puanınız</h4>
-              <div className="text-4xl font-bold">{result.totalPoints}</div>
-              <p className="text-blue-100 text-sm mt-3">
+          <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-4 sm:p-6 lg:p-8">
+              <h4 className="text-lg sm:text-xl lg:text-2xl font-bold mb-2 sm:mb-3">🎯 LGS Puanınız</h4>
+              <div className="text-2xl sm:text-3xl lg:text-4xl font-bold">{result.totalPoints}</div>
+              <p className="text-blue-100 text-xs sm:text-sm mt-2 sm:mt-3">
                 Maksimum puan: 500 • Minimum puan: 0
               </p>
             </div>
 
             {/* Ders Bazında Detaylar */}
-            <div className="border rounded-lg p-6">
-              <h5 className="font-semibold text-gray-800 mb-4">📊 Ders Bazında Detaylar</h5>
-              <div className="space-y-4">
+            <div className="border rounded-lg p-3 sm:p-4 lg:p-6">
+              <h5 className="font-semibold text-gray-800 mb-3 sm:mb-4 text-sm sm:text-base">📊 Ders Bazında Detaylar</h5>
+              <div className="space-y-3 sm:space-y-4">
                 {/* İstenen ders sıralaması: Türkçe, Sosyal, Din, İngilizce, Matematik, Fen */}
                 {['turkce', 'sosyal', 'din', 'ingilizce', 'matematik', 'fen'].map(subject => {
                   const name = subjectNames[subject];
                   const subjectData = result.subjects[subject] || { dogru: 0, yanlis: 0, net: 0, points: 0 };
                   return (
-                  <div key={subject} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div key={subject} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-2">
                     <div className="flex items-center">
-                      <span className="text-blue-600 mr-3 text-xl">
+                      <span className="text-blue-600 mr-2 sm:mr-3 text-lg sm:text-xl">
                         {subject === 'turkce' && '📝'}
                         {subject === 'matematik' && '🔢'}
                         {subject === 'fen' && '🧪'}
@@ -4102,11 +4102,11 @@ const LGSCalculatorTab = () => {
                         {subject === 'din' && '🕌'}
                         {subject === 'ingilizce' && '🇺🇸'}
                       </span>
-                      <span className="font-medium text-lg">{name}</span>
+                      <span className="font-medium text-sm sm:text-base">{name}</span>
                       <span className="text-xs text-gray-500 ml-2">({questionCounts[subject]} soru)</span>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-gray-600">
+                      <div className="text-xs sm:text-sm text-gray-600">
                         Doğru: {subjectData.dogru} | Yanlış: {subjectData.yanlis} | Boş: {20 - subjectData.dogru - subjectData.yanlis} | Net: {subjectData.net}
                       </div>
                     </div>
@@ -4117,8 +4117,8 @@ const LGSCalculatorTab = () => {
             </div>
 
             {/* Bilgilendirme */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <p className="text-green-800">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 lg:p-6">
+              <p className="text-green-800 text-xs sm:text-sm">
                 <strong>💡 Bilgi:</strong> Bu hesaplama MEB'in resmi LGS puan hesaplama sistemine uygun olarak yapılmıştır. 
                 Net sayıları = Doğru sayısı - (Yanlış sayısı ÷ 3) formülü ile hesaplanır. 
                 <strong>Taban puan: 193.492</strong> otomatik olarak eklenir.
