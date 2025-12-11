@@ -320,6 +320,11 @@ function StudentDashboardContent() {
     ? reportData.examResults.reduce((sum, item) => sum + (item.generalAverageScore || 0), 0) / reportData.examResults.length
     : 0;
   
+  // Genel görünümdeki ortalama puan açıklaması
+  const averageScoreExplanation = reportData.examResults.length > 0 
+    ? `Tüm denemelerin puan ortalaması (${reportData.examResults.length} deneme)` 
+    : 'Henüz puan verisi yok';
+  
   const latestNet = reportData.examResults[reportData.examResults.length - 1]?.studentTotalNet || 0;
   const previousNet = reportData.examResults[reportData.examResults.length - 2]?.studentTotalNet || 0;
   const improvement = latestNet - previousNet;
@@ -872,7 +877,14 @@ function StudentDashboardContent() {
                     <div className="bg-white bg-opacity-20 p-3 rounded-lg">
                       <h4 className="text-xs font-medium opacity-90">Tahmini 5. Deneme</h4>
                       <p className="text-xl font-bold">
-                        {((netChartData.slice(-2).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(2, netChartData.length)) + 2.5).toFixed(1)}
+                        {(() => {
+                          const lastThreeExams = netChartData.slice(-3);
+                          const lastThreeAverage = lastThreeExams.length > 0 
+                            ? lastThreeExams.reduce((sum, d) => sum + (d.öğrenci || 0), 0) / lastThreeExams.length 
+                            : 0;
+                          const predictedExam = lastThreeAverage * 1.05; // Son 3 denemenin %5 fazlası
+                          return predictedExam.toFixed(1);
+                        })()}
                       </p>
                     </div>
                     <div className="bg-white bg-opacity-20 p-3 rounded-lg">
@@ -1308,10 +1320,10 @@ function StudentDashboardContent() {
                           <h4 className="text-[8px] font-medium text-gray-500 mb-1">Genel Ortalama</h4>
                           <p className="text-sm font-bold text-orange-600">{selectedExamResult.generalAverage.toFixed(1)}</p>
                           <p className="text-xs text-gray-600 mt-1">
-                            Fark: {selectedExamResult.generalAverage >= selectedExamResult.studentTotalNet ? (
-                              <span className="text-green-600">+{(selectedExamResult.generalAverage - selectedExamResult.studentTotalNet).toFixed(1)}</span>
+                            Fark: {selectedExamResult.studentTotalNet >= selectedExamResult.generalAverage ? (
+                              <span className="text-green-600">+{(selectedExamResult.studentTotalNet - selectedExamResult.generalAverage).toFixed(1)}</span>
                             ) : (
-                              <span className="text-red-600">-{(selectedExamResult.studentTotalNet - selectedExamResult.generalAverage).toFixed(1)}</span>
+                              <span className="text-red-600">-{(selectedExamResult.generalAverage - selectedExamResult.studentTotalNet).toFixed(1)}</span>
                             )}
                           </p>
                         </div>
@@ -1344,10 +1356,12 @@ function StudentDashboardContent() {
                                 const difference = studentSubjectNet - generalSubjectAverage;
                                 const isAboveAverage = difference > 0;
                                 
-                                // Net hesabından tahmini doğru/yanlış sayıları (3.33 katsayısı ile)
-                                const estimatedCorrect = Math.max(0, Math.round(studentSubjectNet * 3.33));
-                                const estimatedWrong = Math.max(0, Math.round(studentSubjectNet * 1.5));
-                                const estimatedBlank = Math.max(0, Math.round((estimatedCorrect + estimatedWrong) * 0.3));
+                                // Firebase'den gerçek doğru/yanlış/boş sayılarını al
+                                const scores = studentResult?.scores || {};
+                                const subjectScore = scores[subject.key] || {};
+                                const realCorrect = subjectScore.D ? parseInt(subjectScore.D) : 0;
+                                const realWrong = subjectScore.Y ? parseInt(subjectScore.Y) : 0;
+                                const realBlank = subjectScore.B ? parseInt(subjectScore.B) : 0;
                                 
                                 return (
                                   <tr key={subject.key} className="hover:bg-gray-50">
@@ -1362,11 +1376,11 @@ function StudentDashboardContent() {
                                     </td>
                                     <td className="px-1.5 py-1.5 text-center">
                                       <div className="flex items-center justify-center space-x-1 text-xs">
-                                        <span className="font-bold text-green-600">{estimatedCorrect}</span>
+                                        <span className="font-bold text-green-600">{realCorrect}</span>
                                         <span className="text-gray-400">/</span>
-                                        <span className="font-bold text-red-600">{estimatedWrong}</span>
+                                        <span className="font-bold text-red-600">{realWrong}</span>
                                         <span className="text-gray-400">/</span>
-                                        <span className="font-medium text-gray-600">{estimatedBlank}</span>
+                                        <span className="font-medium text-gray-600">{realBlank}</span>
                                       </div>
                                     </td>
                                     <td className="px-1.5 py-1.5 text-center">
@@ -1510,8 +1524,10 @@ function StudentDashboardContent() {
                             <div className="text-xs font-medium text-green-700">Doğru</div>
                             <div className="text-sm font-bold text-green-600">
                               {subjects.reduce((total, subject) => {
-                                const studentSubjectNet = studentResult?.nets?.[subject.key] || 0;
-                                return total + Math.max(0, Math.round(studentSubjectNet * 3.33));
+                                const scores = studentResult?.scores || {};
+                                const subjectScore = scores[subject.key] || {};
+                                const realCorrect = subjectScore.D ? parseInt(subjectScore.D) : 0;
+                                return total + realCorrect;
                               }, 0)}
                             </div>
                           </div>
@@ -1519,8 +1535,10 @@ function StudentDashboardContent() {
                             <div className="text-xs font-medium text-red-700">Yanlış</div>
                             <div className="text-sm font-bold text-red-600">
                               {subjects.reduce((total, subject) => {
-                                const studentSubjectNet = studentResult?.nets?.[subject.key] || 0;
-                                return total + Math.max(0, Math.round(studentSubjectNet * 1.5));
+                                const scores = studentResult?.scores || {};
+                                const subjectScore = scores[subject.key] || {};
+                                const realWrong = subjectScore.Y ? parseInt(subjectScore.Y) : 0;
+                                return total + realWrong;
                               }, 0)}
                             </div>
                           </div>
@@ -1528,10 +1546,10 @@ function StudentDashboardContent() {
                             <div className="text-xs font-medium text-gray-700">Boş</div>
                             <div className="text-sm font-bold text-gray-600">
                               {subjects.reduce((total, subject) => {
-                                const studentSubjectNet = studentResult?.nets?.[subject.key] || 0;
-                                const estimatedCorrect = Math.max(0, Math.round(studentSubjectNet * 3.33));
-                                const estimatedWrong = Math.max(0, Math.round(studentSubjectNet * 1.5));
-                                return total + Math.max(0, Math.round((estimatedCorrect + estimatedWrong) * 0.3));
+                                const scores = studentResult?.scores || {};
+                                const subjectScore = scores[subject.key] || {};
+                                const realBlank = subjectScore.B ? parseInt(subjectScore.B) : 0;
+                                return total + realBlank;
                               }, 0)}
                             </div>
                           </div>
