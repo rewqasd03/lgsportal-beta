@@ -402,6 +402,17 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     // Öğrenci ve sınıf bilgileri
     const student = students.find(s => s.id === studentId);
     
+    // Sadece gerçek denemeye katılan sonuçları dahil et (0 puanlı denemeler hariç)
+    const validStudentResults = studentResults.filter(r => {
+      const net = r.nets?.total || 0;
+      const score = r.scores?.puan ? parseFloat(r.scores.puan) : 
+                   (r.puan || r.totalScore || 0);
+      return net > 0 || score > 0;
+    });
+    
+    // Eğer öğrencinin hiç gerçek denemesi yoksa analiz yapma
+    if (validStudentResults.length === 0) return null;
+    
     // Sınıf ve genel ortalamaları hesapla
     const classResults = results.filter(r => {
       const rStudent = students.find(s => s.id === r.studentId);
@@ -444,55 +455,55 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
         }, 0) / validAllResults.length
       : 0;
 
-    // İstatistikleri hesapla
-    const totalNet = studentResults.reduce((sum, result) => sum + (result.nets?.total || 0), 0);
-    const avgNet = totalNet / studentResults.length;
-    const scores = studentResults.map(result => result.nets?.total || 0);
-    const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-    const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
+    // İstatistikleri hesapla (sadece gerçek denemeler için)
+    const totalNet = validStudentResults.reduce((sum, result) => sum + (result.nets?.total || 0), 0);
+    const avgNet = validStudentResults.length > 0 ? totalNet / validStudentResults.length : 0;
+    const scores = validStudentResults.map(result => result.nets?.total || 0);
+    const mean = scores.length > 0 ? scores.reduce((sum, score) => sum + score, 0) / scores.length : 0;
+    const variance = scores.length > 0 ? scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length : 0;
     const stdDev = Math.sqrt(variance);
     
-    // Puan istatistikleri
-    const studentScores = studentResults.map(result => {
+    // Puan istatistikleri (sadece gerçek denemeler için)
+    const studentScores = validStudentResults.map(result => {
       const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
       return score;
     });
-    const avgScore = studentScores.reduce((sum, score) => sum + score, 0) / studentScores.length;
-    const highestScore = Math.max(...studentScores);
-    const lowestScore = Math.min(...studentScores);
+    const avgScore = studentScores.length > 0 ? studentScores.reduce((sum, score) => sum + score, 0) / studentScores.length : 0;
+    const highestScore = studentScores.length > 0 ? Math.max(...studentScores) : 0;
+    const lowestScore = studentScores.length > 0 ? Math.min(...studentScores) : 0;
     const lastThreeAvg = studentScores.slice(-3).reduce((sum, score) => sum + score, 0) / Math.min(3, studentScores.length);
     
-    // Son 3 deneme net ortalaması ve tahminler
-    const lastThreeNets = studentResults.slice(-3).map(result => result.nets?.total || 0);
-    const lastThreeAvgNet = lastThreeNets.reduce((sum, net) => sum + net, 0) / Math.min(3, lastThreeNets.length);
+    // Son 3 deneme net ortalaması ve tahminler (sadece gerçek denemeler için)
+    const lastThreeNets = validStudentResults.slice(-3).map(result => result.nets?.total || 0);
+    const lastThreeAvgNet = lastThreeNets.length > 0 ? lastThreeNets.reduce((sum, net) => sum + net, 0) / lastThreeNets.length : 0;
     const predictedNextScore = lastThreeAvg * 1.03; // %3 artış
     const predictedNextNet = lastThreeAvgNet * 1.05; // %5 artış
     
-    const latestNet = studentResults[studentResults.length - 1]?.nets?.total || 0;
-    const previousNet = studentResults[studentResults.length - 2]?.nets?.total || 0;
+    const latestNet = validStudentResults[validStudentResults.length - 1]?.nets?.total || 0;
+    const previousNet = validStudentResults[validStudentResults.length - 2]?.nets?.total || 0;
     const improvement = latestNet - previousNet;
     
-    const latestScore = studentResults[studentResults.length - 1]?.scores?.puan ? 
-      parseFloat(studentResults[studentResults.length - 1].scores?.puan) : 
-      (studentResults[studentResults.length - 1]?.puan || 0);
-    const previousScore = studentResults[studentResults.length - 2]?.scores?.puan ?
-      parseFloat(studentResults[studentResults.length - 2].scores?.puan) :
-      (studentResults[studentResults.length - 2]?.puan || 0);
+    const latestScore = validStudentResults[validStudentResults.length - 1]?.scores?.puan ? 
+      parseFloat(validStudentResults[validStudentResults.length - 1].scores?.puan) : 
+      (validStudentResults[validStudentResults.length - 1]?.puan || 0);
+    const previousScore = validStudentResults[validStudentResults.length - 2]?.scores?.puan ?
+      parseFloat(validStudentResults[validStudentResults.length - 2].scores?.puan) :
+      (validStudentResults[validStudentResults.length - 2]?.puan || 0);
     const scoreImprovement = latestScore - previousScore;
     
     // Trend analizi
     const trend = improvement > 2 ? 'Yükseliş' : improvement < -2 ? 'Düşüş' : 'Stabil';
     const trendColor = improvement > 2 ? 'text-green-600' : improvement < -2 ? 'text-red-600' : 'text-yellow-600';
 
-    // Grafik verileri - student-dashboard ile aynı yapı
-    const netChartData = studentResults.map((result, index) => ({
+    // Grafik verileri - sadece gerçek denemeler için
+    const netChartData = validStudentResults.map((result, index) => ({
       exam: `Deneme ${index + 1}`,
       öğrenci: result.nets?.total || 0,
       sınıf: classAverageNet,
       genel: generalAverageNet
     }));
     
-    const scoreChartData = studentResults.map((result, index) => {
+    const scoreChartData = validStudentResults.map((result, index) => {
       const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
       return {
         exam: `Deneme ${index + 1}`,
@@ -504,7 +515,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
 
     return {
       student,
-      studentResults,
+      studentResults: validStudentResults, // Sadece gerçek denemeler
       totalNet,
       avgNet,
       avgScore,
@@ -558,14 +569,28 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Öğrenci seçin...</option>
-              {students.map(student => {
-                const studentExamCount = results.filter(r => r.studentId === student.id).length;
-                return (
-                  <option key={student.id} value={student.id}>
-                    {student.name} ({student.class}) - {studentExamCount} sınav
-                  </option>
-                );
-              })}
+              {students
+                .map(student => {
+                  const studentResults = results.filter(r => r.studentId === student.id);
+                  // Sadece 0 olmayan puanı olan denemeleri say (gerçek denemeye katılan)
+                  const validExams = studentResults.filter(r => {
+                    const net = r.nets?.total || 0;
+                    const score = r.scores?.puan ? parseFloat(r.scores.puan) : 
+                                (r.puan || r.totalScore || 0);
+                    return net > 0 || score > 0;
+                  });
+                  const studentExamCount = validExams.length;
+                  return { ...student, studentExamCount, validExams };
+                })
+                .filter(student => student.studentExamCount > 0) // Hiç gerçek denemesi olmayan öğrencileri gösterme
+                .map(student => {
+                  return (
+                    <option key={student.id} value={student.id}>
+                      {student.name} ({student.class}) - {student.studentExamCount} sınav
+                    </option>
+                  );
+                })
+              }
             </select>
           </div>
           
