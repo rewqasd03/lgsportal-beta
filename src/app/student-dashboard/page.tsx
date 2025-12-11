@@ -1355,11 +1355,21 @@ function StudentDashboardContent() {
                             <tbody className="bg-white divide-y divide-gray-200">
                               {subjects.map((subject) => {
                                 const studentSubjectNet = studentResult?.nets?.[subject.key] || 0;
+                                
+                                // Sınıf ortalaması: Aynı sınıftaki öğrencilerin bu ders için net ortalamasını hesapla
+                                const examResults = allResultsData.filter(result => result.examId === selectedExamId);
+                                const classStudents = examResults.filter(result => {
+                                  const student = allStudentsData.find(s => s.id === result.studentId);
+                                  return student?.class === reportData.student.class;
+                                });
+                                const classSubjectAverage = classStudents.length > 0 
+                                  ? classStudents.reduce((sum, r) => sum + (r.nets?.[subject.key] || 0), 0) / classStudents.length
+                                  : 0;
+                                
+                                // Genel ders ortalaması: Deneme yönetiminde girilen genel ortalamalar
                                 const classAverages = selectedExamResult.exam.generalAverages?.[reportData.student.class] || {};
-                                const classSubjectAverage = classAverages[subject.key] || 0;
-                                // Genel ders ortalaması: toplam genel net'i ders sayısına bölerek tahmini değer hesapla
-                                const totalGeneralAverage = selectedExamResult.generalAverage || 0;
-                                const generalSubjectAverage = totalGeneralAverage / 6; // 6 ders var
+                                const generalSubjectAverage = classAverages[subject.key] || 0;
+                                
                                 const difference = studentSubjectNet - generalSubjectAverage;
                                 const isAboveAverage = difference > 0;
                                 
