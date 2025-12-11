@@ -5043,6 +5043,73 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
   const [studentPreferences, setStudentPreferences] = useState<any[]>([]);
   const [predictionResult, setPredictionResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [results, setResults] = useState<Result[]>([]);
+  const [studentLatestScore, setStudentLatestScore] = useState<number>(0);
+
+  // Verileri yükle
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [examsData, resultsData] = await Promise.all([
+          getExams(),
+          getResults()
+        ]);
+        setExams(examsData);
+        setResults(resultsData);
+      } catch (error) {
+        console.error('Veri yükleme hatası:', error);
+      }
+    };
+    
+    loadData();
+  }, []);
+
+  // Öğrencinin son denemesinin puanını hesapla
+  const calculateLatestStudentScore = useCallback((studentId: string) => {
+    if (!studentId || exams.length === 0 || results.length === 0) {
+      return 0;
+    }
+
+    // Öğrencinin son denemesini bul
+    const studentResults = results
+      .filter(result => result.studentId === studentId)
+      .sort((a, b) => {
+        const examA = exams.find(exam => exam.id === a.examId);
+        const examB = exams.find(exam => exam.id === b.examId);
+        
+        if (!examA || !examB) return 0;
+        
+        return new Date(examB.date).getTime() - new Date(examA.date).getTime();
+      });
+
+    if (studentResults.length === 0) {
+      return 0;
+    }
+
+    // En son denemenin puanını hesapla
+    const latestResult = studentResults[0];
+    const exam = exams.find(e => e.id === latestResult.examId);
+    
+    if (!exam) return 0;
+
+    // Puan hesaplama (daha önceki kodlardaki gibi)
+    const totalScore = Object.values(latestResult.subjects || {}).reduce((sum: number, score: any) => {
+      return sum + (typeof score === 'number' ? score : parseFloat(score) || 0);
+    }, 0);
+
+    return Math.round(totalScore);
+  }, [exams, results]);
+
+  // Seçili öğrenci değiştiğinde puanı güncelle
+  useEffect(() => {
+    if (selectedStudent) {
+      const latestScore = calculateLatestStudentScore(selectedStudent);
+      setStudentLatestScore(latestScore);
+    } else {
+      setStudentLatestScore(0);
+    }
+  }, [selectedStudent, calculateLatestStudentScore]);
 
   // Gerçek lise veritabanı (LGS ve OBP verilerinden)
   const highSchools = [
@@ -5131,10 +5198,14 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
   const getStudentRecommendations = () => {
     if (!selectedStudent) return [];
     
-    // Örnek: Öğrencinin son puanını al (gerçek projede hesaplanacak)
-    const mockStudentScore = 440; // Örnek puan
+    // Öğrencinin gerçek son puanını kullan
+    const actualStudentScore = studentLatestScore || 0;
     
-    return generateRecommendations(mockStudentScore);
+    if (actualStudentScore === 0) {
+      return [];
+    }
+    
+    return generateRecommendations(actualStudentScore);
   };
 
   return (
@@ -5175,8 +5246,10 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
               Öğrenci Puanı
             </label>
             <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
-              <span className="text-lg font-bold text-gray-800">440 puan</span>
-              <span className="text-sm text-gray-500 ml-2">(Son deneme ortalaması)</span>
+              <span className="text-lg font-bold text-gray-800">
+                {studentLatestScore > 0 ? `${studentLatestScore} puan` : 'Puan bulunamadı'}
+              </span>
+              <span className="text-sm text-gray-500 ml-2">(Son deneme puanı)</span>
             </div>
           </div>
         </div>
