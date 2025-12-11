@@ -3861,7 +3861,7 @@ export default function FoncsDataEntry() {
       case "lgs-hesaplama": return <LGSCalculatorTab />;
       case "analytics": return <AnalyticsTab students={students} results={results} exams={exams} />;
       case "van-taban-puan": return <VanTabanPuanTab />;
-      case "lise-tercih": return <LiseTercihTab students={students} />;
+      case "lise-tercih": return <LiseTercihTab students={students} lgsSchools={lgsSchools} obpSchools={obpSchools} />;
       default: return <HomeTab />;
     }
   };
@@ -4876,69 +4876,72 @@ const YerelYerlestirmePuanlariPanel = () => {
   );
 };
 // Lise Tercih Sistemi Tab Component
-const LiseTercihTab = ({ students }: { students: Student[] }) => {
+const LiseTercihTab = ({ students, lgsSchools, obpSchools }: { 
+  students: Student[],
+  lgsSchools: Array<{
+    name: string;
+    type: string;
+    score: string;
+    percentile: string;
+    capacity: string;
+    district: string;
+  }>,
+  obpSchools: Array<{
+    name: string;
+    type: string;
+    score: string;
+    capacity: string;
+    district: string;
+  }>
+}) => {
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [studentPreferences, setStudentPreferences] = useState<any[]>([]);
   const [predictionResult, setPredictionResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  // Örnek lise veritabanı (gerçek projede Firebase'den gelecek)
+  // Gerçek lise veritabanı (LGS ve OBP verilerinden)
   const highSchools = [
-    {
-      id: 1,
-      name: "Van Fen Lisesi",
-      type: "Fen Lisesi",
-      district: "İpekyolu",
-      score: 485,
-      capacity: 120,
-      successRate: 92,
-      category: "en-iyi"
-    },
-    {
-      id: 2,
-      name: "Van Anadolu Lisesi",
-      type: "Anadolu Lisesi", 
-      district: "Tuşba",
-      score: 465,
-      capacity: 180,
-      successRate: 85,
-      category: "iyi"
-    },
-    {
-      id: 3,
-      name: "Atatürk Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      district: "İpekyolu", 
-      score: 450,
-      capacity: 150,
-      successRate: 78,
-      category: "orta"
-    },
-    {
-      id: 4,
-      name: "Van İmam Hatip Lisesi",
-      type: "İmam Hatip Lisesi",
-      district: "Tuşba",
-      score: 420,
-      capacity: 100,
-      successRate: 75,
-      category: "orta"
-    },
-    {
-      id: 5,
-      name: "Gençlik Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      district: "Tuşba",
-      score: 385,
-      capacity: 200,
-      successRate: 68,
-      category: "normal"
-    }
+    // LGS Merkezi Yerleştirme Okulları
+    ...lgsSchools.map((school, index) => ({
+      id: `lgs-${index}`,
+      name: school.name,
+      type: school.type,
+      district: school.district,
+      score: parseFloat(school.score),
+      capacity: parseInt(school.capacity),
+      percentile: parseFloat(school.percentile),
+      category: "lgs" as const,
+      successRate: school.type === 'Fen Lisesi' ? 90 : 75 // Fen lisesi mezunları daha başarılı
+    })),
+    // OBP Yerel Yerleştirme Okulları  
+    ...obpSchools.map((school, index) => ({
+      id: `obp-${index}`,
+      name: school.name,
+      type: school.type,
+      district: school.district,
+      score: parseFloat(school.score) * 5, // OBP puanını LGS skalasına çevir
+      capacity: parseInt(school.capacity),
+      percentile: 0, // OBP için yüzdelik dilim yok
+      category: "obp" as const,
+      successRate: 70 // OBP okullarının ortalama başarısı
+    }))
   ];
+
+  // Sadece LGS okullarını kullan (daha tutarlı puanlama)
+  const lgsOnlySchools = lgsSchools.map((school, index) => ({
+    id: `lgs-${index}`,
+    name: school.name,
+    type: school.type,
+    district: school.district,
+    score: parseFloat(school.score),
+    capacity: parseInt(school.capacity),
+    percentile: parseFloat(school.percentile),
+    successRate: school.type === 'Fen Lisesi' ? 90 : 75
+  }));
 
   // Akıllı tercih önerisi algoritması
   const generateRecommendations = (studentScore: number) => {
-    const recommendations = highSchools.map(school => {
+    const recommendations = lgsOnlySchools.map(school => {
       let category = "riskli";
       let probability = 0;
       

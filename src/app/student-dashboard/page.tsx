@@ -1282,16 +1282,16 @@ function StudentDashboardContent() {
                   
                   {/* Dinamik Lise Önerileri */}
                   {(() => {
-                    // Lise veritabanı
+                    // Gerçek LGS lise veritabanı (Van ili)
                     const highSchools = [
-                      { name: "Van Fen Lisesi", type: "Fen Lisesi", score: 485, capacity: 120 },
-                      { name: "Van Anadolu Lisesi", type: "Anadolu Lisesi", score: 465, capacity: 180 },
-                      { name: "Atatürk Anadolu Lisesi", type: "Anadolu Lisesi", score: 450, capacity: 150 },
-                      { name: "Van İmam Hatip Lisesi", type: "İmam Hatip Lisesi", score: 420, capacity: 100 },
-                      { name: "Gençlik Anadolu Lisesi", type: "Anadolu Lisesi", score: 385, capacity: 200 },
-                      { name: "Muradiye Anadolu", type: "Anadolu Lisesi", score: 350, capacity: 180 },
-                      { name: "Erciş Anadolu", type: "Anadolu Lisesi", score: 320, capacity: 160 },
-                      { name: "Tuşba Anadolu", type: "Anadolu Lisesi", score: 290, capacity: 200 }
+                      { name: "Van Türk Telekom Fen Lisesi", type: "Fen Lisesi", score: 460.91, capacity: 150 },
+                      { name: "İpekyolu Borsa İstanbul Fen Lisesi", type: "Fen Lisesi", score: 441.61, capacity: 150 },
+                      { name: "Tuşba TOBB Fen Lisesi", type: "Fen Lisesi", score: 422.90, capacity: 150 },
+                      { name: "Niyazi Türkmenoğlu Anadolu Lisesi", type: "Anadolu Lisesi", score: 416.75, capacity: 150 },
+                      { name: "Şehit Erdoğan Cınbıroğlu Anadolu Lisesi", type: "Anadolu Lisesi", score: 412.45, capacity: 150 },
+                      { name: "Van Anadolu Lisesi", type: "Anadolu Lisesi", score: 408.32, capacity: 150 },
+                      { name: "Atatürk Anadolu Lisesi", type: "Anadolu Lisesi", score: 405.78, capacity: 150 },
+                      { name: "Mehmet Akif Ersoy Anadolu Lisesi", type: "Anadolu Lisesi", score: 402.15, capacity: 150 }
                     ];
                     
                     const currentScore = studentAverageScore;
