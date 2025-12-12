@@ -5087,11 +5087,12 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
       if (!exam) continue;
 
       // DEBUG: Tüm puan değerlerini logla
-      console.log('🔍 DEBUG - Result:', result);
-      console.log('🔍 puan field:', result.puan);
-      console.log('🔍 totalScore field:', result.totalScore);
-      console.log('🔍 nets.total:', result.nets?.total);
-      console.log('🔍 scores field:', result.scores);
+      console.log(`🔍 DEBUG - Öğrenci ${studentId} - Deneme ${result.id}:`, {
+        puan: result.puan,
+        totalScore: result.totalScore,
+        nets_total: result.nets?.total,
+        scores: result.scores
+      });
 
       // Önce manuel girilen puanı kontrol et (en doğru değer)
       let totalScore = result.puan;
@@ -5114,14 +5115,17 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
         totalScore = result.nets.total;
       }
 
+      console.log(`🔍 DEBUG - Hesaplanan puan: ${totalScore}, Mevcut en yüksek: ${highestScore}`);
+
       // En yüksek puanı güncelle
       if (totalScore && totalScore > highestScore) {
         highestScore = totalScore;
+        console.log(`🔍 DEBUG - Yeni en yüksek puan: ${highestScore}`);
       }
     }
     
     // Son debug log
-    console.log('🔍 Final highestScore:', highestScore);
+    console.log(`🔍 FINAL - Öğrenci ${studentId} için EN YÜKSEK puan bulundu: ${highestScore}`);
 
     return Math.round(highestScore || 0);
   }, [exams, results]);
@@ -5223,8 +5227,10 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
   const getStudentRecommendations = () => {
     if (!selectedStudent) return [];
     
-    // Öğrencinin gerçek son puanını kullan
+    // Öğrencinin EN YÜKSEK puanını kullan
     const actualStudentScore = studentLatestScore || 0;
+    
+    console.log(`🔍 DEBUG - Tercih önerisi için kullanılan öğrenci puanı: ${actualStudentScore}`);
     
     if (actualStudentScore === 0) {
       return [];
@@ -5274,7 +5280,7 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
               <span className="text-lg font-bold text-gray-800">
                 {studentLatestScore > 0 ? `${studentLatestScore} puan` : 'Puan bulunamadı'}
               </span>
-              <span className="text-sm text-gray-500 ml-2">(Son deneme puanı)</span>
+              <span className="text-sm text-gray-500 ml-2">(En yüksek deneme puanı)</span>
             </div>
           </div>
         </div>
