@@ -1373,8 +1373,23 @@ function StudentDashboardContent() {
                   {/* Öğrenci Puan Bilgisi */}
                   <div className="mb-4 bg-white bg-opacity-10 p-3 rounded-lg">
                     <div className="text-sm font-medium">
-                      Seni Puanın: <span className="text-lg font-bold">{studentAverageScore.toFixed(0)}</span> 
-                      <span className="text-xs opacity-75 ml-2">(Son deneme ortalaması)</span>
+                      En Yüksek Puanın: <span className="text-lg font-bold">{(() => {
+                        // En yüksek puanı hesapla
+                        if (reportData.examResults.length === 0) return 0;
+                        
+                        let highestScore = 0;
+                        reportData.examResults.forEach(examResult => {
+                          const studentResult = examResult.studentResults[0];
+                          if (studentResult) {
+                            let totalScore = studentResult.puan;
+                            if (!totalScore && studentResult.totalScore) totalScore = studentResult.totalScore;
+                            if (!totalScore && studentResult.nets?.total) totalScore = studentResult.nets.total;
+                            if (totalScore && totalScore > highestScore) highestScore = totalScore;
+                          }
+                        });
+                        return highestScore.toFixed(0);
+                      })()}</span> 
+                      <span className="text-xs opacity-75 ml-2">(En yüksek deneme puanın)</span>
                     </div>
                   </div>
                   
@@ -1392,7 +1407,24 @@ function StudentDashboardContent() {
                       { name: "Mehmet Akif Ersoy Anadolu Lisesi", type: "Anadolu Lisesi", score: 402.15, capacity: 150 }
                     ];
                     
-                    const currentScore = studentAverageScore;
+                    // En yüksek deneme puanını hesapla
+                    const calculateHighestScore = () => {
+                      if (reportData.examResults.length === 0) return 0;
+                      
+                      let highestScore = 0;
+                      reportData.examResults.forEach(examResult => {
+                        const studentResult = examResult.studentResults[0];
+                        if (studentResult) {
+                          let totalScore = studentResult.puan;
+                          if (!totalScore && studentResult.totalScore) totalScore = studentResult.totalScore;
+                          if (!totalScore && studentResult.nets?.total) totalScore = studentResult.nets.total;
+                          if (totalScore && totalScore > highestScore) highestScore = totalScore;
+                        }
+                      });
+                      return highestScore;
+                    };
+
+                    const currentScore = calculateHighestScore();
                     
                     // Öğrencinin puanına göre kategorize et
                     const categorizedSchools = highSchools.map(school => {
@@ -3478,7 +3510,7 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
               <div className="text-2xl font-bold text-blue-600">
                 {currentStudentScore > 0 ? `${Math.round(currentStudentScore)} puan` : 'Puan bulunamadı'}
               </div>
-              <div className="text-sm text-blue-700">Son Deneme Puanınız</div>
+              <div className="text-sm text-blue-700">En Yüksek Deneme Puanınız</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">{latestNet.toFixed(1)} net</div>
