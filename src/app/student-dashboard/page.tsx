@@ -450,6 +450,9 @@ function StudentDashboardContent() {
 
   const latestScore = calculateLatestStudentScore(studentId);
   const highestScore = calculateHighestStudentScore(studentId);
+  
+  // Lise Tercih Sistemi için en yüksek puanı kullan
+  const liseTercihScore = highestScore;
   const previousScore = reportData.examResults.length > 1 ? 
     calculateLatestStudentScore(reportData.examResults[reportData.examResults.length - 2].studentResults[0]?.studentId || '') : 0;
   const scoreImprovement = latestScore - previousScore;
@@ -2422,7 +2425,7 @@ function StudentDashboardContent() {
                   reportData={reportData} 
                   studentTargets={studentTargets}
                   latestNet={latestNet}
-                  latestScore={latestScore}
+                  latestScore={liseTercihScore}
                 />
               </div>
             )}
@@ -3460,67 +3463,8 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
   latestNet: number;
   latestScore: number;
 }) {
-  // Öğrencinin en yüksek deneme puanını hesapla (foncs-data-entry mantığıyla)
-  const calculateHighestStudentScore = (reportData: ReportData) => {
-    if (reportData.examResults.length === 0) {
-      return 0;
-    }
-
-    // Her deneme için puan hesapla ve en yüksek olanı bul
-    let highestScore = 0;
-
-    reportData.examResults.forEach((examResult, index) => {
-      const studentResult = examResult.studentResults[0];
-      if (studentResult) {
-        console.log(`🔍 Lise Tercih - Exam ${index + 1}: ${examResult.exam.title}`);
-        console.log('🔍 Lise Tercih - studentResult:', studentResult);
-
-        // DEBUG: Tüm puan değerlerini logla
-        console.log(`🔍 DEBUG - Öğrenci - Deneme ${examResult.exam.id}:`, {
-          puan: studentResult.puan,
-          totalScore: studentResult.totalScore,
-          nets_total: studentResult.nets?.total,
-          scores: studentResult.scores
-        });
-
-        // Önce manuel girilen puanı kontrol et (en doğru değer)
-        let totalScore = studentResult.puan;
-        
-        // Eğer puan string ise parse et
-        if (totalScore && typeof totalScore === 'string') {
-          totalScore = parseFloat(totalScore);
-        }
-        
-        // Eğer puan yoksa, totalScore field'ını kontrol et
-        if (!totalScore && studentResult.totalScore) {
-          totalScore = studentResult.totalScore;
-          if (typeof totalScore === 'string') {
-            totalScore = parseFloat(totalScore);
-          }
-        }
-        
-        // Eğer hala yoksa, nets.total kullan
-        if (!totalScore && studentResult.nets?.total) {
-          totalScore = studentResult.nets.total;
-        }
-
-        console.log(`🔍 Lise Tercih - Hesaplanan puan: ${totalScore}, Mevcut en yüksek: ${highestScore}`);
-        
-        // En yüksek puanı güncelle
-        if (totalScore && totalScore > highestScore) {
-          highestScore = totalScore;
-          console.log(`🔍 Lise Tercih - Yeni en yüksek puan: ${highestScore}`);
-        }
-      }
-    });
-    
-    // Son debug log
-    console.log(`🔍 Lise Tercih - FINAL EN YÜKSEK puan bulundu: ${highestScore}`);
-
-    return Math.round(highestScore || 0);
-  };
-
-  const currentStudentScore = calculateHighestStudentScore(reportData);
+  // latestScore parent'tan en yüksek puan olarak geliyor
+  const currentStudentScore = latestScore;
   
   return (
     <div className="space-y-4">
