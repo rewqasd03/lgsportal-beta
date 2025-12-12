@@ -1374,19 +1374,66 @@ function StudentDashboardContent() {
                   <div className="mb-4 bg-white bg-opacity-10 p-3 rounded-lg">
                     <div className="text-sm font-medium">
                       En Yüksek Puanın: <span className="text-lg font-bold">{(() => {
-                        // En yüksek puanı hesapla
-                        if (reportData.examResults.length === 0) return 0;
+                        // En yüksek puanı hesapla - DEBUG VERSİON
+                        console.log('🔍 ENFAL DEBUG - Student Dashboard Lise Tercih Puan Hesaplama Başladı');
+                        console.log('🔍 ENFAL DEBUG - Toplam deneme sayısı:', reportData.examResults.length);
+                        
+                        if (reportData.examResults.length === 0) {
+                          console.log('🔍 ENFAL DEBUG - Deneme bulunamadı');
+                          return 0;
+                        }
                         
                         let highestScore = 0;
-                        reportData.examResults.forEach(examResult => {
+                        const allScores: number[] = [];
+                        
+                        reportData.examResults.forEach((examResult, index) => {
                           const studentResult = examResult.studentResults[0];
+                          console.log(`🔍 ENFAL DEBUG - Deneme ${index + 1}:`, examResult.exam.title);
+                          
                           if (studentResult) {
+                            console.log(`🔍 ENFAL DEBUG - Raw studentResult:`, studentResult);
+                            
+                            // 1. Puan field'ını kontrol et
                             let totalScore = studentResult.puan;
-                            if (!totalScore && studentResult.totalScore) totalScore = studentResult.totalScore;
-                            if (!totalScore && studentResult.nets?.total) totalScore = studentResult.nets.total;
-                            if (totalScore && totalScore > highestScore) highestScore = totalScore;
+                            console.log(`🔍 ENFAL DEBUG - Step 1 - puan field:`, totalScore);
+                            
+                            // 2. TotalScore field'ını kontrol et
+                            if (!totalScore && studentResult.totalScore) {
+                              totalScore = studentResult.totalScore;
+                              console.log(`🔍 ENFAL DEBUG - Step 2 - totalScore field:`, totalScore);
+                            }
+                            
+                            // 3. Nets total kontrol et
+                            if (!totalScore && studentResult.nets?.total) {
+                              totalScore = studentResult.nets.total;
+                              console.log(`🔍 ENFAL DEBUG - Step 3 - nets.total:`, totalScore);
+                            }
+                            
+                            // 4. Nets içindeki ders bazında hesaplama
+                            if (!totalScore && studentResult.nets) {
+                              const subjectNets = Object.values(studentResult.nets).filter(net => typeof net === 'number');
+                              const calculatedTotal = subjectNets.reduce((sum, net) => sum + (net as number), 0);
+                              totalScore = calculatedTotal * 5;
+                              console.log(`🔍 ENFAL DEBUG - Step 4 - calculated from subject nets: ${subjectNets.join(' + ')} = ${calculatedTotal} * 5 = ${totalScore}`);
+                            }
+                            
+                            console.log(`🔍 ENFAL DEBUG - Final score for ${examResult.exam.title}: ${totalScore}`);
+                            
+                            if (totalScore && totalScore > 0) {
+                              allScores.push(totalScore);
+                              if (totalScore > highestScore) {
+                                highestScore = totalScore;
+                                console.log(`🔍 ENFAL DEBUG - Yeni en yüksek puan: ${highestScore}`);
+                              }
+                            }
+                          } else {
+                            console.log(`🔍 ENFAL DEBUG - Student result bulunamadı`);
                           }
                         });
+                        
+                        console.log(`🔍 ENFAL DEBUG - ALL SCORES:`, allScores);
+                        console.log(`🔍 ENFAL DEBUG - HIGHEST SCORE:`, highestScore);
+                        
                         return highestScore.toFixed(0);
                       })()}</span> 
                       <span className="text-xs opacity-75 ml-2">(En yüksek deneme puanın)</span>
@@ -1407,20 +1454,66 @@ function StudentDashboardContent() {
                       { name: "Mehmet Akif Ersoy Anadolu Lisesi", type: "Anadolu Lisesi", score: 402.15, capacity: 150 }
                     ];
                     
-                    // En yüksek deneme puanını hesapla
+                    // En yüksek deneme puanını hesapla - DEBUG VERSİON
                     const calculateHighestScore = () => {
-                      if (reportData.examResults.length === 0) return 0;
+                      console.log('🔍 ENFAL DEBUG 2 - İkinci Lise Tercih Puan Hesaplama Başladı');
+                      
+                      if (reportData.examResults.length === 0) {
+                        console.log('🔍 ENFAL DEBUG 2 - Deneme bulunamadı');
+                        return 0;
+                      }
                       
                       let highestScore = 0;
-                      reportData.examResults.forEach(examResult => {
+                      const allScores: number[] = [];
+                      
+                      reportData.examResults.forEach((examResult, index) => {
                         const studentResult = examResult.studentResults[0];
+                        console.log(`🔍 ENFAL DEBUG 2 - Deneme ${index + 1}:`, examResult.exam.title);
+                        
                         if (studentResult) {
+                          console.log(`🔍 ENFAL DEBUG 2 - Raw studentResult:`, studentResult);
+                          
+                          // 1. Puan field'ını kontrol et
                           let totalScore = studentResult.puan;
-                          if (!totalScore && studentResult.totalScore) totalScore = studentResult.totalScore;
-                          if (!totalScore && studentResult.nets?.total) totalScore = studentResult.nets.total;
-                          if (totalScore && totalScore > highestScore) highestScore = totalScore;
+                          console.log(`🔍 ENFAL DEBUG 2 - Step 1 - puan field:`, totalScore);
+                          
+                          // 2. TotalScore field'ını kontrol et
+                          if (!totalScore && studentResult.totalScore) {
+                            totalScore = studentResult.totalScore;
+                            console.log(`🔍 ENFAL DEBUG 2 - Step 2 - totalScore field:`, totalScore);
+                          }
+                          
+                          // 3. Nets total kontrol et
+                          if (!totalScore && studentResult.nets?.total) {
+                            totalScore = studentResult.nets.total;
+                            console.log(`🔍 ENFAL DEBUG 2 - Step 3 - nets.total:`, totalScore);
+                          }
+                          
+                          // 4. Nets içindeki ders bazında hesaplama
+                          if (!totalScore && studentResult.nets) {
+                            const subjectNets = Object.values(studentResult.nets).filter(net => typeof net === 'number');
+                            const calculatedTotal = subjectNets.reduce((sum, net) => sum + (net as number), 0);
+                            totalScore = calculatedTotal * 5;
+                            console.log(`🔍 ENFAL DEBUG 2 - Step 4 - calculated from subject nets: ${subjectNets.join(' + ')} = ${calculatedTotal} * 5 = ${totalScore}`);
+                          }
+                          
+                          console.log(`🔍 ENFAL DEBUG 2 - Final score for ${examResult.exam.title}: ${totalScore}`);
+                          
+                          if (totalScore && totalScore > 0) {
+                            allScores.push(totalScore);
+                            if (totalScore > highestScore) {
+                              highestScore = totalScore;
+                              console.log(`🔍 ENFAL DEBUG 2 - Yeni en yüksek puan: ${highestScore}`);
+                            }
+                          }
+                        } else {
+                          console.log(`🔍 ENFAL DEBUG 2 - Student result bulunamadı`);
                         }
                       });
+                      
+                      console.log(`🔍 ENFAL DEBUG 2 - ALL SCORES:`, allScores);
+                      console.log(`🔍 ENFAL DEBUG 2 - HIGHEST SCORE:`, highestScore);
+                      
                       return highestScore;
                     };
 
