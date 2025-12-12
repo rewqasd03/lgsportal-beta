@@ -4,10 +4,175 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { Student, Exam, getStudents, getExams } from "../firebase";
 
+// Deneme Zamanlayıcısı Modal Component
+function ExamTimerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [selectedSession, setSelectedSession] = useState<{
+    name: string;
+    duration: number; // dakika
+  } | null>(null);
+  
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+
+  const sessions = [
+    { name: "Sözel Oturum", duration: 75 },
+    { name: "Sayısal Oturum", duration: 80 }
+  ];
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            setIsRunning(false);
+            // Süre bitince sesli uyarı (tarayıcı destekliyorsa)
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('Deneme Zamanlayıcısı', {
+                body: `${selectedSession?.name} süresi doldu!`,
+                icon: '/favicon.ico'
+              });
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning, timeLeft, selectedSession]);
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const startTimer = (session: { name: string; duration: number }) => {
+    setSelectedSession(session);
+    setTimeLeft(session.duration * 60);
+    setIsRunning(true);
+  };
+
+  const pauseTimer = () => {
+    setIsRunning(false);
+  };
+
+  const resumeTimer = () => {
+    setIsRunning(true);
+  };
+
+  const resetTimer = () => {
+    setIsRunning(false);
+    setTimeLeft(0);
+    setSelectedSession(null);
+  };
+
+  const stopTimer = () => {
+    resetTimer();
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-2">⏱️ Deneme Zamanlayıcısı</h3>
+          <p className="text-gray-600 text-sm">Deneme sınavınız için süre takibi yapın</p>
+        </div>
+
+        {!selectedSession ? (
+          // Oturum Seçimi
+          <div className="space-y-4">
+            <h4 className="font-semibold text-gray-800 text-center mb-4">Oturum Seçin</h4>
+            {sessions.map((session, index) => (
+              <button
+                key={index}
+                onClick={() => startTimer(session)}
+                className="w-full p-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-between"
+              >
+                <div className="text-left">
+                  <div className="font-semibold">{session.name}</div>
+                  <div className="text-sm opacity-90">{session.duration} Dakika</div>
+                </div>
+                <div className="text-2xl">
+                  {session.name.includes('Sözel') ? '📝' : '🔢'}
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : (
+          // Zamanlayıcı
+          <div className="text-center">
+            <div className="mb-4">
+              <h4 className="font-semibold text-gray-800">{selectedSession.name}</h4>
+              <div className={`text-6xl font-bold my-4 ${timeLeft <= 300 ? 'text-red-600' : 'text-blue-600'}`}>
+                {formatTime(timeLeft)}
+              </div>
+              {timeLeft <= 300 && timeLeft > 0 && (
+                <div className="text-red-600 font-semibold animate-pulse">
+                  ⚠️ Son 5 dakika!
+                </div>
+              )}
+              {timeLeft === 0 && (
+                <div className="text-green-600 font-semibold">
+                  ✅ Süre doldu!
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2 justify-center">
+              {!isRunning && timeLeft > 0 ? (
+                <button
+                  onClick={resumeTimer}
+                  className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                >
+                  ▶️ Devam
+                </button>
+              ) : (
+                <button
+                  onClick={pauseTimer}
+                  className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors"
+                >
+                  ⏸️ Duraklat
+                </button>
+              )}
+              
+              <button
+                onClick={resetTimer}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+              >
+                🔄 Sıfırla
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-2 mt-6">
+          <button
+            onClick={stopTimer}
+            className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300"
+          >
+            Kapat
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
 
   useEffect(() => {
     // Firebase'den veri oku
@@ -274,6 +439,15 @@ export default function HomePage() {
             </button>
           </Link>
 
+          {/* Deneme Zamanlayıcısı Butonu */}
+          <button
+            onClick={() => setIsTimerModalOpen(true)}
+            className="px-6 py-2.5 rounded-2xl text-white text-xs font-bold shadow-xl bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 hover:scale-105 hover:shadow-orange-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <span className="text-xs">⏱️</span>
+            <span>Deneme Zamanlayıcısı</span>
+          </button>
+
           <div className="relative">
             <button 
               onClick={() => {
@@ -323,6 +497,12 @@ export default function HomePage() {
           </div>
 
         </div>
+
+        {/* Deneme Zamanlayıcısı Modal */}
+        <ExamTimerModal 
+          isOpen={isTimerModalOpen} 
+          onClose={() => setIsTimerModalOpen(false)} 
+        />
 
         {/* Footer */}
         <footer className="text-center text-xs text-gray-500 mt-6">
