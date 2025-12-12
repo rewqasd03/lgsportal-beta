@@ -409,7 +409,47 @@ function StudentDashboardContent() {
     return Math.round(totalScore || 0);
   };
 
+  // Öğrencinin en yüksek deneme puanını hesapla
+  const calculateHighestStudentScore = (studentId: string) => {
+    if (!studentId || reportData.examResults.length === 0) {
+      return 0;
+    }
+
+    // Tüm denemelerdeki puanları topla
+    const allScores: number[] = [];
+    
+    reportData.examResults.forEach(examResult => {
+      const studentResult = examResult.studentResults[0];
+      if (studentResult) {
+        // Önce manuel girilen puanı kontrol et (en doğru değer)
+        let totalScore = studentResult.puan;
+        
+        // Eğer puan yoksa, diğer alanları kontrol et
+        if (!totalScore || totalScore === 0) {
+          totalScore = studentResult.totalScore;
+        }
+        
+        // Eğer hala yoksa, nets'den hesapla
+        if (!totalScore || totalScore === 0) {
+          const netTotal = studentResult.nets?.total || 0;
+          // Net toplamını 5 ile çarp (yaklaşık puan hesabı)
+          totalScore = netTotal * 5;
+        }
+        
+        if (totalScore > 0) {
+          allScores.push(Math.round(totalScore));
+        }
+      }
+    });
+
+    // En yüksek puanı döndür
+    const highestScore = allScores.length > 0 ? Math.max(...allScores) : 0;
+    console.log('🔍 Highest score calculated:', highestScore, 'All scores:', allScores);
+    return highestScore;
+  };
+
   const latestScore = calculateLatestStudentScore(studentId);
+  const highestScore = calculateHighestStudentScore(studentId);
   const previousScore = reportData.examResults.length > 1 ? 
     calculateLatestStudentScore(reportData.examResults[reportData.examResults.length - 2].studentResults[0]?.studentId || '') : 0;
   const scoreImprovement = latestScore - previousScore;
@@ -3420,7 +3460,46 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
   latestNet: number;
   latestScore: number;
 }) {
-  const currentStudentScore = latestScore || 0;
+  // Öğrencinin en yüksek deneme puanını hesapla
+  const calculateHighestStudentScore = (reportData: ReportData) => {
+    if (reportData.examResults.length === 0) {
+      return 0;
+    }
+
+    // Tüm denemelerdeki puanları topla
+    const allScores: number[] = [];
+    
+    reportData.examResults.forEach(examResult => {
+      const studentResult = examResult.studentResults[0];
+      if (studentResult) {
+        // Önce manuel girilen puanı kontrol et (en doğru değer)
+        let totalScore = studentResult.puan;
+        
+        // Eğer puan yoksa, diğer alanları kontrol et
+        if (!totalScore || totalScore === 0) {
+          totalScore = studentResult.totalScore;
+        }
+        
+        // Eğer hala yoksa, nets'den hesapla
+        if (!totalScore || totalScore === 0) {
+          const netTotal = studentResult.nets?.total || 0;
+          // Net toplamını 5 ile çarp (yaklaşık puan hesabı)
+          totalScore = netTotal * 5;
+        }
+        
+        if (totalScore > 0) {
+          allScores.push(Math.round(totalScore));
+        }
+      }
+    });
+
+    // En yüksek puanı döndür
+    const highestScore = allScores.length > 0 ? Math.max(...allScores) : 0;
+    console.log('🔍 Lise Tercih - Highest score calculated:', highestScore, 'All scores:', allScores);
+    return highestScore;
+  };
+
+  const currentStudentScore = calculateHighestStudentScore(reportData);
   
   return (
     <div className="space-y-4">
