@@ -2377,17 +2377,14 @@ function StudentDashboardContent() {
                   </div>
                 </div>
 
+                {/* Lise Tercih Önerileri - Hedef Takibi Tab'ına Eklendi */}
+                <LiseTercihOnerileriTab 
+                  reportData={reportData} 
+                  studentTargets={studentTargets}
+                  latestNet={latestNet}
+                  latestScore={latestScore}
+                />
               </div>
-            )}
-
-            {/* Lise Tercih Önerileri - Hedef Takibi Tab'ına Eklendi */}
-            {activeTab === 6 && (
-              <LiseTercihOnerileriTab 
-                reportData={reportData} 
-                studentTargets={studentTargets}
-                latestNet={latestNet}
-                latestScore={latestScore}
-              />
             )}
 
             {/* Tab 7: LGS Puan Hesaplama */}
