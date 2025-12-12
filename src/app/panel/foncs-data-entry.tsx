@@ -5067,7 +5067,11 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
 
   // Öğrencinin en yüksek deneme puanını hesapla
   const calculateHighestStudentScore = useCallback((studentId: string) => {
+    console.log(`🔥 PANEL DEBUG - calculateHighestStudentScore başlatıldı. StudentId: ${studentId}`);
+    console.log(`🔥 PANEL DEBUG - Exams sayısı: ${exams.length}, Results sayısı: ${results.length}`);
+    
     if (!studentId || exams.length === 0 || results.length === 0) {
+      console.log(`🔥 PANEL DEBUG - Eksik veri. StudentId: ${studentId}, Exams: ${exams.length}, Results: ${results.length}`);
       return 0;
     }
 
@@ -5075,19 +5079,26 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
     const studentResults = results
       .filter(result => result.studentId === studentId);
 
+    console.log(`🔥 PANEL DEBUG - Öğrenci ${studentId} için ${studentResults.length} deneme bulundu`);
+
     if (studentResults.length === 0) {
+      console.log(`🔥 PANEL DEBUG - Öğrenci ${studentId} için deneme bulunamadı`);
       return 0;
     }
 
     // Her deneme için puan hesapla ve en yüksek olanı bul
     let highestScore = 0;
+    const allScores: number[] = [];
 
-    for (const result of studentResults) {
+    for (let i = 0; i < studentResults.length; i++) {
+      const result = studentResults[i];
       const exam = exams.find(e => e.id === result.examId);
       if (!exam) continue;
 
-      // DEBUG: Tüm puan değerlerini logla
-      console.log(`🔍 DEBUG - Öğrenci ${studentId} - Deneme ${result.id}:`, {
+      console.log(`🔥 PANEL DEBUG - Deneme ${i + 1}/${studentResults.length}: ${exam.title} (ID: ${exam.id})`);
+      console.log(`🔥 PANEL DEBUG - Raw data:`, {
+        resultId: result.id,
+        examId: result.examId,
         puan: result.puan,
         totalScore: result.totalScore,
         nets_total: result.nets?.total,
@@ -5096,36 +5107,52 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
 
       // Önce manuel girilen puanı kontrol et (en doğru değer)
       let totalScore = result.puan;
+      console.log(`🔥 PANEL DEBUG - Step 1 - puan field: ${totalScore}`);
       
       // Eğer puan string ise parse et
       if (totalScore && typeof totalScore === 'string') {
         totalScore = parseFloat(totalScore);
+        console.log(`🔥 PANEL DEBUG - Step 1b - parsed puan: ${totalScore}`);
       }
       
       // Eğer puan yoksa, totalScore field'ını kontrol et
       if (!totalScore && result.totalScore) {
         totalScore = result.totalScore;
+        console.log(`🔥 PANEL DEBUG - Step 2 - totalScore field: ${totalScore}`);
         if (typeof totalScore === 'string') {
           totalScore = parseFloat(totalScore);
+          console.log(`🔥 PANEL DEBUG - Step 2b - parsed totalScore: ${totalScore}`);
         }
       }
       
       // Eğer hala yoksa, nets.total kullan
       if (!totalScore && result.nets?.total) {
         totalScore = result.nets.total;
+        console.log(`🔥 PANEL DEBUG - Step 3 - nets.total: ${totalScore}`);
       }
 
-      console.log(`🔍 DEBUG - Hesaplanan puan: ${totalScore}, Mevcut en yüksek: ${highestScore}`);
+      // Eğer hala yoksa, nets içindeki ders bazında hesaplama yap
+      if (!totalScore && result.nets) {
+        const subjectNets = Object.values(result.nets).filter(net => typeof net === 'number');
+        const calculatedTotal = subjectNets.reduce((sum, net) => sum + (net as number), 0);
+        totalScore = calculatedTotal * 5;
+        console.log(`🔥 PANEL DEBUG - Step 4 - calculated from subject nets: ${calculatedTotal} * 5 = ${totalScore}`);
+      }
 
-      // En yüksek puanı güncelle
-      if (totalScore && totalScore > highestScore) {
-        highestScore = totalScore;
-        console.log(`🔍 DEBUG - Yeni en yüksek puan: ${highestScore}`);
+      console.log(`🔥 PANEL DEBUG - Final score for exam ${exam.title}: ${totalScore}`);
+      
+      if (totalScore && totalScore > 0) {
+        allScores.push(totalScore);
+        if (totalScore > highestScore) {
+          highestScore = totalScore;
+          console.log(`🔥 PANEL DEBUG - Yeni en yüksek puan: ${highestScore}`);
+        }
       }
     }
     
     // Son debug log
-    console.log(`🔍 FINAL - Öğrenci ${studentId} için EN YÜKSEK puan bulundu: ${highestScore}`);
+    console.log(`🔥 PANEL DEBUG - ALL SCORES for ${studentId}:`, allScores);
+    console.log(`🔥 PANEL DEBUG - FINAL HIGHEST SCORE for ${studentId}: ${highestScore}`);
 
     return Math.round(highestScore || 0);
   }, [exams, results]);
