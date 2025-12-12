@@ -280,10 +280,20 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
       <div className="bg-white p-6 rounded-lg shadow">
         <h3 className="text-xl font-bold mb-4">Performans Dağılımı</h3>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={filteredData.slice(0, 10)}>
+          <BarChart data={filteredData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="studentName" angle={-45} textAnchor="end" height={100} />
-            <YAxis />
+            <XAxis 
+              dataKey="studentName" 
+              angle={-45} 
+              textAnchor="end" 
+              height={100}
+              interval={0}
+              tick={{ fontSize: 8 }}
+            />
+            <YAxis 
+              domain={trendsViewType === 'net' ? [0, 90] : [0, 500]}
+              tick={{ fontSize: 10 }}
+            />
             <Tooltip />
             <Legend />
             <Bar 
@@ -857,19 +867,28 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                   { key: 'ingilizce', name: 'İngilizce', color: '#6366F1', bg: 'bg-indigo-50' }
                 ].map((subject) => {
                   // Her ders için gerçek sınıf ve genel ortalamaları hesapla (puanı > 0 olanları dahil et)
-                  const validClassResults = results.filter(r => {
+                  // Student-dashboard'taki mantık: sınıf ortalaması = aynı sınıftaki öğrencilerin ortalaması
+                  const classResults = results.filter(r => {
                     const rStudent = students.find(s => s.id === r.studentId);
+                    return rStudent?.class === analysis.student?.class;
+                  });
+                  
+                  // Sadece puanı > 0 olan sonuçları dahil et
+                  const validClassResults = classResults.filter(r => {
+                    const net = r.nets?.total || 0;
                     const score = r.scores?.puan ? parseFloat(r.scores.puan) : (r.puan || 0);
-                    return rStudent?.class === analysis.student?.class && score > 0;
+                    return net > 0 || score > 0;
                   });
                   
                   const classSubjectAvg = validClassResults.length > 0
                     ? validClassResults.reduce((sum, r) => sum + (r.nets?.[subject.key as keyof typeof r.nets] || 0), 0) / validClassResults.length
                     : 0;
                   
+                  // Genel ortalama: tüm öğrencilerin ortalaması
                   const validAllResults = results.filter(r => {
+                    const net = r.nets?.total || 0;
                     const score = r.scores?.puan ? parseFloat(r.scores.puan) : (r.puan || 0);
-                    return score > 0;
+                    return net > 0 || score > 0;
                   });
                   
                   const generalSubjectAvg = validAllResults.length > 0
@@ -897,7 +916,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                             interval={0}
                             tick={{ fontSize: 8 }}
                           />
-                          <YAxis domain={[0, 20]} />
+                          <YAxis domain={[0, 20]} tick={{ fontSize: 8 }} />
                           <Tooltip 
                             formatter={(value, name) => [`${Number(value).toFixed(1)}`, name]}
                           />

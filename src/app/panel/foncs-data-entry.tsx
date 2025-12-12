@@ -5065,77 +5065,76 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
     loadData();
   }, []);
 
-  // Öğrencinin son denemesinin puanını hesapla
-  const calculateLatestStudentScore = useCallback((studentId: string) => {
+  // Öğrencinin en yüksek deneme puanını hesapla
+  const calculateHighestStudentScore = useCallback((studentId: string) => {
     if (!studentId || exams.length === 0 || results.length === 0) {
       return 0;
     }
 
-    // Öğrencinin son denemesini bul
+    // Öğrencinin tüm denemelerini bul
     const studentResults = results
-      .filter(result => result.studentId === studentId)
-      .sort((a, b) => {
-        const examA = exams.find(exam => exam.id === a.examId);
-        const examB = exams.find(exam => exam.id === b.examId);
-        
-        if (!examA || !examB) return 0;
-        
-        return new Date(examB.date).getTime() - new Date(examA.date).getTime();
-      });
+      .filter(result => result.studentId === studentId);
 
     if (studentResults.length === 0) {
       return 0;
     }
 
-    // En son denemenin puanını hesapla
-    const latestResult = studentResults[0];
-    const exam = exams.find(e => e.id === latestResult.examId);
-    
-    if (!exam) return 0;
+    // Her deneme için puan hesapla ve en yüksek olanı bul
+    let highestScore = 0;
 
-    // DEBUG: Tüm puan değerlerini logla
-    console.log('🔍 DEBUG - Latest Result:', latestResult);
-    console.log('🔍 puan field:', latestResult.puan);
-    console.log('🔍 totalScore field:', latestResult.totalScore);
-    console.log('🔍 nets.total:', latestResult.nets?.total);
-    console.log('🔍 scores field:', latestResult.scores);
+    for (const result of studentResults) {
+      const exam = exams.find(e => e.id === result.examId);
+      if (!exam) continue;
 
-    // Önce manuel girilen puanı kontrol et (en doğru değer)
-    let totalScore = latestResult.puan;
-    
-    // Eğer puan string ise parse et
-    if (totalScore && typeof totalScore === 'string') {
-      totalScore = parseFloat(totalScore);
-    }
-    
-    // Eğer puan yoksa, totalScore field'ını kontrol et
-    if (!totalScore && latestResult.totalScore) {
-      totalScore = latestResult.totalScore;
-      if (typeof totalScore === 'string') {
+      // DEBUG: Tüm puan değerlerini logla
+      console.log('🔍 DEBUG - Result:', result);
+      console.log('🔍 puan field:', result.puan);
+      console.log('🔍 totalScore field:', result.totalScore);
+      console.log('🔍 nets.total:', result.nets?.total);
+      console.log('🔍 scores field:', result.scores);
+
+      // Önce manuel girilen puanı kontrol et (en doğru değer)
+      let totalScore = result.puan;
+      
+      // Eğer puan string ise parse et
+      if (totalScore && typeof totalScore === 'string') {
         totalScore = parseFloat(totalScore);
+      }
+      
+      // Eğer puan yoksa, totalScore field'ını kontrol et
+      if (!totalScore && result.totalScore) {
+        totalScore = result.totalScore;
+        if (typeof totalScore === 'string') {
+          totalScore = parseFloat(totalScore);
+        }
+      }
+      
+      // Eğer hala yoksa, nets.total kullan
+      if (!totalScore && result.nets?.total) {
+        totalScore = result.nets.total;
+      }
+
+      // En yüksek puanı güncelle
+      if (totalScore && totalScore > highestScore) {
+        highestScore = totalScore;
       }
     }
     
-    // Eğer hala yoksa, nets.total kullan
-    if (!totalScore && latestResult.nets?.total) {
-      totalScore = latestResult.nets.total;
-    }
-    
     // Son debug log
-    console.log('🔍 Final totalScore:', totalScore);
+    console.log('🔍 Final highestScore:', highestScore);
 
-    return Math.round(totalScore || 0);
+    return Math.round(highestScore || 0);
   }, [exams, results]);
 
   // Seçili öğrenci değiştiğinde puanı güncelle
   useEffect(() => {
     if (selectedStudent) {
-      const latestScore = calculateLatestStudentScore(selectedStudent);
-      setStudentLatestScore(latestScore);
+      const highestScore = calculateHighestStudentScore(selectedStudent);
+      setStudentLatestScore(highestScore);
     } else {
       setStudentLatestScore(0);
     }
-  }, [selectedStudent, calculateLatestStudentScore]);
+  }, [selectedStudent, calculateHighestStudentScore]);
 
   // Gerçek lise veritabanı (LGS ve OBP verilerinden)
   const highSchools = [
