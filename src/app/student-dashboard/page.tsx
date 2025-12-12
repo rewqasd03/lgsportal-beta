@@ -380,6 +380,7 @@ function StudentDashboardContent() {
     // DEBUG: Tüm puan değerlerini logla
     console.log('🔍 Student Dashboard - Latest Result:', studentResult);
     console.log('🔍 puan field:', studentResult.puan);
+    console.log('🔍 scores.puan field:', studentResult.scores?.puan);
     console.log('🔍 totalScore field:', studentResult.totalScore);
     console.log('🔍 nets.total:', studentResult.nets?.total);
     console.log('🔍 scores field:', studentResult.scores);
@@ -390,6 +391,14 @@ function StudentDashboardContent() {
     // Eğer puan string ise parse et
     if (totalScore && typeof totalScore === 'string') {
       totalScore = parseFloat(totalScore);
+    }
+    
+    // Eğer puan yoksa, scores.puan alanını kontrol et (en önemli!)
+    if (!totalScore && studentResult.scores?.puan) {
+      totalScore = studentResult.scores.puan;
+      if (typeof totalScore === 'string') {
+        totalScore = parseFloat(totalScore);
+      }
     }
     
     // Eğer puan yoksa, totalScore field'ını kontrol et
@@ -426,9 +435,25 @@ function StudentDashboardContent() {
         // Önce manuel girilen puanı kontrol et (en doğru değer)
         let totalScore = studentResult.puan;
         
-        // Eğer puan yoksa, diğer alanları kontrol et
-        if (!totalScore || totalScore === 0) {
+        // Eğer puan string ise parse et
+        if (totalScore && typeof totalScore === 'string') {
+          totalScore = parseFloat(totalScore);
+        }
+        
+        // Eğer puan yoksa, scores.puan alanını kontrol et (en önemli!)
+        if (!totalScore && studentResult.scores?.puan) {
+          totalScore = studentResult.scores.puan;
+          if (typeof totalScore === 'string') {
+            totalScore = parseFloat(totalScore);
+          }
+        }
+        
+        // Eğer puan yoksa, totalScore field'ını kontrol et
+        if (!totalScore && studentResult.totalScore) {
           totalScore = studentResult.totalScore;
+          if (typeof totalScore === 'string') {
+            totalScore = parseFloat(totalScore);
+          }
         }
         
         // Eğer hala yoksa, nets'den hesapla

@@ -1,0 +1,143 @@
+page-d1a5d9e65e50d0f3.js:1 URL StudentId: h1jDKKnPl9nm5pSRAyYk
+page-d1a5d9e65e50d0f3.js:1 StudentId set edildi: h1jDKKnPl9nm5pSRAyYk
+page-d1a5d9e65e50d0f3.js:1 URL StudentId: h1jDKKnPl9nm5pSRAyYk
+page-d1a5d9e65e50d0f3.js:1 Rapor yükleniyor... StudentId: h1jDKKnPl9nm5pSRAyYk
+layout-470689c61950e281.js:1 SW registered:  ServiceWorkerRegistration {installing: ServiceWorker, waiting: null, active: null, navigationPreload: NavigationPreloadManager, scope: 'https://lgsportali.com/', …}
+sw.js:20 SW: Cache opened
+page-d1a5d9e65e50d0f3.js:1 Öğrenci verisi alındı: {class: '8-A', number: '27', name: 'Enfal Su BAŞAK', createdAt: '2025-12-09T18:43:00.615Z', viewCount: 1, …}
+page-d1a5d9e65e50d0f3.js:1 Sınavlar alındı: 7
+page-d1a5d9e65e50d0f3.js:1 Sonuçlar alındı: 168
+page-d1a5d9e65e50d0f3.js:1 Tüm öğrenciler alındı: 24
+page-d1a5d9e65e50d0f3.js:1 Öğrenci sonuçları: 7
+page-d1a5d9e65e50d0f3.js:1 Rapor verisi hazırlandı
+305-456ca60c90d284d5.js:1 📋 Hedef arama - Öğrenci ID: h1jDKKnPl9nm5pSRAyYk
+305-456ca60c90d284d5.js:1 📋 Doc mevcut mu: false
+305-456ca60c90d284d5.js:1 📋 Hedef bulunamadı
+305-456ca60c90d284d5.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+page-d1a5d9e65e50d0f3.js:1 Hedefler yüklendi: h1jDKKnPl9nm5pSRAyYk {}
+page-d1a5d9e65e50d0f3.js:1 Puan hedefi yüklendi: 450
+page-d1a5d9e65e50d0f3.js:1 ⚠️ Hiç hedef bulunamadı veya boş hedefler
+page-d1a5d9e65e50d0f3.js:1 ✅ Puan hedefi: 450
+page-d1a5d9e65e50d0f3.js:1 🔍 Student Dashboard - Latest Result: {id: 'CbYrbw7kF7Nvfi7Uuuga', examId: 'yPKoiQ31tBgylGD8xMqZ', nets: {…}, createdAt: '2025-12-10T09:54:46.883Z', studentId: 'h1jDKKnPl9nm5pSRAyYk', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 totalScore field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 nets.total: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 scores field: {puan: '342', turkce: {…}, fen: {…}, ingilizce: {…}, din: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 Final calculated score: 48
+page-d1a5d9e65e50d0f3.js:1 🔍 Highest score calculated: 242 All scores: (7) [177, 81, 132, 162, 189, 179, 242]
+page-d1a5d9e65e50d0f3.js:1 🔍 Student Dashboard - Latest Result: {id: 'CbYrbw7kF7Nvfi7Uuuga', examId: 'yPKoiQ31tBgylGD8xMqZ', nets: {…}, createdAt: '2025-12-10T09:54:46.883Z', studentId: 'h1jDKKnPl9nm5pSRAyYk', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 totalScore field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 nets.total: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 scores field: {puan: '342', turkce: {…}, fen: {…}, ingilizce: {…}, din: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 Final calculated score: 48
+page-d1a5d9e65e50d0f3.js:1 ✅ View count güncellendi
+page-d1a5d9e65e50d0f3.js:1 🔍 Student Dashboard - Latest Result: {id: 'CbYrbw7kF7Nvfi7Uuuga', examId: 'yPKoiQ31tBgylGD8xMqZ', nets: {…}, createdAt: '2025-12-10T09:54:46.883Z', studentId: 'h1jDKKnPl9nm5pSRAyYk', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 totalScore field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 nets.total: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 scores field: {puan: '342', turkce: {…}, fen: {…}, ingilizce: {…}, din: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 Final calculated score: 48
+page-d1a5d9e65e50d0f3.js:1 🔍 Highest score calculated: 242 All scores: (7) [177, 81, 132, 162, 189, 179, 242]
+page-d1a5d9e65e50d0f3.js:1 🔍 Student Dashboard - Latest Result: {id: 'CbYrbw7kF7Nvfi7Uuuga', examId: 'yPKoiQ31tBgylGD8xMqZ', nets: {…}, createdAt: '2025-12-10T09:54:46.883Z', studentId: 'h1jDKKnPl9nm5pSRAyYk', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 totalScore field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 nets.total: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 scores field: {puan: '342', turkce: {…}, fen: {…}, ingilizce: {…}, din: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 Final calculated score: 48
+page-d1a5d9e65e50d0f3.js:1 🔍 Student Dashboard - Latest Result: {id: 'CbYrbw7kF7Nvfi7Uuuga', examId: 'yPKoiQ31tBgylGD8xMqZ', nets: {…}, createdAt: '2025-12-10T09:54:46.883Z', studentId: 'h1jDKKnPl9nm5pSRAyYk', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 totalScore field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 nets.total: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 scores field: {puan: '342', turkce: {…}, fen: {…}, ingilizce: {…}, din: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 Final calculated score: 48
+page-d1a5d9e65e50d0f3.js:1 🔍 Highest score calculated: 242 All scores: (7) [177, 81, 132, 162, 189, 179, 242]
+page-d1a5d9e65e50d0f3.js:1 🔍 Student Dashboard - Latest Result: {id: 'CbYrbw7kF7Nvfi7Uuuga', examId: 'yPKoiQ31tBgylGD8xMqZ', nets: {…}, createdAt: '2025-12-10T09:54:46.883Z', studentId: 'h1jDKKnPl9nm5pSRAyYk', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 totalScore field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 nets.total: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 scores field: {puan: '342', turkce: {…}, fen: {…}, ingilizce: {…}, din: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 Final calculated score: 48
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Student Dashboard Lise Tercih Puan Hesaplama Başladı
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Toplam deneme sayısı: 7
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Deneme 1: Model HBS TG-Kurumsal
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Raw studentResult: {id: 'mimfXGgbzhHTMyaA8mf9', nets: {…}, studentId: 'h1jDKKnPl9nm5pSRAyYk', examId: 'ulUEVkRK7vmR8Dpap0jH', scores: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 3 - nets.total: 35.42
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Final score for Model HBS TG-Kurumsal: 35.42
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Yeni en yüksek puan: 35.42
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Deneme 2: Paraf TG-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Raw studentResult: {id: 'fi5KY8yZuCwuaN95UHxq', scores: {…}, createdAt: '2025-12-10T06:39:54.670Z', examId: 'SuU6HT6R8w5oUclRqB0O', nets: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 3 - nets.total: 16.16
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Final score for Paraf TG-1: 16.16
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Deneme 3: İntro TG-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Raw studentResult: {id: 'FsdX5qp4ojdHlWLbSxgs', studentId: 'h1jDKKnPl9nm5pSRAyYk', createdAt: '2025-12-10T07:18:57.908Z', examId: 'anIdPymXwwWACrM8f9uf', scores: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 3 - nets.total: 26.47
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Final score for İntro TG-1: 26.47
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Deneme 4: Mozaik TG-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Raw studentResult: {id: 'wd5PaWcl4wgfcd70tbGi', scores: {…}, nets: {…}, studentId: 'h1jDKKnPl9nm5pSRAyYk', examId: 'k5yL7Rav0GWtR1tK2qH1', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 3 - nets.total: 32.43
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Final score for Mozaik TG-1: 32.43
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Deneme 5: Muba TG-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Raw studentResult: {id: '9iqCxrljOrZ1nqOeo7bf', nets: {…}, scores: {…}, createdAt: '2025-12-10T07:49:57.089Z', examId: 'MjoFKU3pcUb20wUgOyTV', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 3 - nets.total: 37.77
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Final score for Muba TG-1: 37.77
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Yeni en yüksek puan: 37.77
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Deneme 6: EtütVan-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Raw studentResult: {id: '3aDuJpudV6zKUoSbpOgd', studentId: 'h1jDKKnPl9nm5pSRAyYk', examId: 'POMyQMXvmc1csCtasJp9', nets: {…}, scores: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 3 - nets.total: 35.78
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Final score for EtütVan-1: 35.78
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Deneme 7: Ünlüler Karması TG-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Raw studentResult: {id: 'CbYrbw7kF7Nvfi7Uuuga', examId: 'yPKoiQ31tBgylGD8xMqZ', nets: {…}, createdAt: '2025-12-10T09:54:46.883Z', studentId: 'h1jDKKnPl9nm5pSRAyYk', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Step 3 - nets.total: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Final score for Ünlüler Karması TG-1: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - Yeni en yüksek puan: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - ALL SCORES: (7) [35.42, 16.16, 26.47, 32.43, 37.77, 35.78, 48.41]
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG - HIGHEST SCORE: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - İkinci Lise Tercih Puan Hesaplama Başladı
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Deneme 1: Model HBS TG-Kurumsal
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Raw studentResult: {id: 'mimfXGgbzhHTMyaA8mf9', nets: {…}, studentId: 'h1jDKKnPl9nm5pSRAyYk', examId: 'ulUEVkRK7vmR8Dpap0jH', scores: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 3 - nets.total: 35.42
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Final score for Model HBS TG-Kurumsal: 35.42
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Yeni en yüksek puan: 35.42
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Deneme 2: Paraf TG-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Raw studentResult: {id: 'fi5KY8yZuCwuaN95UHxq', scores: {…}, createdAt: '2025-12-10T06:39:54.670Z', examId: 'SuU6HT6R8w5oUclRqB0O', nets: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 3 - nets.total: 16.16
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Final score for Paraf TG-1: 16.16
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Deneme 3: İntro TG-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Raw studentResult: {id: 'FsdX5qp4ojdHlWLbSxgs', studentId: 'h1jDKKnPl9nm5pSRAyYk', createdAt: '2025-12-10T07:18:57.908Z', examId: 'anIdPymXwwWACrM8f9uf', scores: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 3 - nets.total: 26.47
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Final score for İntro TG-1: 26.47
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Deneme 4: Mozaik TG-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Raw studentResult: {id: 'wd5PaWcl4wgfcd70tbGi', scores: {…}, nets: {…}, studentId: 'h1jDKKnPl9nm5pSRAyYk', examId: 'k5yL7Rav0GWtR1tK2qH1', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 3 - nets.total: 32.43
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Final score for Mozaik TG-1: 32.43
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Deneme 5: Muba TG-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Raw studentResult: {id: '9iqCxrljOrZ1nqOeo7bf', nets: {…}, scores: {…}, createdAt: '2025-12-10T07:49:57.089Z', examId: 'MjoFKU3pcUb20wUgOyTV', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 3 - nets.total: 37.77
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Final score for Muba TG-1: 37.77
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Yeni en yüksek puan: 37.77
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Deneme 6: EtütVan-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Raw studentResult: {id: '3aDuJpudV6zKUoSbpOgd', studentId: 'h1jDKKnPl9nm5pSRAyYk', examId: 'POMyQMXvmc1csCtasJp9', nets: {…}, scores: {…}, …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 3 - nets.total: 35.78
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Final score for EtütVan-1: 35.78
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Deneme 7: Ünlüler Karması TG-1
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Raw studentResult: {id: 'CbYrbw7kF7Nvfi7Uuuga', examId: 'yPKoiQ31tBgylGD8xMqZ', nets: {…}, createdAt: '2025-12-10T09:54:46.883Z', studentId: 'h1jDKKnPl9nm5pSRAyYk', …}
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 1 - puan field: undefined
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Step 3 - nets.total: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Final score for Ünlüler Karması TG-1: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - Yeni en yüksek puan: 48.41
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - ALL SCORES: (7) [35.42, 16.16, 26.47, 32.43, 37.77, 35.78, 48.41]
+page-d1a5d9e65e50d0f3.js:1 🔍 ENFAL DEBUG 2 - HIGHEST SCORE: 48.41
