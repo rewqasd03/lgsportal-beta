@@ -3911,6 +3911,9 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
   );
 }
 
+// Lise Tercih Önerileri Tab Komponenti kapanışı
+}
+
 // Ana sayfa komponenti
 export default function StudentDashboardPage() {
   return (
