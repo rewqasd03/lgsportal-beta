@@ -400,9 +400,11 @@ function StudentDashboardContent() {
       }
     }
     
-    // Eğer hala yoksa, nets.total kullan
+    // Eğer hala yoksa, nets.total kullan ve LGS puanı hesapla (net * 5)
     if (!totalScore && studentResult.nets?.total) {
-      totalScore = studentResult.nets.total;
+      const netTotal = studentResult.nets.total;
+      // Net toplamını 5 ile çarp (LGS puan hesabı: yaklaşık net * 5 = puan)
+      totalScore = netTotal * 5;
     }
     
     console.log('🔍 Final calculated score:', Math.round(totalScore || 0));
