@@ -355,8 +355,63 @@ function StudentDashboardContent() {
   const previousNet = reportData.examResults[reportData.examResults.length - 2]?.studentTotalNet || 0;
   const improvement = latestNet - previousNet;
   
-  const latestScore = reportData.examResults[reportData.examResults.length - 1]?.studentTotalScore || 0;
-  const previousScore = reportData.examResults[reportData.examResults.length - 2]?.studentTotalScore || 0;
+  // Son öğrenci puanını hesapla - düzeltilmiş versiyon
+  const calculateLatestStudentScore = (studentId: string) => {
+    if (!studentId || reportData.examResults.length === 0) {
+      return 0;
+    }
+
+    // En son denemeyi bul
+    const sortedResults = [...reportData.examResults].sort((a, b) => 
+      new Date(b.exam.date).getTime() - new Date(a.exam.date).getTime()
+    );
+
+    if (sortedResults.length === 0) {
+      return 0;
+    }
+
+    const latestResult = sortedResults[0];
+    const studentResult = latestResult.studentResults[0];
+
+    if (!studentResult) {
+      return 0;
+    }
+
+    // DEBUG: Tüm puan değerlerini logla
+    console.log('🔍 Student Dashboard - Latest Result:', studentResult);
+    console.log('🔍 puan field:', studentResult.puan);
+    console.log('🔍 totalScore field:', studentResult.totalScore);
+    console.log('🔍 nets.total:', studentResult.nets?.total);
+    console.log('🔍 scores field:', studentResult.scores);
+
+    // Önce manuel girilen puanı kontrol et (en doğru değer)
+    let totalScore = studentResult.puan;
+    
+    // Eğer puan string ise parse et
+    if (totalScore && typeof totalScore === 'string') {
+      totalScore = parseFloat(totalScore);
+    }
+    
+    // Eğer puan yoksa, totalScore field'ını kontrol et
+    if (!totalScore && studentResult.totalScore) {
+      totalScore = studentResult.totalScore;
+      if (typeof totalScore === 'string') {
+        totalScore = parseFloat(totalScore);
+      }
+    }
+    
+    // Eğer hala yoksa, nets.total kullan
+    if (!totalScore && studentResult.nets?.total) {
+      totalScore = studentResult.nets.total;
+    }
+    
+    console.log('🔍 Final calculated score:', Math.round(totalScore || 0));
+    return Math.round(totalScore || 0);
+  };
+
+  const latestScore = calculateLatestStudentScore(studentId);
+  const previousScore = reportData.examResults.length > 1 ? 
+    calculateLatestStudentScore(reportData.examResults[reportData.examResults.length - 2].studentResults[0]?.studentId || '') : 0;
   const scoreImprovement = latestScore - previousScore;
   
   // Trend analizi
@@ -2325,6 +2380,16 @@ function StudentDashboardContent() {
               </div>
             )}
 
+            {/* Lise Tercih Önerileri - Hedef Takibi Tab'ına Eklendi */}
+            {activeTab === 6 && (
+              <LiseTercihOnerileriTab 
+                reportData={reportData} 
+                studentTargets={studentTargets}
+                latestNet={latestNet}
+                latestScore={latestScore}
+              />
+            )}
+
             {/* Tab 7: LGS Puan Hesaplama */}
             {activeTab === 7 && (
               <LGSHesaplamaTab />
@@ -3346,6 +3411,504 @@ function YerelYerlestirmePuanlari() {
             <strong>Not:</strong> Bu puanlar 2025 OBP sonuçlarına göre yerel yerleştirme taban puanlarıdır ve MEB verilerine dayanmaktadır.
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Lise Tercih Önerileri Tab Komponenti - Hedef Takibi için
+function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestScore }: {
+  reportData: ReportData;
+  studentTargets: {[subject: string]: number};
+  latestNet: number;
+  latestScore: number;
+}) {
+  const [selectedSchoolType, setSelectedSchoolType] = useState<'merkezi' | 'yerel' | 'hepsi'>('hepsi');
+
+  // LGS Merkezi Yerleştirme Okulları
+  const lgsSchools = [
+    {
+      name: "Van Türk Telekom Fen Lisesi",
+      type: "Fen Lisesi", 
+      score: 460.91,
+      capacity: "150",
+      district: "Edremit",
+      percentile: "2.51"
+    },
+    {
+      name: "İpekyolu Borsa İstanbul Fen Lisesi",
+      type: "Fen Lisesi",
+      score: 441.61,
+      capacity: "150",
+      district: "İpekyolu",
+      percentile: "4.67"
+    },
+    {
+      name: "Tuşba TOBB Fen Lisesi",
+      type: "Fen Lisesi",
+      score: 422.90,
+      capacity: "150",
+      district: "Tuşba",
+      percentile: "7.20"
+    },
+    {
+      name: "Niyazi Türkmenoğlu Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: 416.75,
+      capacity: "120",
+      district: "İpekyolu",
+      percentile: "8.09"
+    },
+    {
+      name: "Erciş Fen Lisesi",
+      type: "Fen Lisesi",
+      score: 402.18,
+      capacity: "150",
+      district: "Erciş",
+      percentile: "10.39"
+    },
+    {
+      name: "Kazım Karabekir Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: 400.23,
+      capacity: "150",
+      district: "İpekyolu",
+      percentile: "10.71"
+    },
+    {
+      name: "Türkiye Yardımsevenler Derneği Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: 387.01,
+      capacity: "120",
+      district: "Edremit",
+      percentile: "12.92"
+    },
+    {
+      name: "Van Atatürk Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: 379.46,
+      capacity: "180",
+      district: "İpekyolu",
+      percentile: "14.26"
+    },
+    {
+      name: "Abdurrahman Gazi Borsa İstanbul Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: 367.20,
+      capacity: "150",
+      district: "Tuşba",
+      percentile: "16.52"
+    },
+    {
+      name: "Muradiye Alpaslan Fen Lisesi",
+      type: "Fen Lisesi",
+      score: 366.59,
+      capacity: "120",
+      district: "Muradiye",
+      percentile: "16.63"
+    },
+    {
+      name: "Erciş Sosyal Bilimler Lisesi",
+      type: "Sosyal Bilimler Lisesi",
+      score: 366.09,
+      capacity: "120",
+      district: "Erciş",
+      percentile: "20.09"
+    },
+    {
+      name: "Van Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: 360.29,
+      capacity: "120",
+      district: "İpekyolu",
+      percentile: "19.06"
+    }
+  ];
+
+  // Yerel Yerleştirme Okulları (OBP)
+  const obpSchools = [
+    {
+      name: "Mesut Özata Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: 455.45, // 91.09 * 5
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Özen Adalı Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: 448.30, // 89.66 * 5
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Mehmet Akif Ersoy Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: 444.80, // 88.96 * 5
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Arif Nihat Asya Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: 446.95, // 89.39 * 5
+      capacity: "150",
+      district: "Erciş"
+    },
+    {
+      name: "Faki Teyran Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: 429.80, // 85.96 * 5
+      capacity: "150",
+      district: "Edremit"
+    },
+    {
+      name: "İki Nisan Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: 424.65, // 84.93 * 5
+      capacity: "150",
+      district: "İpekyolu"
+    }
+  ];
+
+  // Filtrelenmiş okullar
+  const filteredSchools = selectedSchoolType === 'hepsi' 
+    ? [...lgsSchools, ...obpSchools]
+    : selectedSchoolType === 'merkezi'
+    ? lgsSchools
+    : obpSchools;
+
+  // Akıllı tercih önerisi algoritması
+  const generateRecommendations = (studentScore: number) => {
+    return filteredSchools.map(school => {
+      let category = "cok-riskli";
+      let probability = 0;
+      let recommendation = "";
+      
+      if (studentScore >= school.score + 20) {
+        category = "guvenli";
+        probability = 95;
+        recommendation = "✅ Kesin yerleşir";
+      } else if (studentScore >= school.score) {
+        category = "orta";
+        probability = 75;
+        recommendation = "⚠️ Muhtemelen yerleşir";
+      } else if (studentScore >= school.score - 15) {
+        category = "riskli";
+        probability = 45;
+        recommendation = "⚡ Risk var";
+      } else {
+        category = "cok-riskli";
+        probability = 15;
+        recommendation = "❌ Çok riskli";
+      }
+
+      return {
+        ...school,
+        category,
+        probability,
+        recommendation,
+        scoreDifference: studentScore - school.score
+      };
+    }).sort((a, b) => b.score - a.score);
+  };
+
+  // Öğrencinin güncel puanı (düzeltilmiş hali)
+  const currentStudentScore = latestScore || 0;
+  
+  console.log('🔍 Öğrenci Dashboard - Son Puan:', currentStudentScore);
+  console.log('🔍 Latest Score from props:', latestScore);
+  console.log('🔍 ReportData examResults count:', reportData.examResults.length);
+  
+  // Eğer puan 0 ise ek debug
+  if (currentStudentScore === 0 && reportData.examResults.length > 0) {
+    console.log('🔍 DEBUG - Latest exam result:', reportData.examResults[reportData.examResults.length - 1]);
+    console.log('🔍 DEBUG - Student result:', reportData.examResults[reportData.examResults.length - 1]?.studentResults[0]);
+  }
+
+  const recommendations = currentStudentScore > 0 ? generateRecommendations(currentStudentScore) : [];
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="text-sm font-semibold text-gray-800 mb-4">🏫 Lise Tercih Önerileri</h3>
+        
+        {/* Öğrenci Puanı Bilgisi */}
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h4 className="text-lg font-semibold text-blue-900 mb-2">📊 Mevcut Durumunuz</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {currentStudentScore > 0 ? `${Math.round(currentStudentScore)} puan` : 'Puan bulunamadı'}
+              </div>
+              <div className="text-sm text-blue-700">Son Deneme Puanınız</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{latestNet.toFixed(1)} net</div>
+              <div className="text-sm text-green-700">Son Deneme Net'iniz</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">{reportData.examResults.length}</div>
+              <div className="text-sm text-purple-700">Toplam Deneme Sayınız</div>
+            </div>
+          </div>
+        </div>
+
+        {currentStudentScore === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-6xl mb-4">📊</div>
+            <h4 className="text-lg font-semibold text-gray-800 mb-2">Puan Bilgisi Bulunamadı</h4>
+            <p className="text-gray-600">
+              Lise tercih önerilerini görebilmek için en az bir deneme puanınız olmalıdır.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Okul Türü Filtresi */}
+            <div className="mb-6">
+              <h4 className="text-sm font-semibold text-gray-800 mb-3">🎯 Okul Türü Seçin</h4>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'hepsi', label: 'Tüm Okullar', icon: '🏫' },
+                  { key: 'merkezi', label: 'LGS (Merkezi)', icon: '🎯' },
+                  { key: 'yerel', label: 'OBP (Yerel)', icon: '🏠' }
+                ].map(type => (
+                  <button
+                    key={type.key}
+                    onClick={() => setSelectedSchoolType(type.key as any)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      selectedSchoolType === type.key
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <span className="mr-2">{type.icon}</span>
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tercih Kategorileri */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+              {/* Güvenli Tercihler */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h5 className="font-semibold text-green-800 mb-3 flex items-center">
+                  ✅ Güvenli Tercihler
+                </h5>
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {recommendations
+                    .filter(school => school.category === "guvenli")
+                    .slice(0, 5)
+                    .map((school, index) => (
+                    <div key={index} className="bg-white p-3 rounded border border-green-200">
+                      <div className="font-medium text-gray-800 text-sm">{school.name}</div>
+                      <div className="text-xs text-gray-600">{school.type} • {school.district}</div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-sm font-medium text-green-600">
+                          {school.score} puan
+                        </span>
+                        <span className="text-xs text-green-600">
+                          %{school.probability}
+                        </span>
+                      </div>
+                      <div className="text-xs text-green-700 mt-1">
+                        +{school.scoreDifference.toFixed(1)} avantaj
+                      </div>
+                    </div>
+                  ))}
+                  {recommendations.filter(school => school.category === "guvenli").length === 0 && (
+                    <div className="text-center text-green-600 text-sm py-4">
+                      Güvenli tercih bulunamadı
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Orta Risk */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h5 className="font-semibold text-yellow-800 mb-3 flex items-center">
+                  ⚠️ Orta Risk
+                </h5>
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {recommendations
+                    .filter(school => school.category === "orta")
+                    .slice(0, 5)
+                    .map((school, index) => (
+                    <div key={index} className="bg-white p-3 rounded border border-yellow-200">
+                      <div className="font-medium text-gray-800 text-sm">{school.name}</div>
+                      <div className="text-xs text-gray-600">{school.type} • {school.district}</div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-sm font-medium text-yellow-600">
+                          {school.score} puan
+                        </span>
+                        <span className="text-xs text-yellow-600">
+                          %{school.probability}
+                        </span>
+                      </div>
+                      <div className="text-xs text-yellow-700 mt-1">
+                        {school.scoreDifference >= 0 ? '+' : ''}{school.scoreDifference.toFixed(1)} fark
+                      </div>
+                    </div>
+                  ))}
+                  {recommendations.filter(school => school.category === "orta").length === 0 && (
+                    <div className="text-center text-yellow-600 text-sm py-4">
+                      Orta risk tercih bulunamadı
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Riskli */}
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <h5 className="font-semibold text-orange-800 mb-3 flex items-center">
+                  ⚡ Riskli
+                </h5>
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {recommendations
+                    .filter(school => school.category === "riskli")
+                    .slice(0, 5)
+                    .map((school, index) => (
+                    <div key={index} className="bg-white p-3 rounded border border-orange-200">
+                      <div className="font-medium text-gray-800 text-sm">{school.name}</div>
+                      <div className="text-xs text-gray-600">{school.type} • {school.district}</div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-sm font-medium text-orange-600">
+                          {school.score} puan
+                        </span>
+                        <span className="text-xs text-orange-600">
+                          %{school.probability}
+                        </span>
+                      </div>
+                      <div className="text-xs text-orange-700 mt-1">
+                        {school.scoreDifference.toFixed(1)} eksik
+                      </div>
+                    </div>
+                  ))}
+                  {recommendations.filter(school => school.category === "riskli").length === 0 && (
+                    <div className="text-center text-orange-600 text-sm py-4">
+                      Riskli tercih bulunamadı
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Çok Riskli */}
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h5 className="font-semibold text-red-800 mb-3 flex items-center">
+                  ❌ Çok Riskli
+                </h5>
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {recommendations
+                    .filter(school => school.category === "cok-riskli")
+                    .slice(0, 5)
+                    .map((school, index) => (
+                    <div key={index} className="bg-white p-3 rounded border border-red-200">
+                      <div className="font-medium text-gray-800 text-sm">{school.name}</div>
+                      <div className="text-xs text-gray-600">{school.type} • {school.district}</div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-sm font-medium text-red-600">
+                          {school.score} puan
+                        </span>
+                        <span className="text-xs text-red-600">
+                          %{school.probability}
+                        </span>
+                      </div>
+                      <div className="text-xs text-red-700 mt-1">
+                        {Math.abs(school.scoreDifference).toFixed(1)} eksik
+                      </div>
+                    </div>
+                  ))}
+                  {recommendations.filter(school => school.category === "cok-riskli").length === 0 && (
+                    <div className="text-center text-red-600 text-sm py-4">
+                      Çok riskli tercih bulunamadı
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Stratejik Öneriler */}
+            <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <h4 className="text-lg font-semibold text-purple-900 mb-3">💡 Stratejik Tercih Önerileri</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white p-4 rounded border">
+                  <h5 className="font-semibold text-green-800 mb-2">🎯 Güvenli Strateji</h5>
+                  <p className="text-sm text-gray-700">
+                    3-4 güvenli, 2-3 orta risk, 1-2 riskli tercih yapın. %90+ yerleşme garantisi.
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded border">
+                  <h5 className="font-semibold text-yellow-800 mb-2">⚖️ Dengeli Strateji</h5>
+                  <p className="text-sm text-gray-700">
+                    2-3 güvenli, 3-4 orta risk, 2-3 riskli tercih yapın. Daha iyi okul şansı.
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded border">
+                  <h5 className="font-semibold text-red-800 mb-2">🚀 Agresif Strateji</h5>
+                  <p className="text-sm text-gray-700">
+                    1-2 güvenli, 2-3 orta risk, 4-5 riskli tercih yapın. Hayalinizdeki okul şansı.
+                  </p>
+                </div>
+              </div>
+            {/* Detaylı Liste */}
+            <div className="mt-6">
+              <h4 className="text-lg font-semibold text-gray-800 mb-4">📋 Detaylı Tercih Listesi</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left p-3 font-semibold text-gray-800">Okul Adı</th>
+                      <th className="text-left p-3 font-semibold text-gray-800">Tür</th>
+                      <th className="text-center p-3 font-semibold text-gray-800">Taban Puan</th>
+                      <th className="text-center p-3 font-semibold text-gray-800">Kontenjan</th>
+                      <th className="text-center p-3 font-semibold text-gray-800">Yüzdelik</th>
+                      <th className="text-center p-3 font-semibold text-gray-800">İlçe</th>
+                      <th className="text-center p-3 font-semibold text-gray-800">Öneri</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recommendations.slice(0, 15).map((school, index) => (
+                      <tr key={index} className="border-t hover:bg-gray-50">
+                        <td className="p-3 font-medium text-gray-900">{school.name}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            school.type === 'Fen Lisesi' 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : school.type === 'Sosyal Bilimler Lisesi'
+                              ? 'bg-purple-100 text-purple-800'
+                              : school.type === 'Anadolu İmam Hatip Lisesi'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-orange-100 text-orange-800'
+                          }`}>
+                            {school.type}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center font-bold text-blue-600">{school.score.toFixed(1)}</td>
+                        <td className="p-3 text-center text-gray-700">{school.capacity}</td>
+                        <td className="p-3 text-center text-purple-600">{school.percentile || '-'}</td>
+                        <td className="p-3 text-gray-600">{school.district}</td>
+                        <td className="p-3 text-center">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            school.category === "guvenli" 
+                              ? 'bg-green-100 text-green-800'
+                              : school.category === "orta"
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : school.category === "riskli"
+                              ? 'bg-orange-100 text-orange-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {school.recommendation}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
