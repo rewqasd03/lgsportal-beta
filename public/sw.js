@@ -1,5 +1,5 @@
 // Service Worker for Başarı Takip Sistemi
-const CACHE_NAME = 'basari-takip-v1.0.1';
+const CACHE_NAME = 'basari-takip-v2.0.0-' + Date.now();
 const urlsToCache = [
   '/',
   '/ogrenci',

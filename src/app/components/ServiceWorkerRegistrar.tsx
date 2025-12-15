@@ -4,6 +4,9 @@ import { useEffect } from 'react';
 
 export default function ServiceWorkerRegistrar() {
   useEffect(() => {
+    // CACHE PROBLEM ÇÖZÜMÜ: Service Worker geçici olarak devre dışı
+    // Bu satırı aktif etmek için yorumu kaldır
+    /*
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
@@ -15,6 +18,8 @@ export default function ServiceWorkerRegistrar() {
           });
       });
     }
+    */
+    console.log('🚫 Service Worker devre dışı - Cache temizlendi');
   }, []);
 
   return null;

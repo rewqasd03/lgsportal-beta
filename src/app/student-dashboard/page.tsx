@@ -1054,7 +1054,7 @@ function StudentDashboardContent() {
                     <div className="bg-white bg-opacity-20 p-3 rounded-lg">
                       <h4 className="text-xs font-medium opacity-90">Son Deneme Net</h4>
                       <p className="text-xl font-bold">
-                        {netChartData.length > 0 ? netChartData[netChartData.length - 1].öğrenci.toFixed(1) : '0.0'}
+                        {netChartData.length > 0 ? (netChartData[netChartData.length - 1].öğrenci || 0).toFixed(1) : '0.0'}
                       </p>
                     </div>
                     <div className="bg-white bg-opacity-20 p-3 rounded-lg">
@@ -2299,7 +2299,7 @@ function StudentDashboardContent() {
                               {subjectData.map((data, index) => (
                                 <div key={index} className="text-center bg-gray-50 rounded p-1">
                                   <p className="text-gray-500">Deneme {data.index}</p>
-                                  <p className="font-semibold text-blue-600">{data.öğrenci.toFixed(1)}</p>
+                                  <p className="font-semibold text-blue-600">{(data.öğrenci || 0).toFixed(1)}</p>
                                 </div>
                               ))}
                             </div>
