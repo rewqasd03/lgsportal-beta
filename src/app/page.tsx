@@ -113,7 +113,7 @@ function ExamTimerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
           <div className="text-center w-full max-w-4xl">
             <div className="mb-12">
               <h4 className="text-4xl font-bold mb-8">{selectedSession.name}</h4>
-              <div className={`text-9xl font-bold mb-8 ${timeLeft <= 300 ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
+              <div className={`text-8xl sm:text-9xl md:text-[12rem] lg:text-[14rem] font-bold mb-8 leading-none ${timeLeft <= 300 ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
                 {formatTime(timeLeft)}
               </div>
               {timeLeft <= 300 && timeLeft > 0 && (
