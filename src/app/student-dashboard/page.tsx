@@ -3716,16 +3716,19 @@ const KitapSinaviTab = () => {
   // Öğrenci ID'sini al
   const [studentId, setStudentId] = useState<string>('');
 
-  // URL parametresinden öğrenci ID'sini al
+  // URL parametresinden öğrenci ID'sini al (hem id hem studentId destekli)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id') || '';
+    const id = urlParams.get('id') || urlParams.get('studentId') || '';
+    console.log('🔍 DEBUG: URL parametreleri:', window.location.search);
+    console.log('🔍 DEBUG: Bulunan student ID:', id);
     setStudentId(id);
     
     if (id) {
       loadKitapSinavlari(id);
     } else {
       // Student ID yoksa loading'i false yap
+      console.log('🔍 DEBUG: Student ID bulunamadı, loading=false');
       setLoading(false);
     }
   }, []);
