@@ -593,7 +593,7 @@ function StudentDashboardContent() {
                       {tab === 5 && '🎯 Ders Bazında Gelişim'}
                       {tab === 6 && '🎯 Hedef Takibi & Lise Tercih Önerileri'}
                       {tab === 7 && '🧮 LGS Puan Hesaplama'}
-                      {tab === 8 && '📖 Kitap Sınavı'}
+                      {tab === 8 && '🎓 Lise Taban Puanları & 📖 Kitap Sınavı'}
                     </button>
                   ))}
                 </nav>
@@ -2545,9 +2545,12 @@ function StudentDashboardContent() {
               <LGSHesaplamaTab />
             )}
 
-            {/* Tab 8: Kitap Sınavı */}
+            {/* Tab 8: Lise Taban Puanları & Kitap Sınavları */}
             {activeTab === 8 && (
-              <KitapSinaviTab />
+              <div className="space-y-6">
+                <LiseTabanPuanlariTab />
+                <KitapSinaviTab />
+              </div>
             )}
 
 
@@ -3861,6 +3864,62 @@ const KitapSinaviTab = () => {
                 </table>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 🎓 LİSE TABAN PUANLARI TAB COMPONENT
+const LiseTabanPuanlariTab = () => {
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-6 flex items-center">
+              <span className="text-blue-600 mr-3">🎓</span>
+              Van İli Merkezi Yerleştirme Taban Puanları (2025)
+            </h3>
+            <p className="text-gray-600 mb-6">
+              2025 LGS sonuçlarına göre Van ilindeki merkezi yerleştirme kapsamındaki okulların taban puanları:
+            </p>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="text-left p-4 font-semibold text-gray-800">Lise Adı</th>
+                    <th className="text-left p-4 font-semibold text-gray-800">Tür</th>
+                    <th className="text-center p-4 font-semibold text-gray-800">Taban Puan</th>
+                    <th className="text-center p-4 font-semibold text-gray-800">Yüzdelik Dilim</th>
+                    <th className="text-center p-4 font-semibold text-gray-800">Kontenjan</th>
+                    <th className="text-left p-4 font-semibold text-gray-800">İlçe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vanLgsSchools.map((school, index) => (
+                    <tr key={index} className="border-t hover:bg-gray-50">
+                      <td className="p-4 font-medium text-gray-900">{school.name}</td>
+                      <td className="p-4">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          school.type === 'Fen Lisesi' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {school.type}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center font-bold text-blue-600 text-lg">{school.score}</td>
+                      <td className="p-4 text-center font-bold text-purple-600 text-lg">{school.percentile}%</td>
+                      <td className="p-4 text-center text-gray-700">{school.capacity}</td>
+                      <td className="p-4 text-gray-600">{school.district}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
