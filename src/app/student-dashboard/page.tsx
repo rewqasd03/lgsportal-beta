@@ -3529,8 +3529,9 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
     return vanLgsSchools
       .filter(school => {
         const schoolScore = parseFloat(school.score);
-        // Öğrencinin puanından düşük taban puana sahip okulları göster
-        return schoolScore <= numericScore;
+        // Öğrencinin puanından çok düşük taban puana sahip okulları filtrele
+        // Öğrencinin puanından 60 puan aşağısına kadar göster
+        return schoolScore >= numericScore - 60;
       })
       .sort((a, b) => {
         // En yüksek taban puandan düşüğe sırala
