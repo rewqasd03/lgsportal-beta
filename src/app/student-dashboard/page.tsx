@@ -558,7 +558,7 @@ function StudentDashboardContent() {
             </div>
             <div className="bg-purple-50 p-4 rounded-lg">
               <h3 className="text-xs font-medium text-purple-800 mb-1">Son Net</h3>
-              <p className="text-lg font-bold text-purple-600">{latestNet.toFixed(1)}</p>
+              <p className="text-lg font-bold text-purple-600">{(latestNet || 0).toFixed(1)}</p>
             </div>
           </div>
         </div>
@@ -607,37 +607,37 @@ function StudentDashboardContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1">
                   <div className="bg-white rounded-lg shadow p-1">
                     <h3 className="text-xs font-medium text-gray-500 mb-2">Ortalama Net</h3>
-                    <p className="text-sm font-bold text-blue-600">{avgNet.toFixed(1)}</p>
+                    <p className="text-sm font-bold text-blue-600">{(avgNet || 0).toFixed(1)}</p>
                     <p className="text-xs text-gray-600 mt-1">
-                      Sınıf: <span className="font-semibold">{classAverageNet.toFixed(1)}</span>
+                      Sınıf: <span className="font-semibold">{(classAverageNet || 0).toFixed(1)}</span>
                     </p>
                   </div>
 
                   <div className="bg-white rounded-lg shadow p-1">
                     <h3 className="text-xs font-medium text-gray-500 mb-2">Ortalama Puan</h3>
-                    <p className="text-sm font-bold text-green-600">{studentAverageScore.toFixed(0)}</p>
+                    <p className="text-sm font-bold text-green-600">{(studentAverageScore || 0).toFixed(0)}</p>
                     <p className="text-xs text-gray-600 mt-1">
-                      Sınıf: <span className="font-semibold">{classAverageScore.toFixed(0)}</span>
+                      Sınıf: <span className="font-semibold">{(classAverageScore || 0).toFixed(0)}</span>
                     </p>
                   </div>
 
                   <div className="bg-white rounded-lg shadow p-1">
                     <h3 className="text-xs font-medium text-gray-500 mb-2">Son Deneme Net</h3>
-                    <p className="text-sm font-bold text-purple-600">{latestNet.toFixed(1)}</p>
+                    <p className="text-sm font-bold text-purple-600">{(latestNet || 0).toFixed(1)}</p>
                     <p className={`text-xs mt-1 ${
                       improvement >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {improvement >= 0 ? '+' : ''}{improvement.toFixed(1)} Değişim
+                      {(improvement || 0) >= 0 ? '+' : ''}{(improvement || 0).toFixed(1)} Değişim
                     </p>
                   </div>
 
                   <div className="bg-white rounded-lg shadow p-1">
                     <h3 className="text-xs font-medium text-gray-500 mb-2">Son Deneme Puan</h3>
-                    <p className="text-sm font-bold text-orange-600">{latestScore.toFixed(0)}</p>
+                    <p className="text-sm font-bold text-orange-600">{(latestScore || 0).toFixed(0)}</p>
                     <p className={`text-xs mt-1 ${
                       scoreImprovement >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {scoreImprovement >= 0 ? '+' : ''}{scoreImprovement.toFixed(0)} Değişim
+                      {(scoreImprovement || 0) >= 0 ? '+' : ''}{(scoreImprovement || 0).toFixed(0)} Değişim
                     </p>
                   </div>
                 </div>

@@ -1682,7 +1682,7 @@ export default function FoncsDataEntry() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-bold text-green-600">{student.avgNet.toFixed(2)} net</p>
+                            <p className="text-sm font-bold text-green-600">{(student.avgNet || 0).toFixed(2)} net</p>
                             <p className="text-xs text-gray-500">{student.totalExams} deneme</p>
                           </div>
                         </div>
@@ -1730,7 +1730,7 @@ export default function FoncsDataEntry() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-bold text-purple-600">{student.avgPuan.toFixed(0)} puan</p>
+                            <p className="text-sm font-bold text-purple-600">{(student.avgPuan || 0).toFixed(0)} puan</p>
                             <p className="text-xs text-gray-500">{student.totalExams} deneme</p>
                           </div>
                         </div>

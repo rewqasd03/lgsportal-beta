@@ -77,7 +77,7 @@ export default function Dashboard({ onShowMain, onGoToTab }: DashboardProps) {
   
   // Genel sistem istatistikleri
   const totalViews = students.reduce((sum, s) => sum + (s.viewCount || 0), 0);
-  const avgViewsPerStudent = totalStudents > 0 ? (totalViews / totalStudents).toFixed(1) : '0';
+  const avgViewsPerStudent = totalStudents > 0 ? ((totalViews / totalStudents) || 0).toFixed(1) : '0';
   const activeStudentsCount = students.filter(s => (s.viewCount || 0) > 0).length;
 
   if (loading) {

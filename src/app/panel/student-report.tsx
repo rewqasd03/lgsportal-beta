@@ -309,20 +309,20 @@ const PageOne: React.FC<{ reportData: ReportData }> = ({ reportData }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">📊 Toplam Net</h3>
-          <p className="text-3xl font-bold text-blue-600">{totalScore.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-blue-600">{(totalScore || 0).toFixed(2)}</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">🏫 Sınıf Ortalaması</h3>
-          <p className="text-3xl font-bold text-green-600">{avgClassScore.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-green-600">{(avgClassScore || 0).toFixed(2)}</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">🌍 Genel Ortalama</h3>
-          <p className="text-3xl font-bold text-red-600">{avgGeneralScore.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-red-600">{(avgGeneralScore || 0).toFixed(2)}</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">📈 Trend</h3>
           <p className={`text-3xl font-bold ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {trend >= 0 ? '+' : ''}{trend.toFixed(2)}
+            {(trend || 0) >= 0 ? '+' : ''}{(trend || 0).toFixed(2)}
           </p>
         </div>
       </div>

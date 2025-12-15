@@ -252,9 +252,9 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Sınıf Ortalaması</h3>
           <p className="text-3xl font-bold text-green-600">
             {trendsViewType === 'net' 
-              ? classAverage.toFixed(1) 
+              ? (classAverage || 0).toFixed(1) 
               : (filteredData.length > 0 ? 
-                  (filteredData.reduce((sum, s) => sum + s.averageScore, 0) / filteredData.length).toFixed(0)
+                  ((filteredData.reduce((sum, s) => sum + (s.averageScore || 0), 0) / filteredData.length) || 0).toFixed(0)
                   : '0')
             }
           </p>
@@ -266,8 +266,8 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
           <p className="text-3xl font-bold text-purple-600">
             {filteredData.length > 0 
               ? (trendsViewType === 'net' 
-                  ? Math.max(...filteredData.map(s => s.bestPerformance)).toFixed(1)
-                  : Math.max(...filteredData.map(s => s.bestScore)).toFixed(0)
+                  ? Math.max(...filteredData.map(s => s.bestPerformance || 0)).toFixed(1)
+                  : Math.max(...filteredData.map(s => s.bestScore || 0)).toFixed(0)
                 )
               : '0'
             }
@@ -379,21 +379,21 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                            'bg-red-100 text-red-800')
                     }`}>
                       {trendsViewType === 'net' 
-                        ? student.averageNet.toFixed(1)
-                        : student.averageScore.toFixed(0)
+                        ? (student.averageNet || 0).toFixed(1)
+                        : (student.averageScore || 0).toFixed(0)
                       }
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-green-600 font-semibold">
                     {trendsViewType === 'net' 
-                      ? student.bestPerformance.toFixed(1)
-                      : student.bestScore.toFixed(0)
+                      ? (student.bestPerformance || 0).toFixed(1)
+                      : (student.bestScore || 0).toFixed(0)
                     }
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600 font-semibold">
                     {trendsViewType === 'net' 
-                      ? student.worstPerformance.toFixed(1)
-                      : student.worstScore.toFixed(0)
+                      ? (student.worstPerformance || 0).toFixed(1)
+                      : (student.worstScore || 0).toFixed(0)
                     }
                   </td>
 
@@ -625,10 +625,10 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
               </div>
               <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                 <h4 className="font-semibold text-green-800">Sonuçlar</h4>
-                <p className="text-green-600">📈 Son Net: {analysis.latestNet.toFixed(1)}</p>
-                <p className="text-green-600">📊 Ortalama Net: {analysis.avgNet.toFixed(1)}</p>
-                <p className="text-green-600">📈 Son Puan: {analysis.latestScore.toFixed(0)}</p>
-                <p className="text-green-600">📊 Ortalama Puan: {analysis.avgScore.toFixed(0)}</p>
+                <p className="text-green-600">📈 Son Net: {(analysis.latestNet || 0).toFixed(1)}</p>
+                <p className="text-green-600">📊 Ortalama Net: {(analysis.avgNet || 0).toFixed(1)}</p>
+                <p className="text-green-600">📈 Son Puan: {(analysis.latestScore || 0).toFixed(0)}</p>
+                <p className="text-green-600">📊 Ortalama Puan: {(analysis.avgScore || 0).toFixed(0)}</p>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                 <h4 className="font-semibold text-purple-800">Trend Analizi</h4>
@@ -646,33 +646,33 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                   <h4 className="text-xs font-medium text-blue-800 mb-1">Ortalama Net</h4>
-                  <p className="text-lg font-bold text-blue-600">{analysis.avgNet.toFixed(1)}</p>
+                  <p className="text-lg font-bold text-blue-600">{(analysis.avgNet || 0).toFixed(1)}</p>
                   <p className="text-xs text-gray-600 mt-1">
-                    Sınıf: <span className="font-semibold">{analysis.classAverageNet.toFixed(1)}</span><br/>
-                    Genel: <span className="font-semibold">{analysis.generalAverageNet.toFixed(1)}</span>
+                    Sınıf: <span className="font-semibold">{(analysis.classAverageNet || 0).toFixed(1)}</span><br/>
+                    Genel: <span className="font-semibold">{(analysis.generalAverageNet || 0).toFixed(1)}</span>
                   </p>
                 </div>
 
                 <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                   <h4 className="text-xs font-medium text-green-800 mb-1">Son Deneme Net</h4>
-                  <p className="text-lg font-bold text-green-600">{analysis.latestNet.toFixed(1)}</p>
+                  <p className="text-lg font-bold text-green-600">{(analysis.latestNet || 0).toFixed(1)}</p>
                 </div>
 
                 <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                   <h4 className="text-xs font-medium text-purple-800 mb-1">Son Deneme Puan</h4>
-                  <p className="text-lg font-bold text-purple-600">{analysis.latestScore.toFixed(0)}</p>
+                  <p className="text-lg font-bold text-purple-600">{(analysis.latestScore || 0).toFixed(0)}</p>
                   <p className="text-xs text-gray-600 mt-1">
-                    Sınıf: <span className="font-semibold">{analysis.classAverageScore.toFixed(0)}</span><br/>
-                    Genel: <span className="font-semibold">{analysis.generalAverageScore.toFixed(0)}</span>
+                    Sınıf: <span className="font-semibold">{(analysis.classAverageScore || 0).toFixed(0)}</span><br/>
+                    Genel: <span className="font-semibold">{(analysis.generalAverageScore || 0).toFixed(0)}</span>
                   </p>
                 </div>
 
                 <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
                   <h4 className="text-xs font-medium text-orange-800 mb-1">Ortalama Puan</h4>
-                  <p className="text-lg font-bold text-orange-600">{analysis.avgScore.toFixed(0)}</p>
+                  <p className="text-lg font-bold text-orange-600">{(analysis.avgScore || 0).toFixed(0)}</p>
                   <p className="text-xs text-gray-600 mt-1">
-                    Sınıf: <span className="font-semibold">{analysis.classAverageScore.toFixed(0)}</span><br/>
-                    Genel: <span className="font-semibold">{analysis.generalAverageScore.toFixed(0)}</span>
+                    Sınıf: <span className="font-semibold">{(analysis.classAverageScore || 0).toFixed(0)}</span><br/>
+                    Genel: <span className="font-semibold">{(analysis.generalAverageScore || 0).toFixed(0)}</span>
                   </p>
                 </div>
               </div>
