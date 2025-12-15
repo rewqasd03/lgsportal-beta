@@ -3782,54 +3782,133 @@ const KitapSinaviTab = () => {
 
 // 🎓 LİSE TABAN PUANLARI TAB COMPONENT
 const LiseTabanPuanlariTab = () => {
+  const lgsSchools = [
+    {
+      name: "Van Türk Telekom Fen Lisesi",
+      type: "Fen Lisesi", 
+      score: "460.91",
+      percentile: "2.51",
+      capacity: "150",
+      district: "Edremit"
+    },
+    {
+      name: "İpekyolu Borsa İstanbul Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "441.61",
+      percentile: "4.67",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Tuşba TOBB Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "422.90",
+      percentile: "7.20",
+      capacity: "150",
+      district: "Tuşba"
+    },
+    {
+      name: "Niyazi Türkmenoğlu Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "416.75",
+      percentile: "8.09",
+      capacity: "120",
+      district: "İpekyolu"
+    },
+    {
+      name: "Şehit Erdoğan Cınbıroğlu Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "412.45",
+      percentile: "9.12",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Erciş Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "402.18",
+      percentile: "10.39",
+      capacity: "150",
+      district: "Erciş"
+    },
+    {
+      name: "Van Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "408.32",
+      percentile: "9.87",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Atatürk Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "405.78",
+      percentile: "10.23",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Kazım Karabekir Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "400.23",
+      percentile: "10.71",
+      capacity: "150",
+      district: "İpekyolu"
+    },
+    {
+      name: "Mehmet Akif Ersoy Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "402.15",
+      percentile: "10.58",
+      capacity: "150",
+      district: "İpekyolu"
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-6 flex items-center">
-              <span className="text-blue-600 mr-3">🎓</span>
-              Van İli Merkezi Yerleştirme Taban Puanları (2025)
-            </h3>
-            <p className="text-gray-600 mb-6">
-              2025 LGS sonuçlarına göre Van ilindeki merkezi yerleştirme kapsamındaki okulların taban puanları:
-            </p>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-4 font-semibold text-gray-800">Lise Adı</th>
-                    <th className="text-left p-4 font-semibold text-gray-800">Tür</th>
-                    <th className="text-center p-4 font-semibold text-gray-800">Taban Puan</th>
-                    <th className="text-center p-4 font-semibold text-gray-800">Yüzdelik Dilim</th>
-                    <th className="text-center p-4 font-semibold text-gray-800">Kontenjan</th>
-                    <th className="text-left p-4 font-semibold text-gray-800">İlçe</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {vanLgsSchools.map((school, index) => (
-                    <tr key={index} className="border-t hover:bg-gray-50">
-                      <td className="p-4 font-medium text-gray-900">{school.name}</td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          school.type === 'Fen Lisesi' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-green-100 text-green-800'
-                        }`}>
-                          {school.type}
-                        </span>
-                      </td>
-                      <td className="p-4 text-center font-bold text-blue-600 text-lg">{school.score}</td>
-                      <td className="p-4 text-center font-bold text-purple-600 text-lg">{school.percentile}%</td>
-                      <td className="p-4 text-center text-gray-700">{school.capacity}</td>
-                      <td className="p-4 text-gray-600">{school.district}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+          <span className="text-blue-600 mr-3">🎓</span>
+          Van İli Merkezi Yerleştirme Taban Puanları (2025)
+        </h3>
+        <p className="text-gray-600 mb-6">
+          2025 LGS sonuçlarına göre Van ilindeki merkezi yerleştirme kapsamındaki okulların taban puanları:
+        </p>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="text-left p-4 font-semibold text-gray-800">Lise Adı</th>
+                <th className="text-left p-4 font-semibold text-gray-800">Tür</th>
+                <th className="text-center p-4 font-semibold text-gray-800">Taban Puan</th>
+                <th className="text-center p-4 font-semibold text-gray-800">Yüzdelik Dilim</th>
+                <th className="text-center p-4 font-semibold text-gray-800">Kontenjan</th>
+                <th className="text-left p-4 font-semibold text-gray-800">İlçe</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lgsSchools.map((school, index) => (
+                <tr key={index} className="border-t hover:bg-gray-50">
+                  <td className="p-4 font-medium text-gray-900">{school.name}</td>
+                  <td className="p-4">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      school.type === 'Fen Lisesi' 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {school.type}
+                    </span>
+                  </td>
+                  <td className="p-4 text-center font-bold text-blue-600 text-lg">{school.score}</td>
+                  <td className="p-4 text-center font-bold text-purple-600 text-lg">{school.percentile}%</td>
+                  <td className="p-4 text-center text-gray-700">{school.capacity}</td>
+                  <td className="p-4 text-gray-600">{school.district}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
