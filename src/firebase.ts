@@ -1753,3 +1753,15 @@ export const updateKitapSinavi = async (sinavId: string, puanlar: {[studentId: s
     throw error;
   }
 };
+
+// Kitap sınavını sil
+export const deleteKitapSinavi = async (sinavId: string): Promise<void> => {
+  try {
+    const sinavRef = doc(db, 'kitapSinavlari', sinavId);
+    await deleteDoc(sinavRef);
+    console.log('📚 Kitap sınavı silindi:', sinavId);
+  } catch (error) {
+    console.error('Kitap sınavı silme hatası:', error);
+    throw error;
+  }
+};

@@ -5480,6 +5480,8 @@ const KitapSinaviTab = ({ students, onDataUpdate }: {
   const [kitapSinavlari, setKitapSinavlari] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingSinav, setEditingSinav] = useState<any>(null);
   const [newSinav, setNewSinav] = useState({
     kitapAdi: '',
     sinif: '',
@@ -5563,6 +5565,75 @@ const KitapSinaviTab = ({ students, onDataUpdate }: {
   // Seçilen sınıftaki öğrenciler
   const selectedClassStudents = students.filter(s => s.class === newSinav.sinif);
 
+  // Sınavı düzenle
+  const handleEditSinav = (sinav: any) => {
+    setEditingSinav(sinav);
+    setNewSinav({
+      kitapAdi: sinav.kitapAdi,
+      sinif: sinav.sinif,
+      tarih: sinav.tarih,
+      puanlar: Object.fromEntries(Object.entries(sinav.puanlar || {}).map(([id, p]: [string, any]) => [id, p.puan]))
+    });
+    setShowEditForm(true);
+    setShowAddForm(false);
+  };
+
+  // Sınavı güncelle
+  const handleUpdateSinav = async () => {
+    if (!editingSinav || !newSinav.kitapAdi || !newSinav.sinif) {
+      alert('Lütfen kitap adı ve sınıf seçiniz!');
+      return;
+    }
+
+    try {
+      const { updateKitapSinavi } = await import('../../firebase');
+      const puanlarFormatted = Object.entries(newSinav.puanlar).reduce((acc, [studentId, puan]) => {
+        acc[studentId] = { puan, tarih: newSinav.tarih };
+        return acc;
+      }, {} as {[studentId: string]: {puan: number; tarih: string}});
+
+      await updateKitapSinavi(editingSinav.id, puanlarFormatted);
+
+      // Form'u sıfırla
+      setEditingSinav(null);
+      setNewSinav({
+        kitapAdi: '',
+        sinif: '',
+        tarih: new Date().toISOString().split('T')[0],
+        puanlar: {}
+      });
+      setShowEditForm(false);
+      
+      // Listeyi yenile
+      loadKitapSinavlari();
+      
+      alert('📚 Kitap sınavı başarıyla güncellendi!');
+    } catch (error) {
+      console.error('Kitap sınavı güncellenirken hata:', error);
+      alert('Kitap sınavı güncellenirken hata oluştu!');
+    }
+  };
+
+  // Sınavı sil
+  const handleDeleteSinav = async (sinavId: string) => {
+    if (!confirm('Bu kitap sınavını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) {
+      return;
+    }
+
+    try {
+      const { deleteKitapSinavi } = await import('../../firebase');
+      await deleteKitapSinavi(sinavId);
+      
+      // Listeyi yenile
+      loadKitapSinavlari();
+      
+      alert('📚 Kitap sınavı başarıyla silindi!');
+    } catch (error) {
+      console.error('Kitap sınavı silinirken hata:', error);
+      alert('Kitap sınavı silinirken hata oluştu!');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Başlık ve Yeni Sınav Butonu */}
@@ -5572,10 +5643,14 @@ const KitapSinaviTab = ({ students, onDataUpdate }: {
           <p className="text-gray-600">Kitap sınavları oluşturun ve puanları yönetin</p>
         </div>
         <button
-          onClick={() => setShowAddForm(!showAddForm)}
+          onClick={() => {
+            setShowAddForm(!showAddForm);
+            setShowEditForm(false);
+            setEditingSinav(null);
+          }}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 font-medium"
         >
-          {showAddForm ? 'İptal' : '➕ Yeni Sınav Ekle'}
+          {showAddForm || showEditForm ? 'İptal' : '➕ Yeni Sınav Ekle'}
         </button>
       </div>
 
@@ -5667,10 +5742,107 @@ const KitapSinaviTab = ({ students, onDataUpdate }: {
           {/* Kaydet Butonu */}
           <div className="flex justify-end mt-6">
             <button
-              onClick={handleCreateSinav}
+              onClick={editingSinav ? handleUpdateSinav : handleCreateSinav}
               className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 font-medium"
             >
-              💾 Sınavı Kaydet
+              {editingSinav ? '💾 Sınavı Güncelle' : '💾 Sınavı Kaydet'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Sınav Düzenleme Formu */}
+      {showEditForm && editingSinav && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">✏️ Kitap Sınavını Düzenle</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Kitap Adı */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📖 Kitap Adı
+              </label>
+              <input
+                type="text"
+                value={newSinav.kitapAdi}
+                onChange={(e) => setNewSinav(prev => ({ ...prev, kitapAdi: e.target.value }))}
+                placeholder="Kitap adını giriniz..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Sınıf Seçimi */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                🏛️ Sınıf Seçin
+              </label>
+              <select
+                value={newSinav.sinif}
+                onChange={(e) => setNewSinav(prev => ({ 
+                  ...prev, 
+                  sinif: e.target.value,
+                  puanlar: {} // Sınıf değişince puanları sıfırla
+                }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Sınıf seçiniz...</option>
+                {uniqueClasses.map(sinif => (
+                  <option key={sinif} value={sinif}>{sinif}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tarih */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📅 Sınav Tarihi
+              </label>
+              <input
+                type="date"
+                value={newSinav.tarih}
+                onChange={(e) => setNewSinav(prev => ({ ...prev, tarih: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Öğrenci Listesi ve Puan Girişi */}
+          {selectedClassStudents.length > 0 && (
+            <div className="border rounded-lg p-4">
+              <h4 className="font-medium mb-3">
+                👥 {newSinav.sinif} Sınıfı Öğrencileri ({selectedClassStudents.length} öğrenci)
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                {selectedClassStudents.map(student => (
+                  <div key={student.id} className="flex items-center space-x-3 p-2 border rounded">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{student.name}</p>
+                      <p className="text-xs text-gray-500">No: {student.number}</p>
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      placeholder="Puan"
+                      value={newSinav.puanlar[student.id] || ''}
+                      onChange={(e) => handlePuanChange(student.id, e.target.value)}
+                      className="w-20 border border-gray-300 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Güncelle Butonu */}
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={handleUpdateSinav}
+              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 font-medium"
+            >
+              💾 Sınavı Güncelle
             </button>
           </div>
         </div>
@@ -5711,6 +5883,9 @@ const KitapSinaviTab = ({ students, onDataUpdate }: {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     📊 Ortalama
                   </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ⚙️ İşlemler
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -5737,6 +5912,24 @@ const KitapSinaviTab = ({ students, onDataUpdate }: {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-blue-600">{ortalama}</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleEditSinav(sinav)}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            title="Düzenle"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSinav(sinav.id)}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                            title="Sil"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
