@@ -1379,9 +1379,7 @@ function StudentDashboardContent() {
                   </div>
                 </div>
 
-
-                  
-            {activeTab === 4 && (
+                {activeTab === 4 && (
               <div className="space-y-3">
                 {/* Deneme Seçimi */}
                 <div className="bg-white rounded-lg shadow p-2">
