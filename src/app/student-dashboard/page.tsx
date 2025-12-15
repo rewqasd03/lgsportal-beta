@@ -576,7 +576,7 @@ function StudentDashboardContent() {
             <div className="mb-6">
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                  {[1, 2, 3, 4, 5, 6, 7].map((tab) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -593,6 +593,7 @@ function StudentDashboardContent() {
                       {tab === 5 && '🎯 Ders Bazında Gelişim'}
                       {tab === 6 && '🎯 Hedef Takibi & Lise Tercih Önerileri'}
                       {tab === 7 && '🧮 LGS Puan Hesaplama'}
+                      {tab === 8 && '📖 Kitap Sınavı'}
                     </button>
                   ))}
                 </nav>
@@ -2606,6 +2607,11 @@ function StudentDashboardContent() {
               <LGSHesaplamaTab />
             )}
 
+            {/* Tab 8: Kitap Sınavı */}
+            {activeTab === 8 && (
+              <KitapSinaviTab />
+            )}
+
 
           </>
         )}
@@ -3550,3 +3556,169 @@ export default function StudentDashboardPage() {
     </Suspense>
   );
 }
+
+// 📖 KITAP SINAVI TAB COMPONENT
+const KitapSinaviTab = () => {
+  const [kitapSinavlari, setKitapSinavlari] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Öğrenci ID'sini al
+  const [studentId, setStudentId] = useState<string>('');
+
+  // URL parametresinden öğrenci ID'sini al (hem id hem studentId destekli)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id') || urlParams.get('studentId') || '';
+    console.log('🔍 DEBUG: URL parametreleri:', window.location.search);
+    console.log('🔍 DEBUG: Bulunan student ID:', id);
+    setStudentId(id);
+    
+    if (id) {
+      loadKitapSinavlari(id);
+    } else {
+      // Student ID yoksa loading'i false yap
+      console.log('🔍 DEBUG: Student ID bulunamadı, loading=false');
+      setLoading(false);
+    }
+  }, []);
+
+  // Kitap sınavlarını getir
+  const loadKitapSinavlari = async (studentId: string) => {
+    console.log('🔍 DEBUG: loadKitapSinavlari başladı, studentId:', studentId);
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { getKitapSinavlari } = await import('../../firebase');
+      const sinavlar = await getKitapSinavlari();
+      
+      console.log('🔍 DEBUG: Firestore\'dan gelen sınavlar:', sinavlar);
+      
+      // Bu öğrencinin puanı olan sınavları filtrele
+      const ogrenciSinavlari = sinavlar.filter((sinav: any) => {
+        return sinav.puanlar && sinav.puanlar[studentId];
+      });
+      
+      console.log('🔍 DEBUG: Öğrencinin sınavları:', ogrenciSinavlari);
+      setKitapSinavlari(ogrenciSinavlari);
+    } catch (error) {
+      console.error('🔍 DEBUG: Kitap sınavları yüklenirken hata:', error);
+      setError('Kitap sınavları yüklenirken hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Kitap sınavları yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => studentId && loadKitapSinavlari(studentId)}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Tekrar Dene
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-6">
+              📖 Kitap Sınavlarım
+            </h3>
+            
+            {kitapSinavlari.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-gray-400 text-4xl mb-4">📚</div>
+                <p className="text-gray-500">Henüz kitap sınavı bulunmuyor.</p>
+                <p className="text-sm text-gray-400 mt-2">
+                  Öğretmenleriniz kitap sınavları ekledikçe burada görünecek.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        📚 Kitap & Sınıf
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        📅 Tarih
+                      </th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        🎯 Benim Puanım
+                      </th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        👥 Sınıf Ortalaması
+                      </th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        📈 Durum
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {kitapSinavlari.map((sinav) => {
+                      const benimPuanim = sinav.puanlar[studentId]?.puan || 0;
+                      const sinifPuanlari = Object.values(sinav.puanlar).map(p => (p as any).puan);
+                      const sinifOrtalamasi = sinifPuanlari.length > 0 
+                        ? (sinifPuanlari.reduce((a, b) => a + b, 0) / sinifPuanlari.length).toFixed(1)
+                        : '0';
+                      const fark = benimPuanim - parseFloat(sinifOrtalamasi);
+                      const durum = fark > 0 ? 'Üstte' : fark < 0 ? 'Altta' : 'Eşit';
+                      const durumRengi = fark > 0 ? 'text-green-600' : fark < 0 ? 'text-red-600' : 'text-gray-600';
+                      
+                      return (
+                        <tr key={sinav.id} className="hover:bg-gray-50">
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{sinav.kitapAdi}</div>
+                            <div className="text-xs text-gray-500">{sinav.sinif}</div>
+                          </td>
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {new Date(sinav.tarih).toLocaleDateString('tr-TR')}
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 whitespace-nowrap text-center">
+                            <div className="text-sm font-bold text-blue-600">{benimPuanim}</div>
+                          </td>
+                          <td className="px-3 py-3 whitespace-nowrap text-center">
+                            <div className="text-sm text-gray-900">{sinifOrtalamasi}</div>
+                          </td>
+                          <td className="px-3 py-3 whitespace-nowrap text-center">
+                            <div className={`text-sm font-medium ${durumRengi}`}>
+                              {durum} {fark !== 0 && `(${fark > 0 ? '+' : ''}${fark.toFixed(1)})`}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
