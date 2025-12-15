@@ -3523,23 +3523,18 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
           </div>
         </div>
 
-        {currentStudentScore === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-6xl mb-4">📊</div>
-            <h4 className="text-lg font-semibold text-gray-800 mb-2">Puan Bilgisi Bulunamadı</h4>
-            <p className="text-gray-600">
-              Lise tercih önerilerini görebilmek için en az bir deneme puanınız olmalıdır.
-            </p>
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <div className="text-6xl mb-4">🎓</div>
-            <h4 className="text-lg font-semibold text-gray-800 mb-2">Tercih Önerileri</h4>
-            <p className="text-gray-600">
-              Öğrenci puanınız: {Math.round(currentStudentScore)} puan
-            </p>
-          </div>
-        )}
+        <div className="text-center py-8">
+          <div className="text-6xl mb-4">🎓</div>
+          <h4 className="text-lg font-semibold text-gray-800 mb-2">Tercih Önerileri</h4>
+          <p className="text-gray-600">
+            Öğrenci puanınız: {Math.round(currentStudentScore)} puan
+            {currentStudentScore === 0 && (
+              <span className="block text-sm text-orange-600 mt-2">
+                ⚠️ Henüz deneme puanı bulunmuyor, öneriler genel bilgilendirme amaçlıdır.
+              </span>
+            )}
+          </p>
+        </div>
       </div>
     </div>
   );
