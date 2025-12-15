@@ -5127,19 +5127,14 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
         }
       }
       
-      // Eğer hala yoksa, nets.total kullan
+      // Eğer hala yoksa, nets.total kullan (nets hesaplaması yapmadan)
       if (!totalScore && result.nets?.total) {
         totalScore = result.nets.total;
         console.log(`🔥 PANEL DEBUG - Step 3 - nets.total: ${totalScore}`);
       }
 
-      // Eğer hala yoksa, nets içindeki ders bazında hesaplama yap
-      if (!totalScore && result.nets) {
-        const subjectNets = Object.values(result.nets).filter(net => typeof net === 'number');
-        const calculatedTotal = subjectNets.reduce((sum, net) => sum + (net as number), 0);
-        totalScore = calculatedTotal * 5;
-        console.log(`🔥 PANEL DEBUG - Step 4 - calculated from subject nets: ${calculatedTotal} * 5 = ${totalScore}`);
-      }
+      // NOT: Ders bazında nets hesaplaması kaldırıldı çünkü kullanıcı toplu denemede girdiği puanı görmek istiyor
+      // Eğer manuel puan veya totalScore yoksa, puan bulunamadı olarak göster
 
       console.log(`🔥 PANEL DEBUG - Final score for exam ${exam.title}: ${totalScore}`);
       
