@@ -3724,27 +3724,39 @@ const KitapSinaviTab = () => {
     
     if (id) {
       loadKitapSinavlari(id);
+    } else {
+      // Student ID yoksa loading'i false yap
+      setLoading(false);
     }
   }, []);
 
   // Kitap sınavlarını getir
   const loadKitapSinavlari = async (studentId: string) => {
+    console.log('🔍 DEBUG: loadKitapSinavlari başladı, studentId:', studentId);
     setLoading(true);
     setError(null);
     try {
+      console.log('🔍 DEBUG: Firebase import başladı...');
       const { getKitapSinavlari } = await import('../../firebase');
+      console.log('🔍 DEBUG: Firebase import tamamlandı');
+      
+      console.log('🔍 DEBUG: getKitapSinavlari() çağrılıyor...');
       const sinavlar = await getKitapSinavlari();
+      console.log('🔍 DEBUG: getKitapSinavlari tamamlandı, bulunan sınavlar:', sinavlar.length);
       
       // Sadece bu öğrencinin sınavlarını filtrele
       const ogrenciSinavlari = sinavlar.filter(sinav => 
         sinav.puanlar && sinav.puanlar[studentId]
       );
+      console.log('🔍 DEBUG: Filtrelenmiş öğrenci sınavları:', ogrenciSinavlari.length);
       
       setKitapSinavlari(ogrenciSinavlari);
+      console.log('🔍 DEBUG: State güncellendi');
     } catch (error) {
-      console.error('Kitap sınavları yüklenirken hata:', error);
-      setError('Kitap sınavları yüklenirken hata oluştu');
+      console.error('🔍 DEBUG: Kitap sınavları yüklenirken hata:', error);
+      setError('Kitap sınavları yüklenirken hata oluştu: ' + (error as Error).message);
     } finally {
+      console.log('🔍 DEBUG: finally bloğu çalıştı, loading=false');
       setLoading(false);
     }
   };
@@ -3771,6 +3783,23 @@ const KitapSinaviTab = () => {
           <div className="text-center py-8">
             <div className="text-red-500 text-xl mb-2">⚠️</div>
             <p className="text-red-600">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Student ID yoksa
+  if (!studentId) {
+    return (
+      <div className="space-y-3">
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="text-center py-8">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Öğrenci Kimliği Bulunamadı</h3>
+            <p className="text-gray-600">
+              Kitap sınavlarını görüntülemek için öğrenci kimliği gerekli. URL'de 'id' parametresi eksik.
+            </p>
           </div>
         </div>
       </div>
