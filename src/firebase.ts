@@ -1684,3 +1684,72 @@ export const getAllTargets = async (): Promise<{[studentId: string]: {[subject: 
     return {};
   }
 };
+
+// 📚 KITAP SINAVI INTERFACE VE FONKSİYONLARI
+export interface KitapSinavi {
+  id: string;
+  kitapAdi: string;
+  sinif: string;
+  tarih: string;
+  puanlar: {[studentId: string]: {
+    puan: number;
+    tarih: string;
+  }};
+  createdAt: string;
+}
+
+// Yeni kitap sınavı ekle
+export const addKitapSinavi = async (kitapSinavi: Omit<KitapSinavi, 'id' | 'createdAt'>): Promise<string> => {
+  try {
+    const kitapSinavlariRef = collection(db, 'kitapSinavlari');
+    const docRef = await addDoc(kitapSinavlariRef, {
+      ...kitapSinavi,
+      createdAt: new Date().toISOString()
+    });
+    console.log('📚 Kitap sınavı eklendi:', docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error('Kitap sınavı ekleme hatası:', error);
+    throw error;
+  }
+};
+
+// Tüm kitap sınavlarını getir
+export const getKitapSinavlari = async (): Promise<KitapSinavi[]> => {
+  try {
+    const kitapSinavlariRef = collection(db, 'kitapSinavlari');
+    const querySnapshot = await getDocs(kitapSinavlariRef);
+    
+    const kitapSinavlari: KitapSinavi[] = [];
+    querySnapshot.forEach((doc) => {
+      kitapSinavlari.push({
+        id: doc.id,
+        ...doc.data()
+      } as KitapSinavi);
+    });
+    
+    // Tarihe göre sırala (en yeni en başta)
+    kitapSinavlari.sort((a, b) => new Date(b.tarih).getTime() - new Date(a.tarih).getTime());
+    
+    console.log('📚 Bulunan kitap sınavları:', kitapSinavlari.length);
+    return kitapSinavlari;
+  } catch (error) {
+    console.error('Kitap sınavları getirme hatası:', error);
+    return [];
+  }
+};
+
+// Kitap sınavını güncelle
+export const updateKitapSinavi = async (sinavId: string, puanlar: {[studentId: string]: {puan: number; tarih: string}}): Promise<void> => {
+  try {
+    const sinavRef = doc(db, 'kitapSinavlari', sinavId);
+    await updateDoc(sinavRef, {
+      puanlar,
+      updatedAt: new Date().toISOString()
+    });
+    console.log('📚 Kitap sınavı güncellendi:', sinavId);
+  } catch (error) {
+    console.error('Kitap sınavı güncelleme hatası:', error);
+    throw error;
+  }
+};

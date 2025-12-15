@@ -1102,6 +1102,7 @@ const TABS: Tab[] = [
   { key: "bireysel", label: "👨‍🎓 Bireysel Veri" },
   { key: "toplu", label: "👥 Toplu Veri" },
   { key: "excel-import", label: "📊 Excel İçe Aktar" },
+  { key: "kitap-sinavi", label: "📚 Kitap Sınavı" },
 
   { key: "hedef", label: "🎯 Hedef Belirleme" },
   { key: "lgs-hesaplama", label: "🧮 LGS Puan Hesaplama" },
@@ -3985,6 +3986,7 @@ export default function FoncsDataEntry() {
       case "bireysel": return <IndividualTab />;
       case "toplu": return <BulkTab />;
       case "excel-import": return <ExcelImportTab students={students} exams={exams} onDataUpdate={loadDataFromFirebase} />;
+      case "kitap-sinavi": return <KitapSinaviTab students={students} onDataUpdate={loadDataFromFirebase} />;
 
       case "hedef": return <TargetTab />;
       case "lgs-hesaplama": return <LGSCalculatorTab />;
@@ -5465,6 +5467,284 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
           <li>• <strong>Riskli:</strong> Puanınız taban puandan düşük</li>
           <li>• <strong>Başarı Oranı:</strong> Mezun olan öğrencilerin üniversite kazanma oranı</li>
         </ul>
+      </div>
+    </div>
+  );
+};
+
+// 📚 KITAP SINAVI TAB COMPONENT
+const KitapSinaviTab = ({ students, onDataUpdate }: { 
+  students: Student[], 
+  onDataUpdate: () => void 
+}) => {
+  const [kitapSinavlari, setKitapSinavlari] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newSinav, setNewSinav] = useState({
+    kitapAdi: '',
+    sinif: '',
+    tarih: new Date().toISOString().split('T')[0],
+    puanlar: {} as {[studentId: string]: number}
+  });
+
+  // Tüm sınıfları al
+  const uniqueClasses = Array.from(new Set(students.map(s => s.class))).sort();
+
+  // Kitap sınavlarını getir
+  useEffect(() => {
+    loadKitapSinavlari();
+  }, []);
+
+  const loadKitapSinavlari = async () => {
+    setLoading(true);
+    try {
+      const { getKitapSinavlari } = await import('../../firebase');
+      const sinavlar = await getKitapSinavlari();
+      setKitapSinavlari(sinavlar);
+    } catch (error) {
+      console.error('Kitap sınavları yüklenirken hata:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Yeni sınav oluştur
+  const handleCreateSinav = async () => {
+    if (!newSinav.kitapAdi || !newSinav.sinif) {
+      alert('Lütfen kitap adı ve sınıf seçiniz!');
+      return;
+    }
+
+    try {
+      const { addKitapSinavi } = await import('../../firebase');
+      const puanlarFormatted = Object.entries(newSinav.puanlar).reduce((acc, [studentId, puan]) => {
+        acc[studentId] = { puan, tarih: newSinav.tarih };
+        return acc;
+      }, {} as {[studentId: string]: {puan: number; tarih: string}});
+
+      await addKitapSinavi({
+        kitapAdi: newSinav.kitapAdi,
+        sinif: newSinav.sinif,
+        tarih: newSinav.tarih,
+        puanlar: puanlarFormatted
+      });
+
+      // Form'u sıfırla
+      setNewSinav({
+        kitapAdi: '',
+        sinif: '',
+        tarih: new Date().toISOString().split('T')[0],
+        puanlar: {}
+      });
+      setShowAddForm(false);
+      
+      // Listeyi yenile
+      loadKitapSinavlari();
+      
+      alert('📚 Kitap sınavı başarıyla eklendi!');
+    } catch (error) {
+      console.error('Kitap sınavı eklenirken hata:', error);
+      alert('Kitap sınavı eklenirken hata oluştu!');
+    }
+  };
+
+  // Puan güncelle
+  const handlePuanChange = (studentId: string, puan: string) => {
+    const puanNum = parseFloat(puan) || 0;
+    setNewSinav(prev => ({
+      ...prev,
+      puanlar: {
+        ...prev.puanlar,
+        [studentId]: puanNum
+      }
+    }));
+  };
+
+  // Seçilen sınıftaki öğrenciler
+  const selectedClassStudents = students.filter(s => s.class === newSinav.sinif);
+
+  return (
+    <div className="space-y-6">
+      {/* Başlık ve Yeni Sınav Butonu */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">📚 Kitap Sınavı Yönetimi</h2>
+          <p className="text-gray-600">Kitap sınavları oluşturun ve puanları yönetin</p>
+        </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 font-medium"
+        >
+          {showAddForm ? 'İptal' : '➕ Yeni Sınav Ekle'}
+        </button>
+      </div>
+
+      {/* Yeni Sınav Ekleme Formu */}
+      {showAddForm && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">📝 Yeni Kitap Sınavı Oluştur</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Kitap Adı */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📖 Kitap Adı
+              </label>
+              <input
+                type="text"
+                value={newSinav.kitapAdi}
+                onChange={(e) => setNewSinav(prev => ({ ...prev, kitapAdi: e.target.value }))}
+                placeholder="Kitap adını giriniz..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Sınıf Seçimi */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                🏛️ Sınıf Seçin
+              </label>
+              <select
+                value={newSinav.sinif}
+                onChange={(e) => setNewSinav(prev => ({ 
+                  ...prev, 
+                  sinif: e.target.value,
+                  puanlar: {} // Sınıf değişince puanları sıfırla
+                }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Sınıf seçiniz...</option>
+                {uniqueClasses.map(sinif => (
+                  <option key={sinif} value={sinif}>{sinif}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tarih */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📅 Sınav Tarihi
+              </label>
+              <input
+                type="date"
+                value={newSinav.tarih}
+                onChange={(e) => setNewSinav(prev => ({ ...prev, tarih: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Öğrenci Listesi ve Puan Girişi */}
+          {selectedClassStudents.length > 0 && (
+            <div className="border rounded-lg p-4">
+              <h4 className="font-medium mb-3">
+                👥 {newSinav.sinif} Sınıfı Öğrencileri ({selectedClassStudents.length} öğrenci)
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                {selectedClassStudents.map(student => (
+                  <div key={student.id} className="flex items-center space-x-3 p-2 border rounded">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{student.name}</p>
+                      <p className="text-xs text-gray-500">No: {student.number}</p>
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      placeholder="Puan"
+                      value={newSinav.puanlar[student.id] || ''}
+                      onChange={(e) => handlePuanChange(student.id, e.target.value)}
+                      className="w-20 border border-gray-300 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Kaydet Butonu */}
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={handleCreateSinav}
+              className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 font-medium"
+            >
+              💾 Sınavı Kaydet
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Mevcut Kitap Sınavları */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-semibold">📊 Mevcut Kitap Sınavları</h3>
+        </div>
+        
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="text-gray-500 mt-2">Yükleniyor...</p>
+          </div>
+        ) : kitapSinavlari.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            📚 Henüz kitap sınavı bulunmamaktadır.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    📖 Kitap Adı
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    🏛️ Sınıf
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    📅 Tarih
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    👥 Öğrenci Sayısı
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    📊 Ortalama
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {kitapSinavlari.map((sinav) => {
+                  const ogrenciSayisi = Object.keys(sinav.puanlar || {}).length;
+                  const puanlar = Object.values(sinav.puanlar || {}).map(p => p.puan);
+                  const ortalama = puanlar.length > 0 ? (puanlar.reduce((a, b) => a + b, 0) / puanlar.length).toFixed(1) : '0';
+                  
+                  return (
+                    <tr key={sinav.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{sinav.kitapAdi}</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{sinav.sinif}</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {new Date(sinav.tarih).toLocaleDateString('tr-TR')}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{ogrenciSayisi}</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-blue-600">{ortalama}</div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
