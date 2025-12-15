@@ -999,22 +999,25 @@ function StudentDashboardContent() {
                       return subjects.map((subject) => {
                         const subjectNet = nets[subject.key] || 0;
                         const targetNet = studentTargets[subject.key] || 0;
+                        const studentTotalNet = studentResult?.nets?.total || 0;
                         
                         return (
                           <div key={subject.name} className="bg-gray-50 p-3 rounded-lg border-l-4" style={{borderColor: subject.color}}>
                             <h4 className="text-xs font-medium text-gray-700 mb-1">{subject.name}</h4>
                             <p className="text-lg font-bold" style={{color: subject.color}}>
-                              {subjectNet.toFixed(1)}
+                              {studentTotalNet > 0 ? subjectNet.toFixed(1) : 'Girmedi'}
                             </p>
-                            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                              <div 
-                                className="h-2 rounded-full" 
-                                style={{
-                                  backgroundColor: subject.color,
-                                  width: `${Math.min((subjectNet / Math.max(targetNet, 20)) * 100, 100)}%`
-                                }}
-                              ></div>
-                            </div>
+                            {studentTotalNet > 0 && (
+                              <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div 
+                                  className="h-2 rounded-full" 
+                                  style={{
+                                    backgroundColor: subject.color,
+                                    width: `${Math.min((subjectNet / Math.max(targetNet, 20)) * 100, 100)}%`
+                                  }}
+                                ></div>
+                              </div>
+                            )}
                             <p className="text-xs text-gray-500 mt-1">
                               Hedef: {targetNet.toFixed(1)}
                             </p>
@@ -2206,6 +2209,10 @@ function StudentDashboardContent() {
                         const studentResult = item.studentResults[0];
                         const studentNet = studentResult?.nets?.[subject.key] || 0;
                         
+                        // Öğrenci denemeye girmemişse (nets.total = 0), bu ders için de null yap
+                        const studentTotalNet = studentResult?.nets?.total || 0;
+                        const displayStudentNet = studentTotalNet > 0 ? studentNet : null;
+                        
                         // Sınıf ortalaması: denemeye giren öğrencilerin o ders net ortalaması
                         const examResults = allResultsData.filter(r => r.examId === item.exam.id);
                         const classStudents = examResults.filter(r => {
@@ -2222,7 +2229,7 @@ function StudentDashboardContent() {
                         
                         return {
                           exam: item.exam.title,
-                          öğrenci: studentNet,
+                          öğrenci: displayStudentNet, // 0 ise null yap
                           sınıf: classSubjectAverage,
                           genel: generalSubjectAverage,
                           index: index + 1
@@ -2254,7 +2261,7 @@ function StudentDashboardContent() {
                               />
                               <YAxis domain={yAxisDomain} tick={{ fontSize: 9 }} />
                               <Tooltip 
-                                formatter={(value, name) => [`${Number(value).toFixed(1)}`, name]}
+                                formatter={(value, name) => [value !== null && value !== undefined ? `${Number(value).toFixed(1)}` : 'Girmedi', name]}
                                 labelFormatter={(label) => `Deneme ${label}`}
                               />
                               <Legend />
