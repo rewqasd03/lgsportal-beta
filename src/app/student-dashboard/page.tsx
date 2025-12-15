@@ -2409,67 +2409,7 @@ function StudentDashboardContent() {
                 })()}
                 </div>
 
-                {/* Genel Hedef Ulaşma Durumu Özeti */}
-                <div className="bg-white rounded-lg shadow p-2">
-                  <h3 className="text-sm font-semibold text-gray-800 mb-2">🏆 Genel Hedefe Ulaşma Durumu</h3>
-                  
-                  {(() => {
-                    const targets = studentTargets || {};
-                    const toplamHedef = Object.values(targets).reduce((sum, target) => sum + (target || 0), 0);
-                    
-                    // Eğer hiç hedef belirlenmemişse mesaj göster
-                    if (toplamHedef === 0) {
-                      return (
-                        <div className="text-center py-6">
-                          <div className="text-6xl mb-4">🎯</div>
-                          <h4 className="text-sm font-medium text-gray-800 mb-2">Hedeflerinizi Belirleyin!</h4>
-                          <p className="text-gray-600 mb-4">
-                            Henüz hiç hedef belirlenmemiş. Panel kısmından hedeflerinizi belirleyin ve takip edin.
-                          </p>
-                          <p className="text-sm text-blue-600 font-medium">
-                            📌 Panel → Hedef Belirleme menüsünden ders bazında hedeflerinizi girebilirsiniz.
-                          </p>
-                        </div>
-                      );
-                    }
-                    
-                    const tamamlanmaOrani = (latestNet / toplamHedef);
-                    
-                    return (
-                      <div className="text-center">
-                        <div className="mb-2">
-                          <p className="text-sm font-medium text-gray-700">
-                            Genel Hedef: {toplamHedef.toFixed(1)} net
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Mevcut Durum: {latestNet.toFixed(1)} net
-                          </p>
-                        </div>
-                        
-                        <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-                          <div 
-                            className={`h-3 rounded-full ${tamamlanmaOrani >= 1 ? 'bg-green-500' : tamamlanmaOrani >= 0.8 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                            style={{ width: `${Math.min(100, tamamlanmaOrani * 100)}%` }}
-                          ></div>
-                        </div>
-                        
-                        <p className="text-sm font-bold">
-                          {Math.round(Math.min(100, tamamlanmaOrani * 100))}% tamamlandı
-                        </p>
-                        
-                        <div className="mt-3 p-2 bg-blue-50 rounded-lg">
-                          <p className="text-xs text-gray-700">
-                            {tamamlanmaOrani >= 1 ? 
-                              '🎉 Tebrikler! Genel hedefe ulaştınız! Daha yüksek hedefler belirleyebilirsiniz.' :
-                              tamamlanmaOrani >= 0.8 ?
-                              `📈 Harika ilerleme! Hedefe ${(toplamHedef - latestNet).toFixed(1)} net kaldı.` :
-                              `🎯 Hedefe ${(toplamHedef - latestNet).toFixed(1)} net kaldı. Çalışmaya devam edin!`}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
+
 
                 {/* Denemeler ve Hedefe Ulaşma Durumu - Ders Bazında */}
                 <div className="bg-white rounded-lg shadow p-2">
@@ -3489,6 +3429,90 @@ function YerelYerlestirmePuanlari() {
   );
 }
 
+// Van İli Lise Taban Puanları Verisi
+const vanLgsSchools = [
+  {
+    name: "Van Türk Telekom Fen Lisesi",
+    type: "Fen Lisesi", 
+    score: "460.91",
+    percentile: "2.51",
+    capacity: "150",
+    district: "Edremit"
+  },
+  {
+    name: "İpekyolu Borsa İstanbul Fen Lisesi",
+    type: "Fen Lisesi",
+    score: "441.61",
+    percentile: "4.67",
+    capacity: "150",
+    district: "İpekyolu"
+  },
+  {
+    name: "Tuşba TOBB Fen Lisesi",
+    type: "Fen Lisesi",
+    score: "422.90",
+    percentile: "7.20",
+    capacity: "150",
+    district: "Tuşba"
+  },
+  {
+    name: "Niyazi Türkmenoğlu Anadolu Lisesi",
+    type: "Anadolu Lisesi",
+    score: "416.75",
+    percentile: "8.09",
+    capacity: "120",
+    district: "İpekyolu"
+  },
+  {
+    name: "Şehit Erdoğan Cınbıroğlu Anadolu Lisesi",
+    type: "Anadolu Lisesi",
+    score: "412.45",
+    percentile: "9.12",
+    capacity: "150",
+    district: "İpekyolu"
+  },
+  {
+    name: "Erciş Fen Lisesi",
+    type: "Fen Lisesi",
+    score: "402.18",
+    percentile: "10.39",
+    capacity: "150",
+    district: "Erciş"
+  },
+  {
+    name: "Van Anadolu Lisesi",
+    type: "Anadolu Lisesi",
+    score: "408.32",
+    percentile: "9.87",
+    capacity: "150",
+    district: "İpekyolu"
+  },
+  {
+    name: "Atatürk Anadolu Lisesi",
+    type: "Anadolu Lisesi",
+    score: "405.78",
+    percentile: "10.23",
+    capacity: "150",
+    district: "İpekyolu"
+  },
+  {
+    name: "Kazım Karabekir Anadolu Lisesi",
+    type: "Anadolu Lisesi",
+    score: "400.23",
+    percentile: "10.71",
+    capacity: "150",
+    district: "İpekyolu"
+  },
+  {
+    name: "Mehmet Akif Ersoy Anadolu Lisesi",
+    type: "Anadolu Lisesi",
+    score: "402.15",
+    percentile: "10.58",
+    capacity: "150",
+    district: "İpekyolu"
+  }
+];
+
 // Lise Tercih Önerileri Tab Komponenti - Hedef Takibi için
 function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestScore }: {
   reportData: ReportData;
@@ -3498,6 +3522,36 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
 }) {
   // latestScore parent'tan en yüksek puan olarak geliyor
   const currentStudentScore = latestScore;
+  
+  // Öğrencinin puanına göre uygun okulları filtrele ve sırala
+  const getRecommendedSchools = (studentScore: number) => {
+    if (studentScore === 0) return vanLgsSchools.slice(0, 5); // Puan yoksa ilk 5 okul
+    
+    const numericScore = parseFloat(studentScore.toString());
+    return vanLgsSchools
+      .filter(school => {
+        const schoolScore = parseFloat(school.score);
+        // Öğrencinin puanından düşük taban puana sahip okulları göster
+        return schoolScore <= numericScore;
+      })
+      .sort((a, b) => {
+        // En yüksek taban puandan düşüğe sırala
+        return parseFloat(b.score) - parseFloat(a.score);
+      })
+      .slice(0, 5); // En fazla 5 okul göster
+  };
+  
+  const recommendedSchools = getRecommendedSchools(currentStudentScore);
+  
+  const getRecommendationStatus = (schoolScore: number, studentScore: number) => {
+    if (studentScore === 0) return { text: "Puan bilgisi yok", color: "text-gray-500" };
+    
+    const diff = studentScore - schoolScore;
+    if (diff >= 20) return { text: "Güvenli", color: "text-green-600" };
+    if (diff >= 10) return { text: "İhtiyatlı", color: "text-yellow-600" };
+    if (diff >= 0) return { text: "Riskli", color: "text-orange-600" };
+    return { text: "Ulaşılamaz", color: "text-red-600" };
+  };
   
   return (
     <div className="space-y-4">
@@ -3524,17 +3578,92 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
           </div>
         </div>
 
-        <div className="text-center py-8">
-          <div className="text-6xl mb-4">🎓</div>
-          <h4 className="text-lg font-semibold text-gray-800 mb-2">Tercih Önerileri</h4>
-          <p className="text-gray-600">
-            Öğrenci puanınız: {Math.round(currentStudentScore)} puan
-            {currentStudentScore === 0 && (
-              <span className="block text-sm text-orange-600 mt-2">
-                ⚠️ Henüz deneme puanı bulunmuyor, öneriler genel bilgilendirme amaçlıdır.
-              </span>
-            )}
-          </p>
+        {/* Önerilen Okullar */}
+        <div className="space-y-4">
+          <h4 className="text-lg font-semibold text-gray-800 mb-3">
+            🎯 Size Önerilen Liseler (Van İli - 2025 LGS)
+          </h4>
+          
+          {currentStudentScore === 0 && (
+            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg mb-4">
+              <p className="text-orange-700 text-sm">
+                ⚠️ Henüz deneme puanı bulunmuyor. Öneriler genel bilgilendirme amaçlıdır. 
+                Deneme sınavları çözdükten sonra size özel öneriler alabilirsiniz.
+              </p>
+            </div>
+          )}
+          
+          <div className="overflow-x-auto">
+            <table className="w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Lise Adı</th>
+                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Tür</th>
+                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Taban Puan</th>
+                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Yüzdelik</th>
+                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Kontenjan</th>
+                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">İlçe</th>
+                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Öneri Durumu</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {recommendedSchools.map((school, index) => {
+                  const status = getRecommendationStatus(parseFloat(school.score), currentStudentScore);
+                  return (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-3 py-3">
+                        <div className="text-sm font-medium text-gray-900">{school.name}</div>
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          school.type === 'Fen Lisesi' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {school.type}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        <div className="text-sm font-bold text-blue-600">{school.score}</div>
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        <div className="text-sm font-bold text-purple-600">{school.percentile}%</div>
+                      </td>
+                      <td className="px-3 py-3 text-center text-sm text-gray-700">{school.capacity}</td>
+                      <td className="px-3 py-3 text-center text-sm text-gray-600">{school.district}</td>
+                      <td className="px-3 py-3 text-center">
+                        <span className={`text-xs font-medium ${status.color}`}>
+                          {status.text}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <h5 className="text-sm font-semibold text-gray-800 mb-2">📋 Öneri Açıklamaları:</h5>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                <span className="text-green-600">Güvenli (≥20 puan fark)</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                <span className="text-yellow-600">İhtiyatlı (10-19 puan)</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+                <span className="text-orange-600">Riskli (0-9 puan)</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                <span className="text-red-600">Ulaşılamaz</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
