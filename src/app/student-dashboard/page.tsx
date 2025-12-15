@@ -485,12 +485,12 @@ function StudentDashboardContent() {
     calculateLatestStudentScore(reportData.examResults[reportData.examResults.length - 2].studentResults[0]?.studentId || '') : 0;
   const scoreImprovement = latestScore - previousScore;
   
+  // Renk kodları - Tüm dersler için sabit renk
+  const COLORS = ['#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6'];
+
   // Trend analizi
   const trend = scoreImprovement > 2 ? 'Yükseliş' : scoreImprovement < -2 ? 'Düşüş' : 'Stabil';
   const trendColor = scoreImprovement > 2 ? 'text-green-600' : scoreImprovement < -2 ? 'text-red-600' : 'text-yellow-600';
-
-  // Renk kodları - Tüm dersler için sabit renk
-  const COLORS = ['#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6'];
 
   // Grafik verileri
   const netChartData = reportData.examResults.map((item, index) => ({
