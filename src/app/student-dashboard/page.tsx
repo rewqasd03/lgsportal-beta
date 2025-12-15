@@ -3518,8 +3518,16 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
   latestNet: number;
   latestScore: number;
 }) {
-  // latestScore parent'tan en yüksek puan olarak geliyor
-  const currentStudentScore = latestScore;
+  // Ortalama puanı hesapla
+  const studentScores = reportData.examResults.filter(r => r.studentTotalScore > 0).map(r => r.studentTotalScore);
+  const currentStudentScore = studentScores.length > 0 
+    ? studentScores.reduce((sum, score) => sum + score, 0) / studentScores.length 
+    : 0;
+  
+  // Son deneme puanını al
+  const lastExamScore = reportData.examResults.length > 0 
+    ? reportData.examResults[reportData.examResults.length - 1].studentTotalScore 
+    : 0;
   
   // Öğrencinin puanına göre uygun okulları filtrele ve sırala
   const getRecommendedSchools = (studentScore: number) => {
@@ -3530,8 +3538,8 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
       .filter(school => {
         const schoolScore = parseFloat(school.score);
         // Öğrencinin puanından çok düşük taban puana sahip okulları filtrele
-        // Öğrencinin puanından 60 puan aşağısına kadar göster
-        return schoolScore >= numericScore - 60;
+        // Öğrencinin puanından 80 puan aşağısına kadar göster
+        return schoolScore >= numericScore - 80;
       })
       .sort((a, b) => {
         // En yüksek taban puandan düşüğe sırala
@@ -3546,10 +3554,13 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
     if (studentScore === 0) return { text: "Puan bilgisi yok", color: "text-gray-500" };
     
     const diff = studentScore - schoolScore;
-    if (diff >= 40) return { text: "Güvenli", color: "text-green-600" };
-    if (diff >= 20) return { text: "İhtiyatlı", color: "text-yellow-600" };
-    if (diff >= 0) return { text: "Riskli", color: "text-orange-600" };
-    return null; // Ulaşılamaz durumunu tamamen kaldır
+    // Güvenli: Ortalama puan -40 ile ortalama puan arası (0 <= diff <= 40)
+    if (diff >= 0 && diff <= 40) return { text: "Güvenli", color: "text-green-600" };
+    // İhtiyatlı: Ortalama puan ile ortalama puan +40 arası (-40 <= diff < 0)
+    if (diff >= -40 && diff < 0) return { text: "İhtiyatlı", color: "text-yellow-600" };
+    // Riskli: Ortalama puan +40 ile ortalama puan +80 arası (-80 <= diff < -40)
+    if (diff >= -80 && diff < -40) return { text: "Riskli", color: "text-orange-600" };
+    return null; // Çok yüksek puanlı okulları gösterme
   };
   
   return (
@@ -3559,20 +3570,26 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
         
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h4 className="text-lg font-semibold text-blue-900 mb-2">📊 Mevcut Durumunuz</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
                 {currentStudentScore > 0 ? `${Math.round(currentStudentScore)} puan` : 'Puan bulunamadı'}
               </div>
-              <div className="text-sm text-blue-700">En Yüksek Deneme Puanınız</div>
+              <div className="text-sm text-blue-700">Ortalama Puanınız</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {lastExamScore > 0 ? `${Math.round(lastExamScore)} puan` : '-'}
+              </div>
+              <div className="text-sm text-purple-700">Son Deneme Puanınız</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">{latestNet.toFixed(1)} net</div>
               <div className="text-sm text-green-700">Son Deneme Net'iniz</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{reportData.examResults.length}</div>
-              <div className="text-sm text-purple-700">Toplam Deneme Sayınız</div>
+              <div className="text-2xl font-bold text-orange-600">{reportData.examResults.length}</div>
+              <div className="text-sm text-orange-700">Toplam Deneme Sayınız</div>
             </div>
           </div>
         </div>
@@ -3648,18 +3665,18 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
           
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
             <h5 className="text-sm font-semibold text-gray-800 mb-2">📋 Öneri Açıklamaları:</h5>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                <span className="text-green-600">Güvenli (≥40 puan fark)</span>
+                <span className="text-green-600">Güvenli (Ortalama puan -40 ile +0 arası)</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                <span className="text-yellow-600">İhtiyatlı (20-39 puan)</span>
+                <span className="text-yellow-600">İhtiyatlı (Ortalama puan +0 ile +40 arası)</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-                <span className="text-orange-600">Riskli (0-19 puan)</span>
+                <span className="text-orange-600">Riskli (Ortalama puan +40 ile +80 arası)</span>
               </div>
             </div>
           </div>
