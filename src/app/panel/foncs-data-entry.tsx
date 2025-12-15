@@ -5716,7 +5716,7 @@ const KitapSinaviTab = ({ students, onDataUpdate }: {
               <tbody className="bg-white divide-y divide-gray-200">
                 {kitapSinavlari.map((sinav) => {
                   const ogrenciSayisi = Object.keys(sinav.puanlar || {}).length;
-                  const puanlar = Object.values(sinav.puanlar || {}).map(p => p.puan);
+                  const puanlar = Object.values(sinav.puanlar || {}).map(p => (p as any).puan);
                   const ortalama = puanlar.length > 0 ? (puanlar.reduce((a, b) => a + b, 0) / puanlar.length).toFixed(1) : '0';
                   
                   return (

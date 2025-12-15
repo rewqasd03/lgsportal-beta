@@ -3856,7 +3856,7 @@ const KitapSinaviTab = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {kitapSinavlari.map((sinav) => {
                 const benimPuanim = sinav.puanlar[studentId]?.puan || 0;
-                const sinifPuanlari = Object.values(sinav.puanlar).map(p => p.puan);
+                const sinifPuanlari = Object.values(sinav.puanlar).map(p => (p as any).puan);
                 const sinifOrtalamasi = sinifPuanlari.length > 0 
                   ? (sinifPuanlari.reduce((a, b) => a + b, 0) / sinifPuanlari.length).toFixed(1)
                   : '0';
