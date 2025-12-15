@@ -3534,41 +3534,8 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
   const lastExamScore = reportData.examResults.length > 0 
     ? reportData.examResults[reportData.examResults.length - 1].studentTotalScore 
     : 0;
-  
-  // Öğrencinin puanına göre uygun okulları filtrele ve sırala
-  const getRecommendedSchools = (studentScore: number) => {
-    if (studentScore === 0) return vanLgsSchools.slice(0, 5); // Puan yoksa ilk 5 okul
-    
-    const numericScore = parseFloat(studentScore.toString());
-    return vanLgsSchools
-      .filter(school => {
-        const schoolScore = parseFloat(school.score);
-        // Öğrenci puanından ±40 puan aralığındaki okulları göster
-        // Öğrenci 400 puan ise: 360-440 arası okullar
-        return schoolScore >= numericScore - 40 && schoolScore <= numericScore + 40;
-      })
-      .sort((a, b) => {
-        // En yüksek taban puandan düşüğe sırala
-        return parseFloat(b.score) - parseFloat(a.score);
-      })
-      .slice(0, 5); // En fazla 5 okul göster
-  };
-  
-  const recommendedSchools = getRecommendedSchools(currentStudentScore);
-  
-  const getRecommendationStatus = (schoolScore: number, studentScore: number) => {
-    if (studentScore === 0) return { text: "Puan bilgisi yok", color: "text-gray-500" };
-    
-    const diff = schoolScore - studentScore; // Okul puanı - öğrenci puanı
-    // Güvenli: Okul puanı <= Öğrenci puanı - 40 (360-400 arası okullar)
-    if (diff <= -40) return { text: "Güvenli", color: "text-green-600" };
-    // İhtiyatlı: Öğrenci puanı - 40 < Okul puanı <= Öğrenci puanı (400-420 arası okullar)
-    if (diff <= 0) return { text: "İhtiyatlı", color: "text-yellow-600" };
-    // Riskli: Öğrenci puanı < Okul puanı <= Öğrenci puanı + 40 (420-440 arası okullar)
-    if (diff <= 40) return { text: "Riskli", color: "text-orange-600" };
-    return null; // Çok yüksek puanlı okulları gösterme
-  };
 
+  // Component return JSX
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-lg shadow p-4">
@@ -3606,86 +3573,25 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
             🎯 Size Önerilen Liseler (Van İli - 2025 LGS)
           </h4>
           
-          {currentStudentScore === 0 && (
+          {currentStudentScore === 0 ? (
             <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg mb-4">
               <p className="text-orange-700 text-sm">
                 ⚠️ Henüz deneme puanı bulunmuyor. Öneriler genel bilgilendirme amaçlıdır. 
                 Deneme sınavları çözdükten sonra size özel öneriler alabilirsiniz.
               </p>
             </div>
-          )}
-          
-          <div className="overflow-x-auto">
-            <table className="w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Lise Adı</th>
-                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Tür</th>
-                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Taban Puan</th>
-                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Yüzdelik</th>
-                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Kontenjan</th>
-                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">İlçe</th>
-                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Öneri Durumu</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {recommendedSchools.map((school, index) => {
-                  const status = getRecommendationStatus(parseFloat(school.score), currentStudentScore);
-                  return (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-3 py-3">
-                        <div className="text-sm font-medium text-gray-900">{school.name}</div>
-                      </td>
-                      <td className="px-3 py-3 text-center">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          school.type === 'Fen Lisesi' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-green-100 text-green-800'
-                        }`}>
-                          {school.type}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 text-center">
-                        <div className="text-sm font-bold text-blue-600">{school.score}</div>
-                      </td>
-                      <td className="px-3 py-3 text-center">
-                        <div className="text-sm font-bold text-purple-600">{school.percentile}%</div>
-                      </td>
-                      <td className="px-3 py-3 text-center text-sm text-gray-700">{school.capacity}</td>
-                      <td className="px-3 py-3 text-center text-sm text-gray-600">{school.district}</td>
-                      <td className="px-3 py-3 text-center">
-                        {status ? (
-                          <span className={`text-xs font-medium ${status.color}`}>
-                            {status.text}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400">-</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <h5 className="text-sm font-semibold text-gray-800 mb-2">📋 Öneri Açıklamaları:</h5>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                <span className="text-green-600">Güvenli (Okul puanı ≤ Ortalama puan -40)</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                <span className="text-yellow-600">İhtiyatlı (Ortalama puan -40 < Okul puanı ≤ Ortalama puan)</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-                <span className="text-orange-600">Riskli (Ortalama puan < Okul puanı ≤ Ortalama puan +40)</span>
-              </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-6xl mb-4">🎓</div>
+              <h4 className="text-lg font-semibold text-gray-800 mb-2">Tercih Önerileri</h4>
+              <p className="text-gray-600">
+                Öğrenci puanınız: {Math.round(currentStudentScore)} puan
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                Sisteminiz güncellenmektedir. Yakında kişiselleştirilmiş öneriler gelecektir.
+              </p>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
