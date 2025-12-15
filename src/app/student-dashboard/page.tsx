@@ -313,10 +313,11 @@ function StudentDashboardContent() {
     );
   }
 
-  // İstatistikleri hesapla
-  const totalNet = reportData.examResults.reduce((sum, item) => sum + item.studentTotalNet, 0);
-  const avgNet = reportData.examResults.length > 0 ? totalNet / reportData.examResults.length : 0;
-  const scores = reportData.examResults.map(item => item.studentTotalNet);
+  // İstatistikleri hesapla (sadece denemeye giren öğrencileri dahil et)
+  const examResultsWithScores = reportData.examResults.filter(item => item.studentTotalNet > 0);
+  const totalNet = examResultsWithScores.reduce((sum, item) => sum + item.studentTotalNet, 0);
+  const avgNet = examResultsWithScores.length > 0 ? totalNet / examResultsWithScores.length : 0;
+  const scores = examResultsWithScores.map(item => item.studentTotalNet);
   const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
   const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
   const stdDev = Math.sqrt(variance);
@@ -336,9 +337,9 @@ function StudentDashboardContent() {
     ? reportData.examResults.reduce((sum, item) => sum + (item.generalAverage || 0), 0) / reportData.examResults.length
     : 0;
   
-  // Öğrenci ortalama puanı: Öğrencinin tüm denemelerdeki puanlarının ortalaması
-  const studentAverageScore = reportData.examResults.length > 0
-    ? reportData.examResults.reduce((sum, item) => sum + (item.studentTotalScore || 0), 0) / reportData.examResults.length
+  // Öğrenci ortalama puanı: Sadece denemeye giren denemelerdeki puanlarının ortalaması
+  const studentAverageScore = examResultsWithScores.length > 0
+    ? examResultsWithScores.reduce((sum, item) => sum + (item.studentTotalScore || 0), 0) / examResultsWithScores.length
     : 0;
   
   // Genel ortalama puan: Tüm denemelerdeki genel ortalama puanların ortalaması
@@ -351,8 +352,8 @@ function StudentDashboardContent() {
     ? `Öğrencinin ${reportData.examResults.length} denemedeki puan ortalaması` 
     : 'Henüz puan verisi yok';
   
-  const latestNet = reportData.examResults[reportData.examResults.length - 1]?.studentTotalNet || 0;
-  const previousNet = reportData.examResults[reportData.examResults.length - 2]?.studentTotalNet || 0;
+  const latestNet = examResultsWithScores.length > 0 ? examResultsWithScores[examResultsWithScores.length - 1]?.studentTotalNet || 0 : 0;
+  const previousNet = examResultsWithScores.length > 1 ? examResultsWithScores[examResultsWithScores.length - 2]?.studentTotalNet || 0 : 0;
   const improvement = latestNet - previousNet;
   
   // Son öğrenci puanını hesapla - düzeltilmiş versiyon
@@ -494,14 +495,14 @@ function StudentDashboardContent() {
   // Grafik verileri
   const netChartData = reportData.examResults.map((item, index) => ({
     exam: item.exam.title,
-    öğrenci: item.studentTotalNet,
+    öğrenci: item.studentTotalNet > 0 ? item.studentTotalNet : null, // 0 ise null yap
     sınıf: item.classAverage,
     genel: item.generalAverage
   }));
   
   const scoreChartData = reportData.examResults.map((item, index) => ({
     exam: item.exam.title,
-    öğrenci: item.studentTotalScore,
+    öğrenci: item.studentTotalScore > 0 ? item.studentTotalScore : null, // 0 ise null yap
     sınıf: item.classAverageScore,
     genel: item.generalAverageScore
   }));
@@ -912,9 +913,15 @@ function StudentDashboardContent() {
                                 }
                               </td>
                               <td className="px-2 py-2 text-center">
-                                <span className={`font-semibold ${currentNet >= 60 ? 'text-green-600' : currentNet >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>
-                                  {currentNet.toFixed(1)}
-                                </span>
+                                {currentNet > 0 ? (
+                                  <span className={`font-semibold ${currentNet >= 60 ? 'text-green-600' : currentNet >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                    {currentNet.toFixed(1)}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400 font-medium">
+                                    Girmedi
+                                  </span>
+                                )}
                               </td>
                               <td className="px-2 py-2 text-center text-green-600 font-medium">
                                 {(() => {
@@ -956,7 +963,10 @@ function StudentDashboardContent() {
                                 })()}
                               </td>
                               <td className="px-2 py-2 text-center font-medium text-blue-600">
-                                {reportData.examResults[index]?.studentTotalScore.toFixed(0) || '0'} {/* Gerçek toplam puan */}
+                                {(reportData.examResults[index]?.studentTotalScore || 0) > 0 ? 
+                                  reportData.examResults[index]?.studentTotalScore.toFixed(0) : 
+                                  <span className="text-gray-400">Girmedi</span>
+                                } {/* Gerçek toplam puan */}
                               </td>
                               <td className="px-2 py-2 text-center">
                                 {index > 0 ? (
@@ -1154,19 +1164,22 @@ function StudentDashboardContent() {
                   <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-lg">
                     <h4 className="text-xs font-medium opacity-90">En Yüksek Puan</h4>
                     <p className="text-xl font-bold">
-                      {Math.max(...reportData.examResults.map(r => r.studentTotalScore)).toFixed(0)}
+                      {Math.max(...reportData.examResults.filter(r => r.studentTotalScore > 0).map(r => r.studentTotalScore)).toFixed(0)}
                     </p>
                   </div>
                   <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg">
                     <h4 className="text-xs font-medium opacity-90">Ortalama Puan</h4>
                     <p className="text-xl font-bold">
-                      {(reportData.examResults.reduce((sum, r) => sum + r.studentTotalScore, 0) / reportData.examResults.length).toFixed(0)}
+                      {(reportData.examResults.filter(r => r.studentTotalScore > 0).reduce((sum, r) => sum + r.studentTotalScore, 0) / Math.max(1, reportData.examResults.filter(r => r.studentTotalScore > 0).length)).toFixed(0)}
                     </p>
                   </div>
                   <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg">
                     <h4 className="text-xs font-medium opacity-90">Son Puan</h4>
                     <p className="text-xl font-bold">
-                      {reportData.examResults[reportData.examResults.length - 1]?.studentTotalScore.toFixed(0) || '0'}
+                      {(reportData.examResults[reportData.examResults.length - 1]?.studentTotalScore || 0) > 0 ? 
+                        reportData.examResults[reportData.examResults.length - 1]?.studentTotalScore.toFixed(0) : 
+                        'Girmedi'
+                      }
                     </p>
                   </div>
                 </div>
@@ -1970,13 +1983,13 @@ function StudentDashboardContent() {
                           <div className="flex-1 min-w-[120px] bg-blue-50 rounded p-2">
                             <div className="text-xs font-medium text-blue-700">Net</div>
                             <div className="text-sm font-bold text-blue-600">
-                              {selectedExamResult.studentTotalNet.toFixed(1)}
+                              {selectedExamResult.studentTotalNet > 0 ? selectedExamResult.studentTotalNet.toFixed(1) : 'Girmedi'}
                             </div>
                           </div>
                           <div className="flex-1 min-w-[120px] bg-purple-50 rounded p-2">
                             <div className="text-xs font-medium text-purple-700">Puan</div>
                             <div className="text-sm font-bold text-purple-600">
-                              {selectedExamResult.studentTotalScore.toFixed(0)}
+                              {selectedExamResult.studentTotalScore > 0 ? selectedExamResult.studentTotalScore.toFixed(0) : 'Girmedi'}
                             </div>
                           </div>
                         </div>
@@ -2148,12 +2161,12 @@ function StudentDashboardContent() {
                               </td>
                               <td className="px-0.5 py-0.25 text-center">
                                 <span className="text-xs font-bold text-blue-600">
-                                  {result.studentTotalNet.toFixed(1)}
+                                  {result.studentTotalNet > 0 ? result.studentTotalNet.toFixed(1) : 'Girmedi'}
                                 </span>
                               </td>
                               <td className="px-0.5 py-0.25 text-center">
                                 <span className="text-xs font-bold text-purple-600">
-                                  {result.studentTotalScore.toFixed(0)}
+                                  {result.studentTotalScore > 0 ? result.studentTotalScore.toFixed(0) : 'Girmedi'}
                                 </span>
                               </td>
                               <td className="px-0.5 py-0.25 text-center">
