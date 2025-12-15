@@ -898,6 +898,3 @@
 # Claude Agent SDK debug files
 **/.claude/debug/
 **/.claude/debug/**
-
-# User input files (avoid build errors)
-user_input_files/
