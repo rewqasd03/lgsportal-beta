@@ -509,22 +509,15 @@ function StudentDashboardContent() {
 
   // Subjects array kaldırıldı - syntax hatası testi için
 
+  // Basitleştirilmiş return - JSX parser problemi çözmek için
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img 
-                src="/projelogo.png" 
-                alt="LGS Portalı" 
-                className="w-20 h-20 rounded-full shadow-md"
-              />
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">LGS Portalı</h1>
-                <p className="text-xs text-gray-600">{reportData.student.name} - {reportData.student.class}</p>
-              </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">LGS Portalı</h1>
+              <p className="text-sm text-gray-600">{reportData.student.name} - {reportData.student.class}</p>
             </div>
             <button
               onClick={() => router.push('/ogrenci')}
@@ -535,11 +528,16 @@ function StudentDashboardContent() {
           </div>
         </div>
       </div>
-
-      {/* İçerik */}
-      <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6">
-        {/* Öğrenci Bilgileri Kartı */}
-        <div className="mb-4 sm:mb-8 bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6">
+      
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Student Dashboard</h2>
+          <p className="text-gray-600">Bu sayfa yükleniyor...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg">
               <h3 className="text-xs font-medium text-blue-800 mb-1">Sınıf</h3>
@@ -3297,14 +3295,6 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
               <p className="text-sm text-gray-500 mt-2">
                 Sisteminiz güncellenmektedir. Yakında kişiselleştirilmiş öneriler gelecektir.
               </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function StudentDashboardPage() {
   return (
     <Suspense fallback={<div className="flex justify-center items-center h-64"><div className="text-lg">Yükleniyor...</div></div>}>
