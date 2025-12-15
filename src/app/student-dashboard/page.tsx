@@ -3543,9 +3543,9 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
     return vanLgsSchools
       .filter(school => {
         const schoolScore = parseFloat(school.score);
-        // Öğrencinin puanından çok düşük taban puana sahip okulları filtrele
-        // Öğrencinin puanından 80 puan aşağısına kadar göster
-        return schoolScore >= numericScore - 80;
+        // Öğrenci puanından ±40 puan aralığındaki okulları göster
+        // Öğrenci 400 puan ise: 360-440 arası okullar
+        return schoolScore >= numericScore - 40 && schoolScore <= numericScore + 40;
       })
       .sort((a, b) => {
         // En yüksek taban puandan düşüğe sırala
@@ -3559,13 +3559,13 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
   const getRecommendationStatus = (schoolScore: number, studentScore: number) => {
     if (studentScore === 0) return { text: "Puan bilgisi yok", color: "text-gray-500" };
     
-    const diff = studentScore - schoolScore;
-    // Güvenli: Ortalama puan -40 ile ortalama puan arası (0 <= diff <= 40)
-    if (diff >= 0 && diff <= 40) return { text: "Güvenli", color: "text-green-600" };
-    // İhtiyatlı: Ortalama puan ile ortalama puan +40 arası (-40 <= diff < 0)
-    if (diff >= -40 && diff < 0) return { text: "İhtiyatlı", color: "text-yellow-600" };
-    // Riskli: Ortalama puan +40 ile ortalama puan +80 arası (-80 <= diff < -40)
-    if (diff >= -80 && diff < -40) return { text: "Riskli", color: "text-orange-600" };
+    const diff = schoolScore - studentScore; // Okul puanı - öğrenci puanı
+    // Güvenli: Okul puanı <= Öğrenci puanı - 40 (360-400 arası okullar)
+    if (diff <= -40) return { text: "Güvenli", color: "text-green-600" };
+    // İhtiyatlı: Öğrenci puanı - 40 < Okul puanı <= Öğrenci puanı (400-420 arası okullar)
+    if (diff <= 0) return { text: "İhtiyatlı", color: "text-yellow-600" };
+    // Riskli: Öğrenci puanı < Okul puanı <= Öğrenci puanı + 40 (420-440 arası okullar)
+    if (diff <= 40) return { text: "Riskli", color: "text-orange-600" };
     return null; // Çok yüksek puanlı okulları gösterme
   };
   
@@ -3674,15 +3674,15 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                <span className="text-green-600">Güvenli (Ortalama puan -40 ile +0 arası)</span>
+                <span className="text-green-600">Güvenli (Okul puanı ≤ Ortalama puan -40)</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                <span className="text-yellow-600">İhtiyatlı (Ortalama puan +0 ile +40 arası)</span>
+                <span className="text-yellow-600">İhtiyatlı (Ortalama puan -40 < Okul puanı ≤ Ortalama puan)</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-                <span className="text-orange-600">Riskli (Ortalama puan +40 ile +80 arası)</span>
+                <span className="text-orange-600">Riskli (Ortalama puan < Okul puanı ≤ Ortalama puan +40)</span>
               </div>
             </div>
           </div>
