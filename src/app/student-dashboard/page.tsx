@@ -3568,7 +3568,7 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
     if (diff <= 40) return { text: "Riskli", color: "text-orange-600" };
     return null; // Çok yüksek puanlı okulları gösterme
   };
-  
+
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-lg shadow p-4">
