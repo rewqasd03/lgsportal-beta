@@ -13,6 +13,7 @@ function ExamTimerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
   
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
   const sessions = [
     { name: "Sözel Oturum", duration: 75 },
@@ -41,6 +42,41 @@ function ExamTimerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
     }
     return () => clearInterval(interval);
   }, [isRunning, timeLeft, selectedSession]);
+
+  // Tarih ve saati güncelle
+  useEffect(() => {
+    const updateDateTime = () => {
+      setCurrentDateTime(new Date());
+    };
+    
+    updateDateTime(); // İlk güncelleme
+    const dateInterval = setInterval(updateDateTime, 1000); // Her saniye güncelle
+    
+    return () => clearInterval(dateInterval);
+  }, []);
+
+  // Türkçe tarih formatı
+  const formatTurkishDate = (date: Date) => {
+    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+    const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 
+                   'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    
+    const dayName = days[date.getDay()];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    const time = date.toLocaleTimeString('tr-TR', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    
+    return {
+      dayName,
+      dateString: `${day} ${month} ${year}`,
+      time
+    };
+  };
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -80,9 +116,24 @@ function ExamTimerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
 
   if (!isOpen) return null;
 
+  const { dayName, dateString, time } = formatTurkishDate(currentDateTime);
+
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center z-50">
       <div className="w-full h-full flex flex-col justify-center items-center text-white p-8">
+        {/* Tarih ve Saat Bilgisi */}
+        <div className="text-center mb-8">
+          <div className="text-2xl font-bold text-blue-300 mb-2">
+            {dayName}
+          </div>
+          <div className="text-xl text-blue-200 mb-2">
+            {dateString}
+          </div>
+          <div className="text-3xl font-bold text-white">
+            {time}
+          </div>
+        </div>
+
         <div className="text-center mb-12">
           <h3 className="text-4xl font-bold mb-4">⏱️ Deneme Zamanlayıcısı</h3>
           <p className="text-xl text-blue-200">Deneme sınavınız için süre takibi yapın</p>
@@ -111,6 +162,19 @@ function ExamTimerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
         ) : (
           // Zamanlayıcı
           <div className="text-center w-full max-w-4xl">
+            {/* Tarih ve Saat Bilgisi - Zamanlayıcı Modunda */}
+            <div className="text-center mb-6">
+              <div className="text-xl font-bold text-blue-300 mb-1">
+                {dayName}
+              </div>
+              <div className="text-lg text-blue-200 mb-1">
+                {dateString}
+              </div>
+              <div className="text-2xl font-bold text-white">
+                {time}
+              </div>
+            </div>
+
             <div className="mb-12">
               <h4 className="text-4xl font-bold mb-8">{selectedSession.name}</h4>
               <div className={`text-8xl sm:text-9xl md:text-[12rem] lg:text-[14rem] font-bold mb-8 leading-none ${timeLeft <= 300 ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
