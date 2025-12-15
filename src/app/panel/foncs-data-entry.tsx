@@ -5127,13 +5127,8 @@ const LiseTercihTab = ({ students, lgsSchools, obpSchools }: {
         }
       }
       
-      // Eğer hala yoksa, nets.total kullan (nets hesaplaması yapmadan)
-      if (!totalScore && result.nets?.total) {
-        totalScore = result.nets.total;
-        console.log(`🔥 PANEL DEBUG - Step 3 - nets.total: ${totalScore}`);
-      }
-
-      // NOT: Ders bazında nets hesaplaması kaldırıldı çünkü kullanıcı toplu denemede girdiği puanı görmek istiyor
+      // NOT: nets.total ve nets hesaplaması kaldırıldı çünkü kullanıcı toplu denemede girdiği gerçek puanı görmek istiyor
+      // Sadece manuel puan veya totalScore field'ı kullanılıyor
       // Eğer manuel puan veya totalScore yoksa, puan bulunamadı olarak göster
 
       console.log(`🔥 PANEL DEBUG - Final score for exam ${exam.title}: ${totalScore}`);
