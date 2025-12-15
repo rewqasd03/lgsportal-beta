@@ -486,8 +486,8 @@ function StudentDashboardContent() {
   const scoreImprovement = latestScore - previousScore;
   
   // Trend analizi
-  const trend = improvement > 2 ? 'Yükseliş' : improvement < -2 ? 'Düşüş' : 'Stabil';
-  const trendColor = improvement > 2 ? 'text-green-600' : improvement < -2 ? 'text-red-600' : 'text-yellow-600';
+  const trend = scoreImprovement > 2 ? 'Yükseliş' : scoreImprovement < -2 ? 'Düşüş' : 'Stabil';
+  const trendColor = scoreImprovement > 2 ? 'text-green-600' : scoreImprovement < -2 ? 'text-red-600' : 'text-yellow-600';
 
   // Renk kodları - Tüm dersler için sabit renk
   const COLORS = ['#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6'];
