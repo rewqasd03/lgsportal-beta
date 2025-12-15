@@ -1379,37 +1379,6 @@ function StudentDashboardContent() {
                   </div>
                 </div>
 
-                {/* Puan Hedef Analizi */}
-                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow p-4">
-                  <h3 className="text-sm font-semibold mb-3">🎯 Puan Hedef Analizi ve Tahminler</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                      <h4 className="text-xs font-medium opacity-90">Puan Hedefi</h4>
-                      <p className="text-xl font-bold">
-                        {studentScoreTarget}
-                      </p>
-                    </div>
-                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                      <h4 className="text-xs font-medium opacity-90">Son 3 Deneme Ort.</h4>
-                      <p className="text-xl font-bold">
-                        {(scoreChartData.slice(-3).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(3, scoreChartData.length)).toFixed(0)}
-                      </p>
-                    </div>
-                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                      <h4 className="text-xs font-medium opacity-90">5. Deneme Tahmini</h4>
-                      <p className="text-xl font-bold">
-                        {((scoreChartData.slice(-2).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(2, scoreChartData.length)) + 25).toFixed(0)}
-                      </p>
-                    </div>
-                    <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                      <h4 className="text-xs font-medium opacity-90">Hedefe Ulaşma %</h4>
-                      <p className="text-xl font-bold">
-                        {((scoreChartData.slice(-3).reduce((sum, d) => sum + (d.öğrenci || 0), 0) / Math.min(3, scoreChartData.length)) / studentScoreTarget * 100).toFixed(0)}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Lise Tercih Önerileri */}
                 <div className="bg-gradient-to-r from-blue-500 to-green-600 text-white rounded-lg shadow p-4">
                   <h3 className="text-sm font-semibold mb-3">🏫 Lise Tercih Önerilerin</h3>
