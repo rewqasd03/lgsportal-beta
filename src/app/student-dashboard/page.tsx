@@ -576,7 +576,7 @@ function StudentDashboardContent() {
             <div className="mb-6">
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((tab) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -592,7 +592,7 @@ function StudentDashboardContent() {
                       {tab === 4 && '📚 Denemeler'}
                       {tab === 5 && '🎯 Ders Bazında Gelişim'}
                       {tab === 6 && '🎯 Hedef Takibi'}
-                      {tab === 9 && '📖 Kitap Sınavı'}
+                      {tab === 8 && '📖 Kitap Sınavı'}
                       {tab === 7 && '🧮 LGS Puan Hesaplama'}
                       {tab === 8 && '🎓 Lise Taban Puanları'}
                     </button>
@@ -2316,7 +2316,7 @@ function StudentDashboardContent() {
             {activeTab === 6 && (
               <div className="space-y-3">
                 <div className="bg-white rounded-lg shadow p-2">
-                  <h3 className="text-xs font-semibold text-gray-800 mb-2">📚 Ders Bazında Hedef Takibi</h3>
+                  <h3 className="text-xs font-semibold text-gray-800 mb-2">🎯 Hedef Takibi & Lise Tercih Önerileri</h3>
                   
                   {/* Hedef durumunu kontrol et */}
                   {(() => {
@@ -2608,13 +2608,8 @@ function StudentDashboardContent() {
               <LGSHesaplamaTab />
             )}
 
-            {/* Tab 8: Lise Taban Puanları */}
+            {/* Tab 8: Kitap Sınavı */}
             {activeTab === 8 && (
-              <LiseTabanPuanlariTab />
-            )}
-
-            {/* Tab 9: Kitap Sınavı */}
-            {activeTab === 9 && (
               <KitapSinaviTab />
             )}
           </>
@@ -2635,147 +2630,6 @@ function StudentDashboardContent() {
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-// Lise Taban Puanları Tab Komponenti
-function LiseTabanPuanlariTab() {
-  const [selectedType, setSelectedType] = useState<'merkezi' | 'yerel' | null>(null);
-
-  return (
-    <div className="space-y-3">
-      <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="text-sm font-semibold text-gray-800 mb-4">🎓 Lise Taban Puanları</h3>
-        
-        {!selectedType ? (
-          <>
-            {/* LGS ve OBP Yerleştirme Bilgilendirme */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h4 className="text-lg font-semibold text-blue-900 mb-3">📚 Lise Yerleştirme Sistemi</h4>
-              
-              <div className="bg-white rounded-lg p-4 border mb-4">
-                <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <span className="text-purple-600 mr-2">🎓</span>
-                  Lise Yerleştirme Türleri
-                </h4>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                    <h5 className="font-semibold text-blue-800 mb-3 flex items-center">
-                      <span className="text-blue-600 mr-2">🎯</span>
-                      Merkezi Yerleştirme
-                    </h5>
-                    <div className="space-y-2 text-sm">
-                      <p className="text-gray-700">
-                        <strong>Tanım:</strong> LGS sınav puanına göre Türkiye genelinde sıralama yapılarak öğrenci alan okullara yerleşme.
-                      </p>
-                      <p className="text-gray-700">
-                        <strong>Okul Türleri:</strong> Fen Liseleri, Sosyal Bilimler Liseleri, Anadolu Liseleri, proje okulları, bazı teknik programlar
-                      </p>
-                      <p className="text-gray-700">
-                        <strong>Belirleyici Faktör:</strong> LGS puanı ve tercih sırası; adres dikkate alınmaz.
-                      </p>
-                      <p className="text-gray-700">
-                        <strong>Tercih:</strong> Öğrenciler sınavla alan okullar için ayrı tercih listesinden seçim yapar.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                    <h5 className="font-semibold text-green-800 mb-3 flex items-center">
-                      <span className="text-green-600 mr-2">🏠</span>
-                      Yerel Yerleştirme (Adrese Dayalı)
-                    </h5>
-                    <div className="space-y-2 text-sm">
-                      <p className="text-gray-700">
-                        <strong>Tanım:</strong> Öğrencinin ikamet adresi, okul türü ve kontenjan dikkate alınarak kendi kayıt alanındaki okullara yerleşme.
-                      </p>
-                      <p className="text-gray-700">
-                        <strong>Okul Türleri:</strong> Anadolu Liseleri, Meslek Liseleri, İmam Hatip Liseleri
-                      </p>
-                      <p className="text-gray-700">
-                        <strong>Belirleyici Faktör:</strong> Kayıt alanı, okul türü ve kontenjan; tercih sırası önemlidir.
-                      </p>
-                      <p className="text-gray-700">
-                        <strong>Tercih:</strong> Kayıt alanı önceliklidir; farklı alanlardan (komşu/diğer) okul seçimi sınırlıdır.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                  <p className="text-purple-800 text-sm">
-                    <strong>💡 Bilgi:</strong> LGS puanınız ile merkezi yerleştirme kapsamındaki okullara (Fen, Sosyal Bilimler), 
-                    adres bilginiz ile yerel yerleştirme kapsamındaki okullara (Anadolu, Meslek, İmam Hatip) başvurabilirsiniz.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Seçim Kartları */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <button
-                onClick={() => setSelectedType('merkezi')}
-                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg p-6 text-left transition-all duration-200 transform hover:scale-105 shadow-lg"
-              >
-                <div className="flex items-center mb-3">
-                  <div className="bg-white bg-opacity-20 rounded-full p-2 mr-3">
-                    <span className="text-2xl">🎯</span>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold">Merkezi Yerleştirme</h4>
-                    <p className="text-blue-100 text-sm">Fen & Sosyal Bilimler Liseleri</p>
-                  </div>
-                </div>
-                <p className="text-blue-100 text-sm">
-                  LGS puanına göre merkezi yerleştirme kapsamındaki okulların taban puanlarını görüntüleyin.
-                </p>
-              </button>
-
-              <button
-                onClick={() => setSelectedType('yerel')}
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg p-6 text-left transition-all duration-200 transform hover:scale-105 shadow-lg"
-              >
-                <div className="flex items-center mb-3">
-                  <div className="bg-white bg-opacity-20 rounded-full p-2 mr-3">
-                    <span className="text-2xl">🏠</span>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold">Yerel Yerleştirme</h4>
-                    <p className="text-green-100 text-sm">Anadolu, Meslek & İmam Hatip</p>
-                  </div>
-                </div>
-                <p className="text-green-100 text-sm">
-                  Adres bilginize göre yerel yerleştirme kapsamındaki okulların taban puanlarını görüntüleyin.
-                </p>
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Geri Dönüş Butonu */}
-            <div className="mb-4">
-              <button
-                onClick={() => setSelectedType(null)}
-                className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Geri Dön
-              </button>
-            </div>
-
-            {/* Seçilen İçerik */}
-            {selectedType === 'merkezi' ? (
-              <MerkeziYerlestirmePuanlari />
-            ) : (
-              <YerelYerlestirmePuanlari />
-            )}
-          </>
-        )}
-      </div>
     </div>
   );
 }
