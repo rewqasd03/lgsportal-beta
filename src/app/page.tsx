@@ -81,28 +81,28 @@ function ExamTimerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-        <div className="text-center mb-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-2">⏱️ Deneme Zamanlayıcısı</h3>
-          <p className="text-gray-600 text-sm">Deneme sınavınız için süre takibi yapın</p>
+    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center z-50">
+      <div className="w-full h-full flex flex-col justify-center items-center text-white p-8">
+        <div className="text-center mb-12">
+          <h3 className="text-4xl font-bold mb-4">⏱️ Deneme Zamanlayıcısı</h3>
+          <p className="text-xl text-blue-200">Deneme sınavınız için süre takibi yapın</p>
         </div>
 
         {!selectedSession ? (
           // Oturum Seçimi
-          <div className="space-y-4">
-            <h4 className="font-semibold text-gray-800 text-center mb-4">Oturum Seçin</h4>
+          <div className="space-y-8 w-full max-w-2xl">
+            <h4 className="text-2xl font-bold text-center mb-8">Oturum Seçin</h4>
             {sessions.map((session, index) => (
               <button
                 key={index}
                 onClick={() => startTimer(session)}
-                className="w-full p-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-between"
+                className="w-full p-8 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-3xl transition-all duration-300 hover:scale-105 flex items-center justify-between shadow-2xl"
               >
                 <div className="text-left">
-                  <div className="font-semibold">{session.name}</div>
-                  <div className="text-sm opacity-90">{session.duration} Dakika</div>
+                  <div className="text-3xl font-bold mb-2">{session.name}</div>
+                  <div className="text-xl opacity-90">{session.duration} Dakika</div>
                 </div>
-                <div className="text-2xl">
+                <div className="text-6xl">
                   {session.name.includes('Sözel') ? '📝' : '🔢'}
                 </div>
               </button>
@@ -110,57 +110,72 @@ function ExamTimerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
           </div>
         ) : (
           // Zamanlayıcı
-          <div className="text-center">
-            <div className="mb-4">
-              <h4 className="font-semibold text-gray-800">{selectedSession.name}</h4>
-              <div className={`text-6xl font-bold my-4 ${timeLeft <= 300 ? 'text-red-600' : 'text-blue-600'}`}>
+          <div className="text-center w-full max-w-4xl">
+            <div className="mb-12">
+              <h4 className="text-4xl font-bold mb-8">{selectedSession.name}</h4>
+              <div className={`text-9xl font-bold mb-8 ${timeLeft <= 300 ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
                 {formatTime(timeLeft)}
               </div>
               {timeLeft <= 300 && timeLeft > 0 && (
-                <div className="text-red-600 font-semibold animate-pulse">
+                <div className="text-red-400 text-2xl font-bold animate-bounce">
                   ⚠️ Son 5 dakika!
                 </div>
               )}
               {timeLeft === 0 && (
-                <div className="text-green-600 font-semibold">
-                  ✅ Süre doldu!
+                <div className="text-green-400">
+                  <div className="text-6xl font-bold mb-4">🎉</div>
+                  <div className="text-4xl font-bold mb-2">Başarılar!</div>
+                  <div className="text-2xl">Deneme süreniz tamamlandı!</div>
                 </div>
               )}
             </div>
 
-            <div className="flex gap-2 justify-center">
-              {!isRunning && timeLeft > 0 ? (
+            {timeLeft > 0 && (
+              <div className="flex gap-4 justify-center">
+                {!isRunning ? (
+                  <button
+                    onClick={resumeTimer}
+                    className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl transition-colors text-xl font-bold flex items-center gap-3"
+                  >
+                    ▶️ Devam
+                  </button>
+                ) : (
+                  <button
+                    onClick={pauseTimer}
+                    className="px-8 py-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded-2xl transition-colors text-xl font-bold flex items-center gap-3"
+                  >
+                    ⏸️ Duraklat
+                  </button>
+                )}
+                
                 <button
-                  onClick={resumeTimer}
-                  className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                  onClick={resetTimer}
+                  className="px-8 py-4 bg-gray-500 hover:bg-gray-600 text-white rounded-2xl transition-colors text-xl font-bold flex items-center gap-3"
                 >
-                  ▶️ Devam
+                  🔄 Sıfırla
                 </button>
-              ) : (
+              </div>
+            )}
+
+            {timeLeft === 0 && (
+              <div className="mt-8">
                 <button
-                  onClick={pauseTimer}
-                  className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors"
+                  onClick={resetTimer}
+                  className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl transition-colors text-xl font-bold flex items-center gap-3 mx-auto"
                 >
-                  ⏸️ Duraklat
+                  🔄 Yeni Deneme Başlat
                 </button>
-              )}
-              
-              <button
-                onClick={resetTimer}
-                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
-              >
-                🔄 Sıfırla
-              </button>
-            </div>
+              </div>
+            )}
           </div>
         )}
 
-        <div className="flex gap-2 mt-6">
+        <div className="mt-12">
           <button
             onClick={stopTimer}
-            className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300"
+            className="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 text-xl flex items-center gap-3 mx-auto"
           >
-            Kapat
+            ❌ Zamanlayıcıyı Kapat
           </button>
         </div>
       </div>
