@@ -1757,7 +1757,7 @@ function StudentDashboardContent() {
                                 const examResults = allResultsData.filter(result => result.examId === selectedExamId);
                                 const classStudents = examResults.filter(result => {
                                   const student = allStudentsData.find(s => s.id === result.studentId);
-                                  return student?.class === reportData.student.class;
+                                  return student?.class === reportData.student.class && (result.nets?.total || 0) > 0;
                                 });
                                 const classSubjectAverage = classStudents.length > 0 
                                   ? classStudents.reduce((sum, r) => sum + (r.nets?.[subject.key] || 0), 0) / classStudents.length
@@ -2197,7 +2197,7 @@ function StudentDashboardContent() {
                         const examResults = allResultsData.filter(r => r.examId === item.exam.id);
                         const classStudents = examResults.filter(r => {
                           const student = allStudentsData.find(s => s.id === r.studentId);
-                          return student?.class === reportData.student.class;
+                          return student?.class === reportData.student.class && (r.nets?.total || 0) > 0;
                         });
                         const classSubjectAverage = classStudents.length > 0 
                           ? classStudents.reduce((sum, r) => sum + (r.nets?.[subject.key] || 0), 0) / classStudents.length
