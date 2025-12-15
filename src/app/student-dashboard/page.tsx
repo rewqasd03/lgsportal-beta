@@ -508,12 +508,12 @@ function StudentDashboardContent() {
   }));
 
   const subjects = [
-    { name: 'Türkçe', color: COLORS[0], key: 'turkce' },
-    { name: 'Sosyal Bilgiler', color: COLORS[1], key: 'sosyal' },
-    { name: 'Din Kültürü', color: COLORS[2], key: 'din' },
-    { name: 'İngilizce', color: COLORS[3], key: 'ingilizce' },
-    { name: 'Matematik', color: COLORS[4], key: 'matematik' },
-    { name: 'Fen Bilimleri', color: COLORS[5], key: 'fen' },
+    { name: 'Türkçe', color: '#3B82F6', key: 'turkce' },
+    { name: 'Sosyal Bilgiler', color: '#3B82F6', key: 'sosyal' },
+    { name: 'Din Kültürü', color: '#3B82F6', key: 'din' },
+    { name: 'İngilizce', color: '#3B82F6', key: 'ingilizce' },
+    { name: 'Matematik', color: '#3B82F6', key: 'matematik' },
+    { name: 'Fen Bilimleri', color: '#3B82F6', key: 'fen' },
   ];
 
   return (
