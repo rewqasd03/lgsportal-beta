@@ -2325,12 +2325,10 @@ function StudentDashboardContent() {
                     
                     if (targetCount === 0) {
                       return (
-                        <div className="text-center py-4 border border-dashed border-gray-300 rounded-lg">
-                          <div className="text-4xl mb-2">🎯</div>
-                          <h4 className="text-base font-medium text-gray-700 mb-2">Hedefler Henüz Belirlenmemiş</h4>
-                          <p className="text-sm text-gray-500">
-                            Panel kısmından ders bazında hedeflerinizi belirleyin
-                          </p>
+                        <div className="p-4 text-center">
+                          <div className="text-sm text-gray-600">
+                            Hedef takibi için ders bazında hedeflerinizi panelden belirleyebilirsiniz.
+                          </div>
                         </div>
                       );
                     }
@@ -3547,10 +3545,10 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
     if (studentScore === 0) return { text: "Puan bilgisi yok", color: "text-gray-500" };
     
     const diff = studentScore - schoolScore;
-    if (diff >= 20) return { text: "Güvenli", color: "text-green-600" };
-    if (diff >= 10) return { text: "İhtiyatlı", color: "text-yellow-600" };
+    if (diff >= 40) return { text: "Güvenli", color: "text-green-600" };
+    if (diff >= 20) return { text: "İhtiyatlı", color: "text-yellow-600" };
     if (diff >= 0) return { text: "Riskli", color: "text-orange-600" };
-    return { text: "Ulaşılamaz", color: "text-red-600" };
+    return null; // Ulaşılamaz durumunu tamamen kaldır
   };
   
   return (
@@ -3632,9 +3630,13 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
                       <td className="px-3 py-3 text-center text-sm text-gray-700">{school.capacity}</td>
                       <td className="px-3 py-3 text-center text-sm text-gray-600">{school.district}</td>
                       <td className="px-3 py-3 text-center">
-                        <span className={`text-xs font-medium ${status.color}`}>
-                          {status.text}
-                        </span>
+                        {status ? (
+                          <span className={`text-xs font-medium ${status.color}`}>
+                            {status.text}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
                       </td>
                     </tr>
                   );
@@ -3648,19 +3650,15 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                <span className="text-green-600">Güvenli (≥20 puan fark)</span>
+                <span className="text-green-600">Güvenli (≥40 puan fark)</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                <span className="text-yellow-600">İhtiyatlı (10-19 puan)</span>
+                <span className="text-yellow-600">İhtiyatlı (20-39 puan)</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-                <span className="text-orange-600">Riskli (0-9 puan)</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                <span className="text-red-600">Ulaşılamaz</span>
+                <span className="text-orange-600">Riskli (0-19 puan)</span>
               </div>
             </div>
           </div>
