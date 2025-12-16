@@ -174,11 +174,11 @@ function StudentDashboardContent() {
         return student && student.class === studentData.class;
       });
       
-      const studentExamIds = new Set(validStudentResults.map(r => r.examId));
+      const validStudentExamIds = new Set(validStudentResults.map(r => r.examId));
       const classExamIds = new Set(classResults.map(r => r.examId));
       
       console.log('✅ Sınıfın katıldığı denemeler:', classExamIds.size);
-      console.log('✅ Öğrencinin sonucu olan denemeler:', studentExamIds.size);
+      console.log('✅ Öğrencinin sonucu olan denemeler:', validStudentExamIds.size);
 
       // Sınıfın katıldığı tüm denemeleri examResults'a ekle
       const examResults = [];
