@@ -174,16 +174,16 @@ function StudentDashboardContent() {
         return student && student.class === studentData.class;
       });
       
-      const validStudentExamIds = new Set(validStudentResults.map(r => r.examId));
+      const validStudentExamIds = validStudentResults.map(r => r.examId);
       const classExamIds = new Set(classResults.map(r => r.examId));
       
       console.log('✅ Sınıfın katıldığı denemeler:', classExamIds.size);
-      console.log('✅ Öğrencinin sonucu olan denemeler:', validStudentExamIds.size);
+      console.log('✅ Öğrencinin sonucu olan denemeler:', validStudentExamIds.length);
 
       // Sınıfın katıldığı tüm denemeleri examResults'a ekle
       const examResults = [];
 
-      for (const examId of classExamIds) {
+      for (const examId of Array.from(classExamIds)) {
         // Exam kaydı bulundu mu?
         const exam = examsData.find(e => e.id === examId);
         
