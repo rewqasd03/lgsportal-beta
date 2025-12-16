@@ -1790,6 +1790,7 @@ export interface OdevIstatistik {
   odevYapmayan: number;
   yuzde: number;
   createdAt: string;
+  ogrenciDurum?: boolean; // Öğrencinin bu ödevi yapıp yapmadığı (student dashboard için)
 }
 
 // Tüm ödev durumlarını getir
