@@ -132,26 +132,46 @@ function StudentDashboardContent() {
       const studentResults = resultsData.filter(r => r.studentId === studentId);
       console.log('Öğrenci sonuçları:', studentResults.length);
 
-      if (studentResults.length === 0) {
-        console.log('Bu öğrencinin sınav sonucu bulunamadı');
-        setReportData({
-          student: studentData,
-          examResults: []
-        });
-        setError('Bu öğrenci için henüz sınav sonucu bulunamadı.');
-        setLoading(false);
-        return;
-      }
+      // Sınıfının katıldığı tüm denemeleri bul (öğrencinin sonucu olan ve olmayan)
+      const classResults = resultsData.filter(r => {
+        const student = studentsData.find(s => s.id === r.studentId);
+        return student && student.class === studentData.class;
+      });
+      
+      const studentExamIds = new Set(studentResults.map(r => r.examId));
+      const classExamIds = new Set(classResults.map(r => r.examId));
+      
+      console.log('Sınıfın katıldığı denemeler:', classExamIds.size);
+      console.log('Öğrencinin sonucu olan denemeler:', studentExamIds.size);
 
+      // Sınıfın katıldığı tüm denemeleri examResults'a ekle
       const examResults = [];
 
-      for (const result of studentResults) {
-        const exam = examsData.find(e => e.id === result.examId);
-        if (!exam) continue;
+      for (const exam of examsData) {
+        // Bu deneme sınıfının katıldığı denemelerden mi?
+        if (!classExamIds.has(exam.id)) continue;
+        
+        // Bu öğrencinin bu denemede sonucu var mı?
+        const studentResult = studentResults.find(r => r.examId === exam.id);
+        
+        if (!studentResult) {
+          // Öğrencinin sonucu yok ama sınıf katılmış - "sonuç yok" olarak ekle
+          examResults.push({
+            exam,
+            studentResults: [],
+            classAverage: 0,
+            classAverageScore: 0,
+            generalAverage: 0,
+            generalAverageScore: 0,
+            studentTotalNet: 0,
+            studentTotalScore: 0
+          });
+          continue;
+        }
 
         // Sınıf ortalamasını hesapla (aynı sınıftaki öğrencilerin toplam net ortalaması)
         // NOT: 0 puanlı öğrenciler ortalamadan hariç tutulur ama deneme sayısına dahildir
-        const classResults = resultsData.filter(r => r.examId === result.examId && 
+        const classResults = resultsData.filter(r => r.examId === exam.id && 
           studentsData.find(s => s.id === r.studentId)?.class === studentData.class);
         const classResultsFiltered = classResults.filter(r => (r.nets?.total || 0) > 0);
         const classAverage = classResultsFiltered.length > 0 
@@ -160,7 +180,7 @@ function StudentDashboardContent() {
 
         // Sınıf ortalama puanını hesapla
         // NOT: 0 puanlı öğrenciler ortalamadan hariç tutulur ama deneme sayısına dahildir
-        const classResultsWithScore = resultsData.filter(r => r.examId === result.examId && 
+        const classResultsWithScore = resultsData.filter(r => r.examId === exam.id && 
           studentsData.find(s => s.id === r.studentId)?.class === studentData.class && 
           (typeof r.scores?.puan === 'string' || typeof r.puan === 'number' || typeof r.totalScore === 'number'));
         const classResultsWithScoreFiltered = classResultsWithScore.filter(r => {
@@ -204,15 +224,15 @@ function StudentDashboardContent() {
 
         examResults.push({
           exam,
-          studentResults: [result],
+          studentResults: [studentResult],
           classAverage: classAverage,
           classAverageScore: classAverageScore,
           generalAverage: generalAverageNet,
           generalAverageScore: generalAverageScoreNet,
-          studentTotalNet: result.nets?.total || 0,
-          studentTotalScore: typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
-                           typeof result.puan === 'number' ? result.puan : 
-                           (typeof result.totalScore === 'number' ? result.totalScore : 0)
+          studentTotalNet: studentResult.nets?.total || 0,
+          studentTotalScore: typeof studentResult.scores?.puan === 'string' ? parseFloat(studentResult.scores.puan) :
+                           typeof studentResult.puan === 'number' ? studentResult.puan : 
+                           (typeof studentResult.totalScore === 'number' ? studentResult.totalScore : 0)
         });
       }
 
