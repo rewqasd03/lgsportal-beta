@@ -130,7 +130,23 @@ function StudentDashboardContent() {
 
       // Bu öğrencinin sonuçlarını filtrele
       const studentResults = resultsData.filter(r => r.studentId === studentId);
-      console.log('Öğrenci sonuçları:', studentResults.length);
+      console.log('🎯 DEBUG - StudentId:', studentId);
+      console.log('🎯 DEBUG - Tüm sonuçlar sayısı:', resultsData.length);
+      console.log('🎯 DEBUG - Öğrenci sonuçları:', studentResults.length);
+      
+      // DEBUG: Tüm öğrenci sonuçlarını detaylı göster
+      studentResults.forEach((result, index) => {
+        const score = typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
+                     typeof result.puan === 'number' ? result.puan : 
+                     (typeof result.totalScore === 'number' ? result.totalScore : 0);
+        console.log(`🎯 Sonuç ${index + 1}:`, {
+          examId: result.examId,
+          studentId: result.studentId,
+          puan: score,
+          nets: result.nets,
+          createdAt: result.createdAt
+        });
+      });
 
       // DEBUG: Hangi examId'lerin mevcut olup olmadığını kontrol et
       const studentExamIds = studentResults.map(r => r.examId);
