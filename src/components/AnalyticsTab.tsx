@@ -823,9 +823,11 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                       <th className="px-4 py-2 text-center">Tarih</th>
                       <th className="px-4 py-2 text-center">{trendsViewType === 'net' ? 'Toplam Net' : 'Puan'}</th>
                       <th className="px-4 py-2 text-center">Türkçe</th>
+                      <th className="px-4 py-2 text-center">Sosyal</th>
+                      <th className="px-4 py-2 text-center">Din Kültürü</th>
+                      <th className="px-4 py-2 text-center">İngilizce</th>
                       <th className="px-4 py-2 text-center">Matematik</th>
                       <th className="px-4 py-2 text-center">Fen</th>
-                      <th className="px-4 py-2 text-center">Sosyal</th>
                       <th className="px-4 py-2 text-center">Gelişim</th>
                     </tr>
                   </thead>
@@ -858,14 +860,20 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                           <td className="px-4 py-2 text-center text-green-600 font-medium">
                             {(result.nets?.turkce || 0).toFixed(1)}
                           </td>
+                          <td className="px-4 py-2 text-center text-purple-600 font-medium">
+                            {(result.nets?.sosyal || 0).toFixed(1)}
+                          </td>
+                          <td className="px-4 py-2 text-center text-gray-600 font-medium">
+                            {(result.nets?.din || 0).toFixed(1)}
+                          </td>
+                          <td className="px-4 py-2 text-center text-indigo-600 font-medium">
+                            {(result.nets?.ingilizce || 0).toFixed(1)}
+                          </td>
                           <td className="px-4 py-2 text-center text-orange-600 font-medium">
                             {(result.nets?.matematik || 0).toFixed(1)}
                           </td>
                           <td className="px-4 py-2 text-center text-blue-600 font-medium">
                             {(result.nets?.fen || 0).toFixed(1)}
-                          </td>
-                          <td className="px-4 py-2 text-center text-purple-600 font-medium">
-                            {(result.nets?.sosyal || 0).toFixed(1)}
                           </td>
                           <td className="px-4 py-2 text-center">
                             {index > 0 ? (
