@@ -179,6 +179,30 @@ function StudentDashboardContent() {
       
       console.log('✅ Sınıfın katıldığı denemeler:', classExamIds.size);
       console.log('✅ Öğrencinin sonucu olan denemeler:', validStudentExamIds.length);
+      
+      // MUBA ve İNTRO denemelerini özel olarak kontrol et
+      const mubaExamIds = Array.from(classExamIds).filter(id => {
+        const exam = examsData.find(e => e.id === id);
+        return exam && exam.title && exam.title.includes('Muba');
+      });
+      const introExamIds = Array.from(classExamIds).filter(id => {
+        const exam = examsData.find(e => e.id === id);
+        return exam && exam.title && exam.title.includes('İntro');
+      });
+      
+      console.log('\n🔍 MUBA DENEMELERİ (8-A sınıfı):');
+      mubaExamIds.forEach(id => {
+        const exam = examsData.find(e => e.id === id);
+        const hasResults = validStudentExamIds.includes(id);
+        console.log(`  ${exam.title} (${id}): ${hasResults ? '✅ Sonuç var' : '❌ Sonuç yok'}`);
+      });
+      
+      console.log('\n🔍 INTRO DENEMELERİ (8-A sınıfı):');
+      introExamIds.forEach(id => {
+        const exam = examsData.find(e => e.id === id);
+        const hasResults = validStudentExamIds.includes(id);
+        console.log(`  ${exam.title} (${id}): ${hasResults ? '✅ Sonuç var' : '❌ Sonuç yok'}`);
+      });
 
       // Sınıfın katıldığı tüm denemeleri examResults'a ekle
       const examResults = [];
