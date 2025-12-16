@@ -132,42 +132,32 @@ function StudentDashboardContent() {
       const studentResults = resultsData.filter(r => r.studentId === studentId);
       console.log('Öğrenci sonuçları:', studentResults.length);
 
-      // Sınıfının katıldığı tüm denemeleri bul (öğrencinin sonucu olan ve olmayan)
-      const classResults = resultsData.filter(r => {
-        const student = studentsData.find(s => s.id === r.studentId);
-        return student && student.class === studentData.class;
+      // 0 puan alan denemeleri filtrele (Kullanıcının isteği: "0 puan alan öğrenciyi o denemeye girmedi olarak kabul et")
+      const validStudentResults = studentResults.filter(result => {
+        const score = typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
+                     typeof result.puan === 'number' ? result.puan : 
+                     (typeof result.totalScore === 'number' ? result.totalScore : 0);
+        return score > 0;
       });
-      
-      const studentExamIds = new Set(studentResults.map(r => r.examId));
-      const classExamIds = new Set(classResults.map(r => r.examId));
-      
-      console.log('Sınıfın katıldığı denemeler:', classExamIds.size);
-      console.log('Öğrencinin sonucu olan denemeler:', studentExamIds.size);
 
-      // Sınıfın katıldığı tüm denemeleri examResults'a ekle
+      console.log('Geçerli sonuçlar (0 puan hariç):', validStudentResults.length);
+
+      if (validStudentResults.length === 0) {
+        console.log('Bu öğrencinin geçerli sınav sonucu bulunamadı');
+        setReportData({
+          student: studentData,
+          examResults: []
+        });
+        setError('Bu öğrenci için henüz geçerli sınav sonucu bulunamadı.');
+        setLoading(false);
+        return;
+      }
+
       const examResults = [];
 
-      for (const exam of examsData) {
-        // Bu deneme sınıfının katıldığı denemelerden mi?
-        if (!classExamIds.has(exam.id)) continue;
-        
-        // Bu öğrencinin bu denemede sonucu var mı?
-        const studentResult = studentResults.find(r => r.examId === exam.id);
-        
-        if (!studentResult) {
-          // Öğrencinin sonucu yok ama sınıf katılmış - "sonuç yok" olarak ekle
-          examResults.push({
-            exam,
-            studentResults: [],
-            classAverage: 0,
-            classAverageScore: 0,
-            generalAverage: 0,
-            generalAverageScore: 0,
-            studentTotalNet: 0,
-            studentTotalScore: 0
-          });
-          continue;
-        }
+      for (const result of validStudentResults) {
+        const exam = examsData.find(e => e.id === result.examId);
+        if (!exam) continue;
 
         // Sınıf ortalamasını hesapla (aynı sınıftaki öğrencilerin toplam net ortalaması)
         // NOT: 0 puanlı öğrenciler ortalamadan hariç tutulur ama deneme sayısına dahildir
@@ -224,15 +214,15 @@ function StudentDashboardContent() {
 
         examResults.push({
           exam,
-          studentResults: [studentResult],
+          studentResults: [result],
           classAverage: classAverage,
           classAverageScore: classAverageScore,
           generalAverage: generalAverageNet,
           generalAverageScore: generalAverageScoreNet,
-          studentTotalNet: studentResult.nets?.total || 0,
-          studentTotalScore: typeof studentResult.scores?.puan === 'string' ? parseFloat(studentResult.scores.puan) :
-                           typeof studentResult.puan === 'number' ? studentResult.puan : 
-                           (typeof studentResult.totalScore === 'number' ? studentResult.totalScore : 0)
+          studentTotalNet: result.nets?.total || 0,
+          studentTotalScore: typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
+                           typeof result.puan === 'number' ? result.puan : 
+                           (typeof result.totalScore === 'number' ? result.totalScore : 0)
         });
       }
 
