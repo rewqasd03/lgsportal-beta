@@ -31,6 +31,7 @@ interface ReportData {
     generalAverageScore: number;
     studentTotalNet: number;
     studentTotalScore: number;
+    isMissingExam?: boolean;
   }[];
   studentTargets?: {[subject: string]: number};
 }
@@ -167,23 +168,62 @@ function StudentDashboardContent() {
 
       console.log('Geçerli sonuçlar (0 puan hariç):', validStudentResults.length);
 
-      if (validStudentResults.length === 0) {
-        console.log('Bu öğrencinin geçerli sınav sonucu bulunamadı');
-        setReportData({
-          student: studentData,
-          examResults: []
-        });
-        setError('Bu öğrenci için henüz geçerli sınav sonucu bulunamadı.');
-        setLoading(false);
-        return;
-      }
+      // Sınıfının katıldığı tüm denemeleri bul (8 deneme olması gerekiyor)
+      const classResults = resultsData.filter(r => {
+        const student = studentsData.find(s => s.id === r.studentId);
+        return student && student.class === studentData.class;
+      });
+      
+      const studentExamIds = new Set(validStudentResults.map(r => r.examId));
+      const classExamIds = new Set(classResults.map(r => r.examId));
+      
+      console.log('✅ Sınıfın katıldığı denemeler:', classExamIds.size);
+      console.log('✅ Öğrencinin sonucu olan denemeler:', studentExamIds.size);
 
+      // Sınıfın katıldığı tüm denemeleri examResults'a ekle
       const examResults = [];
 
-      for (const result of validStudentResults) {
-        const exam = examsData.find(e => e.id === result.examId);
+      for (const examId of classExamIds) {
+        // Exam kaydı bulundu mu?
+        const exam = examsData.find(e => e.id === examId);
+        
+        // Bu öğrencinin bu denemede sonucu var mı?
+        const studentResult = validStudentResults.find(r => r.examId === examId);
+        
         if (!exam) {
-          console.log('⚠️ Exam bulunamadı:', result.examId, 'Skipping this result');
+          // Exam kaydı eksik - yine de denemeyi göster ama "eksik" olarak işaretle
+          console.log('⚠️ Eksik exam kaydı:', examId, 'Ekleniyor ama eksik işaretlenecek');
+          examResults.push({
+            exam: {
+              id: examId,
+              title: 'Eksik Deneme Kaydı',
+              date: 'Bilinmiyor',
+              generalAverages: {}
+            },
+            studentResults: [],
+            classAverage: 0,
+            classAverageScore: 0,
+            generalAverage: 0,
+            generalAverageScore: 0,
+            studentTotalNet: 0,
+            studentTotalScore: 0,
+            isMissingExam: true
+          });
+          continue;
+        }
+        
+        if (!studentResult) {
+          // Öğrencinin sonucu yok ama exam kaydı mevcut - "sonuç yok" olarak ekle
+          examResults.push({
+            exam,
+            studentResults: [],
+            classAverage: 0,
+            classAverageScore: 0,
+            generalAverage: 0,
+            generalAverageScore: 0,
+            studentTotalNet: 0,
+            studentTotalScore: 0
+          });
           continue;
         }
 
@@ -242,15 +282,15 @@ function StudentDashboardContent() {
 
         examResults.push({
           exam,
-          studentResults: [result],
+          studentResults: [studentResult],
           classAverage: classAverage,
           classAverageScore: classAverageScore,
           generalAverage: generalAverageNet,
           generalAverageScore: generalAverageScoreNet,
-          studentTotalNet: result.nets?.total || 0,
-          studentTotalScore: typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
-                           typeof result.puan === 'number' ? result.puan : 
-                           (typeof result.totalScore === 'number' ? result.totalScore : 0)
+          studentTotalNet: studentResult.nets?.total || 0,
+          studentTotalScore: typeof studentResult.scores?.puan === 'string' ? parseFloat(studentResult.scores.puan) :
+                           typeof studentResult.puan === 'number' ? studentResult.puan : 
+                           (typeof studentResult.totalScore === 'number' ? studentResult.totalScore : 0)
         });
       }
 
