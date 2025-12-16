@@ -440,17 +440,20 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     if (validStudentResults.length === 0) return null;
     
     // Sınıf ve genel ortalamaları hesapla
+    // Sınıf ortalaması: Sadece aynı sınıftaki öğrencilerin sonuçları
     const classResults = results.filter(r => {
       const rStudent = students.find(s => s.id === r.studentId);
       return rStudent?.class === student?.class;
     });
     
-    const allResults = results; // Tüm öğrencilerin sonuçları
+    // Genel ortalama: Tüm öğrencilerin sonuçları
+    const allResults = results;
     
-    // Sadece puanı > 0 olan sonuçları dahil et
+    // Sınıf ortalaması için sadece puanı > 0 olan sonuçları dahil et
     const validClassResults = classResults.filter(r => {
+      const net = r.nets?.total || 0;
       const score = r.scores?.puan ? parseFloat(r.scores.puan) : (r.puan || 0);
-      return score > 0;
+      return net > 0 || score > 0;
     });
     
     const classAverageNet = validClassResults.length > 0 
@@ -464,10 +467,11 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
         }, 0) / validClassResults.length
       : 0;
     
-    // Sadece puanı > 0 olan tüm sonuçları dahil et
+    // Genel ortalama için sadece puanı > 0 olan tüm sonuçları dahil et
     const validAllResults = allResults.filter(r => {
+      const net = r.nets?.total || 0;
       const score = r.scores?.puan ? parseFloat(r.scores.puan) : (r.puan || 0);
-      return score > 0;
+      return net > 0 || score > 0;
     });
     
     const generalAverageNet = validAllResults.length > 0
@@ -480,6 +484,18 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
           return sum + score;
         }, 0) / validAllResults.length
       : 0;
+
+    // Debug: Sınıf ve genel ortalamaların farklı olup olmadığını kontrol et
+    const allClasses = [...new Set(students.map(s => s.class))];
+    console.log('📊 AnalyticsTab Debug:');
+    console.log(`- Tüm sınıflar: [${allClasses.join(', ')}]`);
+    console.log(`- Öğrenci sınıfı: ${student?.class}`);
+    console.log(`- Sınıf sonuç sayısı: ${validClassResults.length}`);
+    console.log(`- Genel sonuç sayısı: ${validAllResults.length}`);
+    console.log(`- Sınıf ortalaması (Net): ${classAverageNet.toFixed(2)}`);
+    console.log(`- Genel ortalaması (Net): ${generalAverageNet.toFixed(2)}`);
+    console.log(`- Sınıf ortalaması (Puan): ${classAverageScore.toFixed(2)}`);
+    console.log(`- Genel ortalaması (Puan): ${generalAverageScore.toFixed(2)}`);
 
     // İstatistikleri hesapla (sadece gerçek denemeler için)
     const totalNet = validStudentResults.reduce((sum, result) => sum + (result.nets?.total || 0), 0);
