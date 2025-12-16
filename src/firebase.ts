@@ -1765,3 +1765,260 @@ export const deleteKitapSinavi = async (sinavId: string): Promise<void> => {
     throw error;
   }
 };
+
+
+// 📝 ÖDEV TAKİBİ FONKSİYONLARI
+
+// Ödev durumu interface'i
+export interface OdevDurumu {
+  ders: string;
+  sinif: string;
+  tarih: string;
+  ogrenciDurumlari: {[studentId: string]: boolean};
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Ödev istatistiği interface'i
+export interface OdevIstatistik {
+  id: string;
+  ders: string;
+  sinif: string;
+  tarih: string;
+  toplamOgrenci: number;
+  odevYapan: number;
+  odevYapmayan: number;
+  yuzde: number;
+  createdAt: string;
+}
+
+// Tüm ödev durumlarını getir
+export const getOdevler = async (): Promise<OdevIstatistik[]> => {
+  try {
+    const odevlerRef = collection(db, 'odevler');
+    const q = query(odevlerRef, orderBy('tarih', 'desc'));
+    const snapshot = await getDocs(q);
+    
+    const odevler: OdevIstatistik[] = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      odevler.push({
+        id: doc.id,
+        ders: data.ders,
+        sinif: data.sinif,
+        tarih: data.tarih,
+        toplamOgrenci: data.toplamOgrenci,
+        odevYapan: data.odevYapan,
+        odevYapmayan: data.odevYapmayan,
+        yuzde: data.yuzde,
+        createdAt: data.createdAt
+      });
+    });
+    
+    console.log('📝 Bulunan ödevler:', odevler.length);
+    return odevler;
+  } catch (error) {
+    console.error('Ödevler getirme hatası:', error);
+    return [];
+  }
+};
+
+// Belirli bir ders, sınıf ve tarih için öğrenci durumlarını getir
+export const getOdevDurumlari = async (ders: string, sinif: string, tarih: string): Promise<{[studentId: string]: boolean}> => {
+  try {
+    const odevRef = doc(db, 'odevler', `${ders}_${sinif}_${tarih}`);
+    const docSnap = await getDoc(odevRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return data.ogrenciDurumlari || {};
+    } else {
+      // Eğer dokuman yoksa boş object döndür
+      return {};
+    }
+  } catch (error) {
+    console.error('Ödev durumları getirme hatası:', error);
+    return {};
+  }
+};
+
+// Öğrenci ödev durumunu güncelle
+export const updateOdevDurumu = async (
+  ders: string, 
+  sinif: string, 
+  tarih: string, 
+  studentId: string, 
+  yapti: boolean
+): Promise<void> => {
+  try {
+    const odevId = `${ders}_${sinif}_${tarih}`;
+    const odevRef = doc(db, 'odevler', odevId);
+    
+    // Önce mevcut durumu al
+    const docSnap = await getDoc(odevRef);
+    const mevcutDurumlar = docSnap.exists() ? (docSnap.data().ogrenciDurumlari || {}) : {};
+    
+    // Yeni durumu ekle/güncelle
+    const yeniDurumlar = {
+      ...mevcutDurumlar,
+      [studentId]: yapti
+    };
+    
+    // İstatistikleri hesapla
+    const toplamOgrenci = Object.keys(yeniDurumlar).length;
+    const odevYapan = Object.values(yeniDurumlar).filter(durum => durum === true).length;
+    const odevYapmayan = toplamOgrenci - odevYapan;
+    const yuzde = toplamOgrenci > 0 ? (odevYapan / toplamOgrenci) * 100 : 0;
+    
+    const odevData = {
+      ders,
+      sinif,
+      tarih,
+      ogrenciDurumlari: yeniDurumlar,
+      toplamOgrenci,
+      odevYapan,
+      odevYapmayan,
+      yuzde: Math.round(yuzde * 100) / 100,
+      updatedAt: new Date().toISOString()
+    };
+    
+    // Dokumanı güncelle veya oluştur
+    await setDoc(odevRef, {
+      ...odevData,
+      createdAt: docSnap.exists() ? docSnap.data().createdAt : new Date().toISOString()
+    }, { merge: true });
+    
+    console.log(`📝 Ödev durumu güncellendi: ${ders} - ${sinif} - ${tarih} - ${studentId} = ${yapti}`);
+  } catch (error) {
+    console.error('Ödev durumu güncelleme hatası:', error);
+    throw error;
+  }
+};
+
+// Belirli bir ders için belirli bir tarih aralığında ödev istatistiklerini getir
+export const getOdevIstatistikleri = async (ders: string, baslangicTarihi: string, bitisTarihi: string): Promise<OdevIstatistik[]> => {
+  try {
+    const odevlerRef = collection(db, 'odevler');
+    const q = query(
+      odevlerRef,
+      where('ders', '==', ders),
+      where('tarih', '>=', baslangicTarihi),
+      where('tarih', '<=', bitisTarihi),
+      orderBy('tarih', 'desc')
+    );
+    
+    const snapshot = await getDocs(q);
+    const istatistikler: OdevIstatistik[] = [];
+    
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      istatistikler.push({
+        id: doc.id,
+        ders: data.ders,
+        sinif: data.sinif,
+        tarih: data.tarih,
+        toplamOgrenci: data.toplamOgrenci,
+        odevYapan: data.odevYapan,
+        odevYapmayan: data.odevYapmayan,
+        yuzde: data.yuzde,
+        createdAt: data.createdAt
+      });
+    });
+    
+    return istatistikler;
+  } catch (error) {
+    console.error('Ödev istatistikleri getirme hatası:', error);
+    return [];
+  }
+};
+
+// Öğrenci için tüm ödev geçmişini getir
+export const getOgrencilOdevGecmisi = async (studentId: string, baslangicTarihi?: string): Promise<OdevIstatistik[]> => {
+  try {
+    const odevlerRef = collection(db, 'odevler');
+    let q = query(odevlerRef, orderBy('tarih', 'desc'));
+    
+    // Eğer başlangıç tarihi verilmişse filtrele
+    if (baslangicTarihi) {
+      q = query(odevlerRef, where('tarih', '>=', baslangicTarihi), orderBy('tarih', 'desc'));
+    }
+    
+    const snapshot = await getDocs(q);
+    const ogrenciOdevleri: OdevIstatistik[] = [];
+    
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const ogrenciDurum = data.ogrenciDurumlari?.[studentId];
+      
+      if (ogrenciDurum !== undefined) {
+        ogrenciOdevleri.push({
+          id: doc.id,
+          ders: data.ders,
+          sinif: data.sinif,
+          tarih: data.tarih,
+          toplamOgrenci: data.toplamOgrenci,
+          odevYapan: data.odevYapan,
+          odevYapmayan: data.odevYapmayan,
+          yuzde: data.yuzde,
+          createdAt: data.createdAt,
+          ogrenciDurum: ogrenciDurum
+        });
+      }
+    });
+    
+    return ogrenciOdevleri;
+  } catch (error) {
+    console.error('Öğrenci ödev geçmişi getirme hatası:', error);
+    return [];
+  }
+};
+
+// Belirli bir ödev kaydını sil
+export const deleteOdev = async (odevId: string): Promise<void> => {
+  try {
+    const odevRef = doc(db, 'odevler', odevId);
+    await deleteDoc(odevRef);
+    console.log('📝 Ödev silindi:', odevId);
+  } catch (error) {
+    console.error('Ödev silme hatası:', error);
+    throw error;
+  }
+};
+
+// Belirli bir tarih için tüm derslerdeki ödev durumlarını toplu güncelle
+export const bulkUpdateOdevDurumlari = async (
+  tarih: string,
+  dersDurumlari: {[ders: string]: {[studentId: string]: boolean}},
+  sinif: string
+): Promise<void> => {
+  try {
+    const updatePromises = Object.entries(dersDurumlari).map(([ders, ogrenciDurumlari]) => {
+      const odevId = `${ders}_${sinif}_${tarih}`;
+      const odevRef = doc(db, 'odevler', odevId);
+      
+      const toplamOgrenci = Object.keys(ogrenciDurumlari).length;
+      const odevYapan = Object.values(ogrenciDurumlari).filter(durum => durum === true).length;
+      const odevYapmayan = toplamOgrenci - odevYapan;
+      const yuzde = toplamOgrenci > 0 ? (odevYapan / toplamOgrenci) * 100 : 0;
+      
+      return setDoc(odevRef, {
+        ders,
+        sinif,
+        tarih,
+        ogrenciDurumlari: ogrenciDurumlari,
+        toplamOgrenci,
+        odevYapan,
+        odevYapmayan,
+        yuzde: Math.round(yuzde * 100) / 100,
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      });
+    });
+    
+    await Promise.all(updatePromises);
+    console.log('📝 Toplu ödev durumu güncellemesi tamamlandı:', tarih, sinif);
+  } catch (error) {
+    console.error('Toplu ödev durumu güncelleme hatası:', error);
+    throw error;
+  }
+};

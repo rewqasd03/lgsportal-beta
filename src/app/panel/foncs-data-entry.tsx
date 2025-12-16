@@ -1103,6 +1103,7 @@ const TABS: Tab[] = [
   { key: "toplu", label: "👥 Toplu Veri" },
   { key: "excel-import", label: "📊 Excel İçe Aktar" },
   { key: "kitap-sinavi", label: "📚 Kitap Sınavı" },
+  { key: "odev-takibi", label: "📝 Ödev Takibi" },
 
   { key: "hedef", label: "🎯 Hedef Belirleme" },
   { key: "lgs-hesaplama", label: "🧮 LGS Puan Hesaplama" },
@@ -3995,6 +3996,7 @@ export default function FoncsDataEntry() {
       case "toplu": return <BulkTab />;
       case "excel-import": return <ExcelImportTab students={students} exams={exams} onDataUpdate={loadDataFromFirebase} />;
       case "kitap-sinavi": return <KitapSinaviTab students={students} onDataUpdate={loadDataFromFirebase} />;
+      case "odev-takibi": return <OdevTakibiTab students={students} onDataUpdate={loadDataFromFirebase} />;
 
       case "hedef": return <TargetTab />;
       case "lgs-hesaplama": return <LGSCalculatorTab />;
@@ -5677,6 +5679,335 @@ const KitapSinaviTab = ({ students, onDataUpdate }: {
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+
+// 📝 Ödev Takibi Tab Component
+const OdevTakibiTab = ({ students, onDataUpdate }: { 
+  students: any[]; 
+  onDataUpdate: () => void;
+}) => {
+  const [selectedDers, setSelectedDers] = useState<string>('');
+  const [selectedSinif, setSelectedSinif] = useState<string>('');
+  const [odevDurumlar, setOdevDurumlar] = useState<{[key: string]: boolean}>({});
+  const [bugun, setBugun] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [odevler, setOdevler] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Firebase fonksiyonlarını import et
+  const loadOdevler = async () => {
+    setLoading(true);
+    try {
+      const { getOdevler, addOdev, updateOdev, deleteOdev } = await import('../../firebase');
+      const odevListesi = await getOdevler();
+      setOdevler(odevListesi);
+    } catch (error) {
+      console.error('Ödevler yüklenirken hata:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadOdevler();
+  }, []);
+
+  // Dersler listesi
+  const dersler = [
+    { key: 'turkce', label: '📖 Türkçe', color: '#10B981' },
+    { key: 'matematik', label: '🔢 Matematik', color: '#F59E0B' },
+    { key: 'fen', label: '🔬 Fen Bilimleri', color: '#3B82F6' },
+    { key: 'sosyal', label: '🌍 Sosyal Bilgiler', color: '#8B5CF6' },
+    { key: 'din', label: '🕌 Din Kültürü', color: '#F97316' },
+    { key: 'ingilizce', label: '🇺🇸 İngilizce', color: '#EF4444' }
+  ];
+
+  // Sınıf listesi
+  const siniflar = [...new Set(students.map(s => s.class))].sort();
+
+  // Seçili sınıfın öğrencileri
+  const seciliSinifOgrencileri = students.filter(s => s.class === selectedSinif);
+
+  // Seçilen ders ve sınıfa göre ödev durumlarını yükle
+  useEffect(() => {
+    if (selectedDers && selectedSinif && bugun) {
+      loadOdevDurumlari();
+    }
+  }, [selectedDers, selectedSinif, bugun]);
+
+  const loadOdevDurumlari = async () => {
+    try {
+      const { getOdevDurumlari, updateOdevDurumu } = await import('../../firebase');
+      const durumlar = await getOdevDurumlari(selectedDers, selectedSinif, bugun);
+      setOdevDurumlar(durumlar);
+    } catch (error) {
+      console.error('Ödev durumları yüklenirken hata:', error);
+    }
+  };
+
+  // Öğrenci ödev durumunu güncelle
+  const handleOdevDurumu = async (studentId: string, yapti: boolean) => {
+    try {
+      const { updateOdevDurumu } = await import('../../firebase');
+      await updateOdevDurumu(selectedDers, selectedSinif, bugun, studentId, yapti);
+      
+      setOdevDurumlar(prev => ({
+        ...prev,
+        [studentId]: yapti
+      }));
+
+      // Öğrenci dashboard'ını güncelle
+      if (onDataUpdate) onDataUpdate();
+    } catch (error) {
+      console.error('Ödev durumu güncellenirken hata:', error);
+      alert('Ödev durumu güncellenirken hata oluştu!');
+    }
+  };
+
+  // İstatistikler
+  const istatistikler = {
+    toplamOgrenci: seciliSinifOgrencileri.length,
+    odevYapan: Object.values(odevDurumlar).filter(yapti => yapti).length,
+    odevYapmayan: seciliSinifOgrencileri.length - Object.values(odevDurumlar).filter(yapti => yapti).length
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Başlık */}
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold mb-2">📝 Ödev Takibi</h2>
+        <p className="text-purple-100">Günlük ödev durumlarını takip edin ve yönetin</p>
+      </div>
+
+      {/* Filtreler */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Ders Seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📚 Ders Seçin:
+            </label>
+            <select
+              value={selectedDers}
+              onChange={(e) => {
+                setSelectedDers(e.target.value);
+                setSelectedSinif('');
+                setOdevDurumlar({});
+              }}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="">Ders seçiniz...</option>
+              {dersler.map(ders => (
+                <option key={ders.key} value={ders.key}>
+                  {ders.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sınıf Seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              🏛️ Sınıf Seçin:
+            </label>
+            <select
+              value={selectedSinif}
+              onChange={(e) => {
+                setSelectedSinif(e.target.value);
+                setOdevDurumlar({});
+              }}
+              disabled={!selectedDers}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100"
+            >
+              <option value="">Sınıf seçiniz...</option>
+              {siniflar.map(sinif => (
+                <option key={sinif} value={sinif}>
+                  {sinif}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tarih Seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📅 Tarih:
+            </label>
+            <input
+              type="date"
+              value={bugun}
+              onChange={(e) => setBugun(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* İstatistikler */}
+      {selectedDers && selectedSinif && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h4 className="text-sm font-medium text-blue-800 mb-1">Toplam Öğrenci</h4>
+            <p className="text-2xl font-bold text-blue-600">{istatistikler.toplamOgrenci}</p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <h4 className="text-sm font-medium text-green-800 mb-1">Ödev Yapan</h4>
+            <p className="text-2xl font-bold text-green-600">{istatistikler.odevYapan}</p>
+          </div>
+          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+            <h4 className="text-sm font-medium text-red-800 mb-1">Ödev Yapmayan</h4>
+            <p className="text-2xl font-bold text-red-600">{istatistikler.odevYapmayan}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Öğrenci Listesi */}
+      {selectedDers && selectedSinif && (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="px-6 py-4 border-b bg-gray-50">
+            <h3 className="text-lg font-semibold text-gray-800">
+              {dersler.find(d => d.key === selectedDers)?.label} - {selectedSinif} Sınıfı Öğrencileri
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Tarih: {new Date(bugun).toLocaleDateString('tr-TR')}
+            </p>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Öğrenci
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ödev Durumu
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    İşlem
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {seciliSinifOgrencileri.map((student) => {
+                  const odevYapti = odevDurumlar[student.id] || false;
+                  
+                  return (
+                    <tr key={student.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                              {student.name.charAt(0).toUpperCase()}
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {student.name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              No: {student.number}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                          odevYapti 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {odevYapti ? '✅ Tamamlandı' : '❌ Yapılmadı'}
+                        </span>
+                      </td>
+                      
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            onClick={() => handleOdevDurumu(student.id, true)}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                              odevYapti
+                                ? 'bg-green-200 text-green-800 cursor-not-allowed'
+                                : 'bg-green-500 text-white hover:bg-green-600'
+                            }`}
+                            disabled={odevYapti}
+                            title="Ödev tamamlandı olarak işaretle"
+                          >
+                            ✅
+                          </button>
+                          <button
+                            onClick={() => handleOdevDurumu(student.id, false)}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                              !odevYapti
+                                ? 'bg-red-200 text-red-800 cursor-not-allowed'
+                                : 'bg-red-500 text-white hover:bg-red-600'
+                            }`}
+                            disabled={!odevYapti}
+                            title="Ödev yapılmadı olarak işaretle"
+                          >
+                            ❌
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          
+          {seciliSinifOgrencileri.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-gray-400 text-lg mb-2">👥</div>
+              <p className="text-gray-500">Seçilen sınıfta öğrenci bulunmamaktadır.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Seçim Uyarısı */}
+      {!selectedDers || !selectedSinif ? (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+          <div className="text-yellow-400 text-3xl mb-2">📋</div>
+          <h3 className="text-lg font-medium text-yellow-800 mb-2">Ödev Takibi Başlatın</h3>
+          <p className="text-yellow-700">
+            Lütfen önce bir ders ve sınıf seçin, ardından öğrencilerin ödev durumlarını takip edebilirsiniz.
+          </p>
+        </div>
+      ) : null}
+
+      {/* Ödev Geçmişi */}
+      {odevler.length > 0 && (
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b bg-gray-50">
+            <h3 className="text-lg font-semibold text-gray-800">📊 Ödev Geçmişi</h3>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {odevler.slice(0, 6).map((odev) => (
+                <div key={odev.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-gray-900">
+                      {dersler.find(d => d.key === odev.ders)?.label}
+                    </h4>
+                    <span className="text-xs text-gray-500">
+                      {new Date(odev.tarih).toLocaleDateString('tr-TR')}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600">{odev.sinif}</p>
+                  <div className="mt-2 flex justify-between text-xs">
+                    <span className="text-green-600">✅ {odev.yapan}</span>
+                    <span className="text-red-600">❌ {odev.yapmayan}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
