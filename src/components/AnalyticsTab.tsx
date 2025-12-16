@@ -71,6 +71,12 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [viewType, setViewType] = useState<'overview' | 'comparison' | 'trends'>('overview');
   const [selectedStudent, setSelectedStudent] = useState<string>('');
+
+  // Sınıf değişince öğrenci seçimini temizle
+  const handleClassChange = (newClass: string) => {
+    setSelectedClass(newClass);
+    setSelectedStudent(''); // Öğrenci seçimini temizle
+  };
   const [trendsViewType, setTrendsViewType] = useState<'net' | 'puan'>('net');
 
   // Performans verilerini hesapla
@@ -578,18 +584,41 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
 
     return (
       <div className="space-y-6">
-        {/* Öğrenci Seçimi */}
+        {/* Sınıf ve Öğrenci Seçimi */}
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-xl font-bold mb-4">📊 Kapsamlı Öğrenci Trendi Analizi</h3>
+          
+          {/* Sınıf Seçimi */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Sınıf Seçin:</label>
+            <select
+              value={selectedClass}
+              onChange={(e) => handleClassChange(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">Tüm Sınıflar</option>
+              <option value="2-A">2-A</option>
+              <option value="3-A">3-A</option>
+              <option value="4-A">4-A</option>
+              <option value="5-A">5-A</option>
+              <option value="6-A">6-A</option>
+              <option value="7-A">7-A</option>
+              <option value="8-A">8-A</option>
+            </select>
+          </div>
+
+          {/* Öğrenci Seçimi */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">Öğrenci Seçin:</label>
             <select
               value={selectedStudent}
               onChange={(e) => setSelectedStudent(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={selectedClass === 'all'}
             >
               <option value="">Öğrenci seçin...</option>
               {students
+                .filter(student => selectedClass === 'all' || student.class === selectedClass)
                 .map(student => {
                   const studentResults = results.filter(r => r.studentId === student.id);
                   // Sadece 0 olmayan puanı olan denemeleri say (gerçek denemeye katılan)
@@ -612,6 +641,11 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                 })
               }
             </select>
+            {selectedClass === 'all' && (
+              <p className="text-sm text-gray-500 mt-1">
+                ℹ️ Lütfen önce bir sınıf seçin
+              </p>
+            )}
           </div>
           
           {/* Seçilen Öğrenci Bilgileri */}
