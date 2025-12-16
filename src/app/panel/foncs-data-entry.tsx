@@ -5700,7 +5700,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
   const loadOdevler = async () => {
     setLoading(true);
     try {
-      const { getOdevler, addOdev, updateOdev, deleteOdev } = await import('../../firebase');
+      const { getOdevler } = await import('../../firebase');
       const odevListesi = await getOdevler();
       setOdevler(odevListesi);
     } catch (error) {
