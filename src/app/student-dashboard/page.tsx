@@ -132,6 +132,15 @@ function StudentDashboardContent() {
       const studentResults = resultsData.filter(r => r.studentId === studentId);
       console.log('Öğrenci sonuçları:', studentResults.length);
 
+      // DEBUG: Hangi examId'lerin mevcut olup olmadığını kontrol et
+      const studentExamIds = studentResults.map(r => r.examId);
+      const availableExamIds = examsData.map(e => e.id);
+      console.log('Öğrencinin examId\'leri:', studentExamIds);
+      console.log('Mevcut examId\'ler:', availableExamIds);
+      
+      const missingExamIds = studentExamIds.filter(id => !availableExamIds.includes(id));
+      console.log('Eksik examId\'ler:', missingExamIds);
+
       // 0 puan alan denemeleri filtrele (Kullanıcının isteği: "0 puan alan öğrenciyi o denemeye girmedi olarak kabul et")
       const validStudentResults = studentResults.filter(result => {
         const score = typeof result.scores?.puan === 'string' ? parseFloat(result.scores.puan) :
@@ -157,7 +166,10 @@ function StudentDashboardContent() {
 
       for (const result of validStudentResults) {
         const exam = examsData.find(e => e.id === result.examId);
-        if (!exam) continue;
+        if (!exam) {
+          console.log('⚠️ Exam bulunamadı:', result.examId, 'Skipping this result');
+          continue;
+        }
 
         // Sınıf ortalamasını hesapla (aynı sınıftaki öğrencilerin toplam net ortalaması)
         // NOT: 0 puanlı öğrenciler ortalamadan hariç tutulur ama deneme sayısına dahildir
