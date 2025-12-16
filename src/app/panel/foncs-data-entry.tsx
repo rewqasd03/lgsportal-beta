@@ -5725,7 +5725,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
   ];
 
   // Sınıf listesi
-  const siniflar = [...new Set(students.map(s => s.class))].sort();
+  const siniflar = Array.from(new Set(students.map(s => s.class))).sort();
 
   // Seçili sınıfın öğrencileri
   const seciliSinifOgrencileri = students.filter(s => s.class === selectedSinif);
