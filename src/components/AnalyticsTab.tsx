@@ -486,7 +486,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
       : 0;
 
     // Debug: Sınıf ve genel ortalamaların farklı olup olmadığını kontrol et
-    const allClasses = [...new Set(students.map(s => s.class))];
+    const allClasses = Array.from(new Set(students.map(s => s.class)));
     console.log('📊 AnalyticsTab Debug:');
     console.log(`- Tüm sınıflar: [${allClasses.join(', ')}]`);
     console.log(`- Öğrenci sınıfı: ${student?.class}`);
