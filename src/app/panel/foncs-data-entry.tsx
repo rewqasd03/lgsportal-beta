@@ -3696,11 +3696,19 @@ export default function FoncsDataEntry() {
       try {
         setLoading(true);
         
-        // Önce mevcut sonuçları sil
+        // DİKKAT: Sadece seçili sınıfın sonuçlarını sil, diğer sınıfları koru!
         const existingResults = results.filter(r => r.examId === selectedExamId);
         if (existingResults.length > 0) {
-          const deletePromises = existingResults.map(result => deleteResult(result.id));
-          await Promise.all(deletePromises);
+          // Sadece seçili sınıfın sonuçlarını sil
+          const selectedClassResults = existingResults.filter(r => {
+            const student = students.find(s => s.id === r.studentId);
+            return student && student.class === selectedClass;
+          });
+          
+          if (selectedClassResults.length > 0) {
+            const deletePromises = selectedClassResults.map(result => deleteResult(result.id));
+            await Promise.all(deletePromises);
+          }
         }
         
         // Yeni sonuçları ekle
