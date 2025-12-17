@@ -1,0 +1,1133 @@
+layout-80755d1ebecb07b5.js:1 🚫 Service Worker devre dışı - Cache temizlendi
+lgsportali.com/:1 Error while trying to use the following icon from the Manifest: https://lgsportali.com/icon-192.png (Download error or resource isn't a valid image)
+panel/:1 Error while trying to use the following icon from the Manifest: https://lgsportali.com/icon-192.png (Download error or resource isn't a valid image)
+login/:1 Error while trying to use the following icon from the Manifest: https://lgsportali.com/icon-192.png (Download error or resource isn't a valid image)
+panel/:1 Error while trying to use the following icon from the Manifest: https://lgsportali.com/icon-192.png (Download error or resource isn't a valid image)
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (5Zd35EktdEpfwHiuuQGX): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (h9F7h0wzvurxEEjU0Rbt): 460
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (mgJbki81ewecLK1QYfLB): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (5Zd35EktdEpfwHiuuQGX): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (h9F7h0wzvurxEEjU0Rbt): 460
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (mgJbki81ewecLK1QYfLB): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (5Zd35EktdEpfwHiuuQGX): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (h9F7h0wzvurxEEjU0Rbt): 460
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (mgJbki81ewecLK1QYfLB): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (5Zd35EktdEpfwHiuuQGX): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (h9F7h0wzvurxEEjU0Rbt): 460
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (mgJbki81ewecLK1QYfLB): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (5Zd35EktdEpfwHiuuQGX): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (h9F7h0wzvurxEEjU0Rbt): 460
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (mgJbki81ewecLK1QYfLB): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (5Zd35EktdEpfwHiuuQGX): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (h9F7h0wzvurxEEjU0Rbt): 460
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (mgJbki81ewecLK1QYfLB): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (5Zd35EktdEpfwHiuuQGX): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (h9F7h0wzvurxEEjU0Rbt): 460
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (mgJbki81ewecLK1QYfLB): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (5Zd35EktdEpfwHiuuQGX): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (h9F7h0wzvurxEEjU0Rbt): 460
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 🎯 Puan hedefi bulundu (mgJbki81ewecLK1QYfLB): 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-aa7a3bdb889e8342.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+23-4efe45bba3b53889.js:1 TypeError: Cannot read properties of undefined (reading 'turkce')
+    at page-4b3fd9499f8f4404.js:1:104895
+    at rR (fd9d1056-7b385f0bc303b164.js:1:41935)
+    at rA (fd9d1056-7b385f0bc303b164.js:1:42783)
+    at rD (fd9d1056-7b385f0bc303b164.js:1:41964)
+    at Object.useState (fd9d1056-7b385f0bc303b164.js:1:52494)
+    at 23-4efe45bba3b53889.js:2:32039
+    at R (page-4b3fd9499f8f4404.js:1:103778)
+    at rE (fd9d1056-7b385f0bc303b164.js:1:40343)
+    at l$ (fd9d1056-7b385f0bc303b164.js:1:59318)
+    at iZ (fd9d1056-7b385f0bc303b164.js:1:117925)
+push.10353.window.console.error @ 23-4efe45bba3b53889.js:1
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
+content.js:2435 Uncaught (in promise) Error: Extension context invalidated.
+    at content.js:2435:25
+    at new Promise (<anonymous>)
+    at wrappedSendMessage (content.js:2432:14)
+    at Object.apply (content.js:2130:26)
+    at notifyActive (content.js:3187:32)
