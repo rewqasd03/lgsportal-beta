@@ -7,6 +7,7 @@ import { authenticateStudent } from '../../firebase';
 const StudentLoginPage: React.FC = () => {
   const [studentClass, setStudentClass] = useState('');
   const [schoolNumber, setSchoolNumber] = useState('');
+  const [studentPin, setStudentPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -17,14 +18,14 @@ const StudentLoginPage: React.FC = () => {
     setError('');
 
     try {
-      // Sınıf ve Okul Numarası ile giriş
-      const student = await authenticateStudent(studentClass, schoolNumber);
+      // Sınıf, Okul Numarası ve PIN ile giriş
+      const student = await authenticateStudent(studentClass, schoolNumber, studentPin);
 
       if (student) {
         // Öğrenci dashboard'a yönlendir
         router.push(`/student-dashboard?studentId=${student.id}`);
       } else {
-        setError('Sınıf veya Okul Numarası hatalı');
+        setError('Sınıf, Okul Numarası veya PIN hatalı');
       }
     } catch (err: any) {
       setError(err.message || 'Bir hata oluştu');
@@ -45,7 +46,7 @@ const StudentLoginPage: React.FC = () => {
           />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Öğrenci Portalı</h1>
           <p className="text-gray-600">LGS Başarı Takip Sistemi</p>
-          <p className="text-sm text-blue-600 mt-2">Sınıf ve Okul Numarası ile giriş</p>
+          <p className="text-sm text-blue-600 mt-2">Sınıf, Okul Numarası ve PIN ile giriş</p>
         </div>
 
         {/* Kart Tasarımı */}
@@ -86,6 +87,26 @@ const StudentLoginPage: React.FC = () => {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                🔐 Güvenlik Kodu (PIN)
+              </label>
+              <input
+                type="password"
+                value={studentPin}
+                onChange={(e) => setStudentPin(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="4 haneli PIN kodunuz"
+                maxLength={4}
+                pattern="[0-9]{4}"
+                title="4 haneli sayısal PIN kodunuzu girin"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Öğretmeninizden aldığınız 4 haneli PIN kodunu girin
+              </p>
+            </div>
+
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-red-700 text-sm">{error}</p>
@@ -105,7 +126,8 @@ const StudentLoginPage: React.FC = () => {
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500">
               Öğrenciler okul tarafından sisteme kaydedilir.<br />
-              Giriş için sınıf ve okul numaranızı kullanın.
+              Giriş için sınıf, okul numaranız ve PIN kodunuzu kullanın.<br />
+              <span className="text-blue-600 font-medium">PIN kodunuzu öğretmeninizden alın.</span>
             </p>
           </div>
         </div>

@@ -18,12 +18,13 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-// Öğrenci kimlik sistemi (T.C. Kimlik No + Okul Numarası)
+// Öğrenci kimlik sistemi (T.C. Kimlik No + Okul Numarası + PIN)
 export interface Student {
   id: string;
   name: string;
   class: string;
   number: string;
+  pin?: string; // 4 haneli güvenlik kodu
   viewCount: number;
   lastViewDate: string;
   createdAt: string;
@@ -95,20 +96,53 @@ export interface PerformanceMatrix {
   subjectAnalysis: { [key: string]: number };
 }
 
-// Öğrenci kimlik doğrulama (T.C. Kimlik No + Okul Numarası + Şifre)
-export const authenticateStudent = async (studentClass: string, schoolNumber: string): Promise<Student | null> => {
+// Öğrenci kimlik doğrulama (Sınıf + Okul Numarası + PIN)
+export const authenticateStudent = async (studentClass: string, schoolNumber: string, pin?: string): Promise<Student | null> => {
   try {
-    const studentsQuery = query(
-      collection(db, 'students'),
-      where('class', '==', studentClass),
-      where('number', '==', schoolNumber)
-    );
-    
-    const studentSnap = await getDocs(studentsQuery);
-    if (!studentSnap.empty) {
-      const studentDoc = studentSnap.docs[0];
-      return { id: studentDoc.id, ...studentDoc.data() } as Student;
+    // Önce PIN kontrolü varsa, PIN ile kimlik doğrulama yap
+    if (pin) {
+      const pinQuery = query(
+        collection(db, 'students'),
+        where('pin', '==', pin)
+      );
+      
+      const pinSnap = await getDocs(pinQuery);
+      
+      if (!pinSnap.empty) {
+        // PIN bulundu, şimdi sınıf ve numara ile eşleştir
+        const studentDoc = pinSnap.docs[0];
+        const studentData = studentDoc.data() as Student;
+        
+        // Sınıf ve numara kontrolü
+        if (studentData.class === studentClass && studentData.number === schoolNumber) {
+          return { id: studentDoc.id, ...studentData };
+        }
+      }
+    } else {
+      // Eski sistem uyumluluğu için PIN olmadan da çalışsın (geçici)
+      const studentsQuery = query(
+        collection(db, 'students'),
+        where('class', '==', studentClass),
+        where('number', '==', schoolNumber)
+      );
+      
+      const studentSnap = await getDocs(studentsQuery);
+      if (!studentSnap.empty) {
+        const studentDoc = studentSnap.docs[0];
+        const studentData = studentDoc.data() as Student;
+        
+        // Eğer öğrencide PIN yoksa, bir tane ata ve uyar
+        if (!studentData.pin) {
+          console.log(`⚠️ ${studentData.name} öğrencisinin PIN'i yok, otomatik atanıyor...`);
+          const newPin = generateStudentPin();
+          await updateStudent(studentDoc.id, { pin: newPin });
+          console.log(`✅ ${studentData.name} için PIN oluşturuldu: ${newPin}`);
+        }
+        
+        return { id: studentDoc.id, ...studentData };
+      }
     }
+    
     return null;
   } catch (error) {
     console.error('Authentication error:', error);
@@ -116,15 +150,38 @@ export const authenticateStudent = async (studentClass: string, schoolNumber: st
   }
 };
 
-// Öğrenci ekleme (T.C. Kimlik No sistemi)
+// Öğrenci ekleme (otomatik PIN ile)
 export const addStudent = async (studentData: { name: string; class: string; number: string }): Promise<string> => {
   try {
+    // Benzersiz PIN oluştur
+    let pin: string;
+    let isUnique = false;
+    let attempts = 0;
+    
+    // Mevcut PIN'leri al (benzersizlik için)
+    const existingStudents = await getStudents();
+    const existingPins = existingStudents.map(s => s.pin).filter(Boolean);
+    
+    do {
+      pin = generateStudentPin();
+      isUnique = !existingPins.includes(pin);
+      attempts++;
+      
+      // Sonsuz döngüyü engelle
+      if (attempts > 100) {
+        throw new Error('Benzersiz PIN oluşturulamadı');
+      }
+    } while (!isUnique);
+    
     const docRef = await addDoc(collection(db, 'students'), {
       ...studentData,
+      pin: pin, // Otomatik PIN ata
       viewCount: 0,
       lastViewDate: new Date().toISOString(),
       createdAt: new Date().toISOString()
     });
+    
+    console.log(`✅ Yeni öğrenci eklendi: ${studentData.name} - PIN: ${pin}`);
     return docRef.id;
   } catch (error) {
     console.error('Error adding student:', error);
@@ -167,6 +224,63 @@ export const firebaseLogout = async () => {
 
 export const onAuthChange = (callback: (user: any) => void) => {
   return onAuthStateChanged(auth, callback);
+};
+
+// 🔐 4 HANELİ PIN OLUŞTURMA FONKSİYONU
+export const generateStudentPin = (): string => {
+  // 1000-9999 arası rastgele 4 haneli sayı üret
+  return Math.floor(1000 + Math.random() * 9000).toString();
+};
+
+// Tüm öğrencilere PIN ata (mevcut öğrenciler için)
+export const assignPinsToAllStudents = async (): Promise<{updated: number, errors: string[]}> => {
+  try {
+    const students = await getStudents();
+    const results = { updated: 0, errors: [] as string[] };
+    
+    // Önce mevcut PIN'leri kontrol et
+    const studentsWithoutPin = students.filter(student => !student.pin);
+    
+    for (const student of studentsWithoutPin) {
+      try {
+        // Benzersiz PIN oluştur
+        let pin: string;
+        let isUnique = false;
+        let attempts = 0;
+        
+        do {
+          pin = generateStudentPin();
+          // Bu PIN başka bir öğrencide var mı kontrol et
+          const existingPin = students.find(s => s.pin === pin);
+          isUnique = !existingPin;
+          attempts++;
+          
+          // Sonsuz döngüyü engelle
+          if (attempts > 100) {
+            throw new Error('Benzersiz PIN oluşturulamadı');
+          }
+        } while (!isUnique);
+        
+        // Öğrenciye PIN ata
+        await updateStudent(student.id, { pin });
+        results.updated++;
+        
+        console.log(`📝 ${student.name} öğrencisine PIN atandı: ${pin}`);
+        
+      } catch (error) {
+        const errorMsg = `${student.name} için PIN atanırken hata: ${error}`;
+        results.errors.push(errorMsg);
+        console.error(errorMsg);
+      }
+    }
+    
+    console.log(`✅ PIN atama işlemi tamamlandı. ${results.updated} öğrenci güncellendi.`);
+    return results;
+    
+  } catch (error) {
+    console.error('PIN atama işlemi hatası:', error);
+    throw error;
+  }
 };
 
 // Gamification sisteminin temel interfaceleri

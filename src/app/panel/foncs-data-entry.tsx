@@ -2061,6 +2061,9 @@ export default function FoncsDataEntry() {
                               <div>
                                 <div className="text-xs font-medium text-gray-900">{student.name}</div>
                                 <div className="text-xs text-gray-500">No: {student.number}</div>
+                                {student.pin && (
+                                  <div className="text-xs text-blue-600 font-medium">PIN: {student.pin}</div>
+                                )}
                               </div>
                             </div>
                             
