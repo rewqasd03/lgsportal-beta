@@ -2,9 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Tailwind CSS */
-body {
-  background-color: #f8fafc; /* Tailwind slate-50 */
+/* Base styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #f8fafc;
+    color: #1f2937;
+    line-height: 1.6;
+  }
+  
+  /* Responsive typography */
+  h1 {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight;
+  }
+  
+  h2 {
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold leading-tight;
+  }
+  
+  h3 {
+    @apply text-lg sm:text-xl md:text-2xl font-medium leading-tight;
+  }
+  
+  p {
+    @apply text-sm sm:text-base leading-relaxed;
+  }
 }
 
 /* Toast Animations */
@@ -189,4 +215,182 @@ input.preserve-focus {
 input[type="text"],
 input[type="number"] {
   caret-color: #000 !important;
+}
+
+/* ===================== */
+/*   Responsive Layout   */
+/* ===================== */
+
+/* Mobile-first responsive design */
+.container {
+  @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Responsive grid systems */
+.grid-responsive {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+}
+
+.grid-responsive-cards {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3;
+}
+
+.grid-responsive-stats {
+  @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3;
+}
+
+/* Responsive spacing */
+.section-padding {
+  @apply py-4 sm:py-6 lg:py-8;
+}
+
+.section-margin {
+  @apply mb-4 sm:mb-6 lg:mb-8;
+}
+
+/* Responsive text sizes */
+.text-responsive-xs {
+  @apply text-xs sm:text-sm;
+}
+
+.text-responsive-sm {
+  @apply text-sm sm:text-base;
+}
+
+.text-responsive-base {
+  @apply text-base sm:text-lg;
+}
+
+.text-responsive-lg {
+  @apply text-lg sm:text-xl md:text-2xl;
+}
+
+.text-responsive-xl {
+  @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+}
+
+/* Responsive buttons */
+.btn-responsive {
+  @apply px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium rounded-lg transition-all duration-200;
+}
+
+.btn-responsive-lg {
+  @apply px-6 py-3 sm:px-8 sm:py-4 text-base sm:text-lg font-semibold rounded-xl transition-all duration-300;
+}
+
+/* Responsive cards */
+.card-responsive {
+  @apply bg-white rounded-lg shadow-md sm:shadow-lg p-4 sm:p-6 transition-all duration-200 hover:shadow-xl;
+}
+
+/* Responsive tables */
+.table-responsive {
+  @apply w-full overflow-x-auto;
+}
+
+.table-responsive table {
+  @apply min-w-full divide-y divide-gray-200;
+}
+
+.table-responsive th,
+.table-responsive td {
+  @apply px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-medium text-gray-700;
+}
+
+.table-responsive th {
+  @apply bg-gray-50 font-semibold;
+}
+
+/* Responsive modals */
+.modal-responsive {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50;
+}
+
+.modal-content {
+  @apply bg-white rounded-xl shadow-2xl w-full max-w-md sm:max-w-lg lg:max-w-xl max-h-[90vh] overflow-y-auto;
+}
+
+/* Responsive navigation */
+.nav-responsive {
+  @apply flex flex-col sm:flex-row gap-2 sm:gap-4;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+  .mobile-only {
+    @apply block;
+  }
+  
+  .desktop-only {
+    @apply hidden;
+  }
+  
+  /* Smaller text for mobile */
+  .text-mobile-sm {
+    @apply text-xs;
+  }
+  
+  /* Tighter spacing for mobile */
+  .spacing-mobile-tight {
+    @apply space-y-2;
+  }
+  
+  /* Mobile-friendly buttons */
+  .btn-mobile {
+    @apply w-full py-3 text-center;
+  }
+  
+  /* Mobile table adjustments */
+  .table-mobile {
+    @apply text-xs;
+  }
+  
+  .table-mobile th,
+  .table-mobile td {
+    @apply px-2 py-1;
+  }
+}
+
+/* Tablet and larger screens */
+@media (min-width: 641px) {
+  .mobile-only {
+    @apply hidden;
+  }
+  
+  .desktop-only {
+    @apply block;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1024px) {
+  .container {
+    @apply px-8;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:scale-105:hover {
+    @apply scale-100;
+  }
+  
+  .hover\:shadow-xl:hover {
+    @apply shadow-lg;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    @apply hidden;
+  }
+  
+  body {
+    @apply bg-white text-black;
+  }
+  
+  .card-responsive {
+    @apply shadow-none border border-gray-300;
+  }
 }

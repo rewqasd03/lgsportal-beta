@@ -305,7 +305,7 @@ export default function HomePage() {
         </div>
 
         {/* İstatistik Kartları */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mb-8">
+        <div className="grid-responsive-stats mb-8">
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-3 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
@@ -370,7 +370,7 @@ export default function HomePage() {
         {/* Sınıf Bazlı Detaylı İstatistikler */}
         <div className="mb-8">
           <h2 className="text-xs font-bold text-gray-800 mb-4 text-center">Sınıf Bazlı Detaylı İstatistikler</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="grid-responsive mb-8">
             {Object.entries(detailedClassStats).map(([className, stats], index) => (
               <div key={className} className={`bg-gradient-to-br ${colors[index % colors.length]} rounded-2xl p-3 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300`}>
                 <div className="text-center">
@@ -403,22 +403,22 @@ export default function HomePage() {
         {topActiveStudents.length > 0 && (
           <div className="mb-8">
             <h2 className="text-xs font-bold text-gray-800 mb-4 text-center">En Aktif 10 Öğrenci</h2>
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-              <div className="overflow-x-auto">
+            <div className="card-responsive">
+              <div className="table-responsive">
                 <table className="w-full">
                   <thead className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
                     <tr>
-                      <th className="px-3 py-2 text-left text-xs font-bold">Sıra</th>
-                      <th className="px-3 py-2 text-left text-xs font-bold">Ad Soyad</th>
-                      <th className="px-3 py-2 text-left text-xs font-bold">Sınıf</th>
-                      <th className="px-3 py-2 text-left text-xs font-bold">Numara</th>
-                      <th className="px-3 py-2 text-left text-xs font-bold">Görüntülenme</th>
+                      <th className="table-responsive th">Sıra</th>
+                      <th className="table-responsive th">Ad Soyad</th>
+                      <th className="table-responsive th">Sınıf</th>
+                      <th className="table-responsive th">Numara</th>
+                      <th className="table-responsive th">Görüntülenme</th>
                     </tr>
                   </thead>
                   <tbody>
                     {topActiveStudents.map((student, index) => (
                       <tr key={student.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="px-3 py-2">
+                        <td className="table-responsive td">
                           <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-white font-bold text-xs ${index === 0 ? 'bg-yellow-500' :
                               index === 1 ? 'bg-gray-400' :
                                 index === 2 ? 'bg-orange-500' :
@@ -427,10 +427,10 @@ export default function HomePage() {
                             {index + 1}
                           </span>
                         </td>
-                        <td className="px-3 py-2 font-medium text-gray-900">{student.name}</td>
-                        <td className="px-3 py-2 text-gray-600">{student.class}</td>
-                        <td className="px-3 py-2 text-gray-600">{student.number}</td>
-                        <td className="px-3 py-2">
+                        <td className="table-responsive td font-medium text-gray-900">{student.name}</td>
+                        <td className="table-responsive td text-gray-600">{student.class}</td>
+                        <td className="table-responsive td text-gray-600">{student.number}</td>
+                        <td className="table-responsive td">
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             {student.viewCount} görüntülenme
                           </span>
@@ -447,16 +447,16 @@ export default function HomePage() {
 
 
         {/* Giriş Butonları */}
-        <div className="flex flex-col items-center gap-3 mb-6">
+        <div className="nav-responsive items-center section-margin">
           <Link href="/ogrenci">
-            <button className="px-8 py-3 rounded-2xl text-white text-xs font-bold shadow-2xl bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:scale-105 hover:shadow-blue-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2">
-              <span className="text-xs">🎓</span>
+            <button className="btn-responsive-lg bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white flex items-center justify-center gap-2">
+              <span className="text-responsive-xs">🎓</span>
               <span>Öğrenci Girişi</span>
             </button>
           </Link>
           <Link href="/panel">
-            <button className="px-8 py-3 rounded-2xl text-white text-xs font-bold shadow-2xl bg-gradient-to-r from-green-500 via-emerald-600 to-teal-600 hover:from-green-600 hover:to-teal-700 hover:scale-105 hover:shadow-emerald-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2">
-              <span className="text-xs">📚</span>
+            <button className="btn-responsive-lg bg-gradient-to-r from-green-500 via-emerald-600 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white flex items-center justify-center gap-2">
+              <span className="text-responsive-xs">📚</span>
               <span>Öğretmen Paneli</span>
             </button>
           </Link>
@@ -464,9 +464,9 @@ export default function HomePage() {
           {/* Deneme Zamanlayıcısı Butonu */}
           <button
             onClick={() => setIsTimerModalOpen(true)}
-            className="px-6 py-2.5 rounded-2xl text-white text-xs font-bold shadow-xl bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 hover:scale-105 hover:shadow-orange-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2"
+            className="btn-responsive bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white flex items-center justify-center gap-2"
           >
-            <span className="text-xs">⏱️</span>
+            <span className="text-responsive-xs">⏱️</span>
             <span>Deneme Zamanlayıcısı</span>
           </button>
 
@@ -476,15 +476,15 @@ export default function HomePage() {
                 const modal = document.getElementById('contact-modal');
                 if (modal) modal.classList.remove('hidden');
               }}
-              className="px-8 py-3 rounded-2xl text-white text-xs font-bold shadow-2xl bg-gradient-to-r from-purple-500 via-pink-600 to-rose-600 hover:from-purple-600 hover:to-pink-700 hover:scale-105 hover:shadow-pink-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2"
+              className="btn-responsive-lg bg-gradient-to-r from-purple-500 via-pink-600 to-rose-600 hover:from-purple-600 hover:to-pink-700 text-white flex items-center justify-center gap-2"
             >
-              <span className="text-xs">📧</span>
+              <span className="text-responsive-xs">📧</span>
               <span>İletişim</span>
             </button>
             
             {/* İletişim Modal */}
-            <div id="contact-modal" className="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+            <div id="contact-modal" className="hidden modal-responsive">
+              <div className="modal-content section-padding">
                 <div className="text-center mb-6">
                   <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-white text-2xl">📧</span>
