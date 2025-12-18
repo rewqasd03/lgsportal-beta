@@ -434,14 +434,8 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
 
     // Öğrenci raporuna yönlendirme fonksiyonu
     const handleStudentReport = (student: Student) => {
-      // URL parametresi olarak öğrenci bilgilerini geç
-      const studentParams = new URLSearchParams({
-        studentId: student.id,
-        studentName: student.name,
-        studentClass: student.class,
-        studentNumber: student.number
-      });
-      router.push(`/ogrenci?${studentParams.toString()}`);
+      // Direkt student dashboard'a yönlendir
+      router.push(`/student-dashboard?studentId=${student.id}`);
     };
 
     return (
