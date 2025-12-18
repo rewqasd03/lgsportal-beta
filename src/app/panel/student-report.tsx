@@ -312,33 +312,12 @@ const StudentReport: React.FC<StudentReportProps> = ({
                 }
               </p>
             </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={exportToPDF}
-                disabled={isExporting}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-              >
-                {isExporting ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    PDF Oluşturuluyor...
-                  </>
-                ) : (
-                  <>
-                    📄 PDF İndir
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                🖨️ Yazdır
-              </button>
-            </div>
+            <button
+              onClick={() => window.print()}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              🖨️ Yazdır
+            </button>
           </div>
         </div>
       </div>
@@ -374,7 +353,7 @@ const StudentReport: React.FC<StudentReportProps> = ({
       <div className="max-w-7xl mx-auto px-4 py-8">
         {currentPage === 1 && (
           <div ref={pageRefs[1]}>
-            <PageOne reportData={reportData} />
+            <PageOne reportData={reportData} onExportPDF={exportToPDF} isExporting={isExporting} />
           </div>
         )}
         {currentPage === 2 && (
@@ -403,7 +382,13 @@ const StudentReport: React.FC<StudentReportProps> = ({
 };
 
 // Sayfa 1: Genel Özet + Çizgi Grafik
-const PageOne: React.FC<{ reportData: ReportData }> = ({ reportData }) => {
+interface PageOneProps {
+  reportData: ReportData;
+  onExportPDF: () => void;
+  isExporting: boolean;
+}
+
+const PageOne: React.FC<PageOneProps> = ({ reportData, onExportPDF, isExporting }) => {
   const lineData = reportData.examResults.map((r, index) => ({
     exam: r.exam.title,
     [reportData.student ? 'Öğrenci' : 'Sınıf']: r.studentTotalNet,
@@ -430,6 +415,36 @@ const PageOne: React.FC<{ reportData: ReportData }> = ({ reportData }) => {
 
   return (
     <div className="space-y-6">
+      {/* PDF İndir Butonu */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">📊 Genel Görünüm</h2>
+          <p className="text-gray-600 mt-1">Öğrenci performansının genel analizi</p>
+        </div>
+        <button
+          onClick={onExportPDF}
+          disabled={isExporting}
+          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isExporting ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span className="font-medium">PDF Oluşturuluyor...</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="font-medium">📄 Tüm Raporu PDF Olarak İndir</span>
+            </>
+          )}
+        </button>
+      </div>
+
       {/* Genel Özet */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
