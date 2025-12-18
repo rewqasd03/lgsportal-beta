@@ -208,17 +208,24 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
       .filter(result => result.studentId === selectedStudent)
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-    return studentResults.map((result, index) => ({
-      sira: index + 1,
-      tarih: new Date(result.createdAt).toLocaleDateString('tr-TR'),
-      toplamNet: result.nets?.total || 0,
-      turkce: result.nets?.turkce || 0,
-      matematik: result.nets?.matematik || 0,
-      fen: result.nets?.fen || 0,
-      sosyal: result.nets?.sosyal || 0,
-      classAverage: studentClassAverage
-    }));
-  }, [selectedStudent, results, studentClassAverage]);
+    return studentResults.map((result, index) => {
+      // Gerçek deneme bilgilerini al
+      const examInfo = exams.find(e => e.id === result.examId);
+      const examTitle = examInfo?.title || `Deneme ${index + 1}`;
+      
+      return {
+        sira: index + 1,
+        denemeAdi: examTitle,
+        tarih: new Date(result.createdAt).toLocaleDateString('tr-TR'),
+        toplamNet: result.nets?.total || 0,
+        turkce: result.nets?.turkce || 0,
+        matematik: result.nets?.matematik || 0,
+        fen: result.nets?.fen || 0,
+        sosyal: result.nets?.sosyal || 0,
+        classAverage: studentClassAverage
+      };
+    });
+  }, [selectedStudent, results, studentClassAverage, exams]);
 
   const renderOverview = () => (
     <div className="space-y-6">
@@ -506,31 +513,36 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     const stdDev = Math.sqrt(variance);
     
     // Puan istatistikleri (sadece gerçek denemeler için)
-    const studentScores = validStudentResults.map(result => {
+    const studentScores = sortedResults.map(result => {
       const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
       return score;
     });
     const avgScore = studentScores.length > 0 ? studentScores.reduce((sum, score) => sum + score, 0) / studentScores.length : 0;
     const highestScore = studentScores.length > 0 ? Math.max(...studentScores) : 0;
     const lowestScore = studentScores.length > 0 ? Math.min(...studentScores) : 0;
-    const lastThreeAvg = studentScores.slice(-3).reduce((sum, score) => sum + score, 0) / Math.min(3, studentScores.length);
+    // Son 3 deneme puan ortalaması - sortedResults kullan
+    const lastThreeScores = sortedResults.slice(-3).map(result => {
+      const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
+      return score;
+    });
+    const lastThreeAvg = lastThreeScores.length > 0 ? lastThreeScores.reduce((sum, score) => sum + score, 0) / lastThreeScores.length : 0;
     
     // Son 3 deneme net ortalaması ve tahminler (sadece gerçek denemeler için)
-    const lastThreeNets = validStudentResults.slice(-3).map(result => result.nets?.total || 0);
+    const lastThreeNets = sortedResults.slice(-3).map(result => result.nets?.total || 0);
     const lastThreeAvgNet = lastThreeNets.length > 0 ? lastThreeNets.reduce((sum, net) => sum + net, 0) / lastThreeNets.length : 0;
     const predictedNextScore = lastThreeAvg * 1.03; // %3 artış
     const predictedNextNet = lastThreeAvgNet * 1.05; // %5 artış
     
-    const latestNet = validStudentResults[validStudentResults.length - 1]?.nets?.total || 0;
-    const previousNet = validStudentResults[validStudentResults.length - 2]?.nets?.total || 0;
+    const latestNet = sortedResults[sortedResults.length - 1]?.nets?.total || 0;
+    const previousNet = sortedResults[sortedResults.length - 2]?.nets?.total || 0;
     const improvement = latestNet - previousNet;
     
-    const latestScore = validStudentResults[validStudentResults.length - 1]?.scores?.puan ? 
-      parseFloat(validStudentResults[validStudentResults.length - 1].scores?.puan) : 
-      (validStudentResults[validStudentResults.length - 1]?.puan || 0);
-    const previousScore = validStudentResults[validStudentResults.length - 2]?.scores?.puan ?
-      parseFloat(validStudentResults[validStudentResults.length - 2].scores?.puan) :
-      (validStudentResults[validStudentResults.length - 2]?.puan || 0);
+    const latestScore = sortedResults[sortedResults.length - 1]?.scores?.puan ? 
+      parseFloat(sortedResults[sortedResults.length - 1].scores?.puan) : 
+      (sortedResults[sortedResults.length - 1]?.puan || 0);
+    const previousScore = sortedResults[sortedResults.length - 2]?.scores?.puan ?
+      parseFloat(sortedResults[sortedResults.length - 2].scores?.puan) :
+      (sortedResults[sortedResults.length - 2]?.puan || 0);
     const scoreImprovement = latestScore - previousScore;
     
     // Trend analizi
@@ -538,17 +550,38 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     const trendColor = improvement > 2 ? 'text-green-600' : improvement < -2 ? 'text-red-600' : 'text-yellow-600';
 
     // Grafik verileri - sadece gerçek denemeler için
-    const netChartData = validStudentResults.map((result, index) => ({
-      exam: `Deneme ${index + 1}`,
-      öğrenci: result.nets?.total || 0,
-      sınıf: classAverageNet,
-      genel: generalAverageNet
-    }));
+    // Sonuçları tarihe göre sırala ve gerçek deneme başlıklarını al
+    const sortedResults = [...validStudentResults].sort((a, b) => 
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
     
-    const scoreChartData = validStudentResults.map((result, index) => {
-      const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
+    const netChartData = sortedResults.map((result, index) => {
+      // Gerçek deneme bilgilerini al
+      const examInfo = exams.find(e => e.id === result.examId);
+      const examTitle = examInfo?.title || `Deneme ${index + 1}`;
+      const examDate = new Date(result.createdAt).toLocaleDateString('tr-TR');
+      
       return {
-        exam: `Deneme ${index + 1}`,
+        exam: `${examTitle}`,
+        examDate: examDate,
+        sira: index + 1,
+        öğrenci: result.nets?.total || 0,
+        sınıf: classAverageNet,
+        genel: generalAverageNet
+      };
+    });
+    
+    const scoreChartData = sortedResults.map((result, index) => {
+      const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
+      // Gerçek deneme bilgilerini al
+      const examInfo = exams.find(e => e.id === result.examId);
+      const examTitle = examInfo?.title || `Deneme ${index + 1}`;
+      const examDate = new Date(result.createdAt).toLocaleDateString('tr-TR');
+      
+      return {
+        exam: `${examTitle}`,
+        examDate: examDate,
+        sira: index + 1,
         öğrenci: score,
         sınıf: classAverageScore,
         genel: generalAverageScore
@@ -557,7 +590,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
 
     return {
       student,
-      studentResults: validStudentResults, // Sadece gerçek denemeler
+      studentResults: sortedResults, // Tarihe göre sıralanmış gerçek denemeler
       totalNet,
       avgNet,
       avgScore,
@@ -748,7 +781,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                       <YAxis domain={[0, 90]} />
                       <Tooltip 
                         formatter={(value, name) => [`${Number(value).toFixed(1)}`, name]}
-                        labelFormatter={(label) => `Deneme: ${label}`}
+                        labelFormatter={(label) => `${label}`}
                       />
                       <Legend />
                       <Line 
@@ -795,7 +828,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                       <YAxis domain={[0, 500]} />
                       <Tooltip 
                         formatter={(value, name) => [`${Number(value).toFixed(0)}`, name]}
-                        labelFormatter={(label) => `Deneme: ${label}`}
+                        labelFormatter={(label) => `${label}`}
                       />
                       <Legend />
                       <Line 
@@ -854,9 +887,13 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                       const development = index > 0 ? (currentNet - previousNet) : 0;
                       const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
                       
+                      // Gerçek deneme bilgilerini al
+                      const examInfo = exams.find(e => e.id === result.examId);
+                      const examTitle = examInfo?.title || `Deneme ${index + 1}`;
+                      
                       return (
                         <tr key={result.id} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="px-4 py-2 font-medium text-blue-600">Deneme {index + 1}</td>
+                          <td className="px-4 py-2 font-medium text-blue-600">{examTitle}</td>
                           <td className="px-4 py-2 text-center text-gray-600">
                             {new Date(result.createdAt).toLocaleDateString('tr-TR')}
                           </td>
@@ -953,12 +990,18 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                     ? validAllResults.reduce((sum, r) => sum + (r.nets?.[subject.key as keyof typeof r.nets] || 0), 0) / validAllResults.length
                     : 0;
 
-                  const subjectData = analysis.studentResults.map((result, index) => ({
-                    exam: `Deneme ${index + 1}`,
-                    net: result.nets?.[subject.key as keyof typeof result.nets] || 0,
-                    classAvg: classSubjectAvg,
-                    generalAvg: generalSubjectAvg
-                  }));
+                  const subjectData = analysis.studentResults.map((result, index) => {
+                    // Gerçek deneme bilgilerini al
+                    const examInfo = exams.find(e => e.id === result.examId);
+                    const examTitle = examInfo?.title || `Deneme ${index + 1}`;
+                    
+                    return {
+                      exam: examTitle,
+                      net: result.nets?.[subject.key as keyof typeof result.nets] || 0,
+                      classAvg: classSubjectAvg,
+                      generalAvg: generalSubjectAvg
+                    };
+                  });
                   
                   return (
                     <div key={subject.key} className={`${subject.bg} p-4 rounded-lg border`}>
@@ -977,6 +1020,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                           <YAxis domain={[0, 20]} tick={{ fontSize: 8 }} />
                           <Tooltip 
                             formatter={(value, name) => [`${Number(value).toFixed(1)}`, name]}
+                            labelFormatter={(label) => `${label}`}
                           />
                           <Line 
                             type="monotone" 
