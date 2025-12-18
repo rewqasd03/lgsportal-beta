@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Öğrenci Paneli - LGS Portalı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <!-- Navigation -->
+    <nav class="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <a href="/" class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            LGS Portalı
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                        Ana Sayfa
+                    </a>
+                    <a href="/panel" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                        Öğretmen Paneli
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">🎓 Öğrenci Paneli</h1>
+            <p class="text-gray-600">Kişisel başarı takibinizi yapın</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 shadow-xl card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Toplam Deneme</p>
+                        <p class="text-2xl font-bold text-blue-600">12</p>
+                    </div>
+                    <div class="text-3xl">📝</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-xl card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Ortalama Net</p>
+                        <p class="text-2xl font-bold text-green-600">85.4</p>
+                    </div>
+                    <div class="text-3xl">📊</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-xl card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">En Yüksek Net</p>
+                        <p class="text-2xl font-bold text-purple-600">92.1</p>
+                    </div>
+                    <div class="text-3xl">🏆</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-xl card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Gelişim Trendi</p>
+                        <p class="text-2xl font-bold text-orange-600">↗️ +8.2</p>
+                    </div>
+                    <div class="text-3xl">📈</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Net Gelişim Grafiği -->
+            <div class="bg-white rounded-2xl p-6 shadow-xl">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Net Gelişim Trendi</h3>
+                <canvas id="trendChart" width="400" height="200"></canvas>
+            </div>
+            
+            <!-- Branş Bazlı Performans -->
+            <div class="bg-white rounded-2xl p-6 shadow-xl">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Branş Bazlı Performans</h3>
+                <canvas id="subjectChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Results -->
+        <div class="bg-white rounded-2xl p-6 shadow-xl">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Son Deneme Sonuçları</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deneme</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sıralama</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Deneme 12</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">15.12.2024</td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    92.1
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">3. sınıf</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Deneme 11</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">12.12.2024</td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    89.5
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">5. sınıf</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Deneme 10</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">09.12.2024</td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    84.2
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">8. sınıf</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-400">
+                © 2025 LGS Portalı | Developed by Murat UYSAL
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Net Gelişim Trendi Grafiği
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Deneme 1', 'Deneme 2', 'Deneme 3', 'Deneme 4', 'Deneme 5', 'Deneme 6', 'Deneme 7', 'Deneme 8', 'Deneme 9', 'Deneme 10', 'Deneme 11', 'Deneme 12'],
+                datasets: [{
+                    label: 'Net Sayısı',
+                    data: [72, 75, 78, 80, 82, 79, 81, 83, 85, 84, 89, 92],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 70,
+                        max: 95
+                    }
+                }
+            }
+        });
+
+        // Branş Bazlı Performans Grafiği
+        const subjectCtx = document.getElementById('subjectChart').getContext('2d');
+        new Chart(subjectCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Türkçe', 'Matematik', 'Fen Bilimleri', 'Sosyal Bilgiler', 'İngilizce'],
+                datasets: [{
+                    data: [18, 22, 20, 17, 15],
+                    backgroundColor: [
+                        'rgb(239, 68, 68)',
+                        'rgb(59, 130, 246)',
+                        'rgb(34, 197, 94)',
+                        'rgb(168, 85, 247)',
+                        'rgb(249, 115, 22)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
