@@ -128,10 +128,10 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
 
       // Konu bazlı ortalamalar
       const subjectAverages = {
-        turkce: validStudentResults.reduce((sum, result) => sum + (result.nets.turkce || 0), 0) / validStudentResults.length,
-        matematik: validStudentResults.reduce((sum, result) => sum + (result.nets.matematik || 0), 0) / validStudentResults.length,
-        fen: validStudentResults.reduce((sum, result) => sum + (result.nets.fen || 0), 0) / validStudentResults.length,
-        sosyal: validStudentResults.reduce((sum, result) => sum + (result.nets.sosyal || 0), 0) / validStudentResults.length
+        turkce: validStudentResults.reduce((sum, result) => sum + ((result.nets?.turkce) || 0), 0) / validStudentResults.length,
+        matematik: validStudentResults.reduce((sum, result) => sum + ((result.nets?.matematik) || 0), 0) / validStudentResults.length,
+        fen: validStudentResults.reduce((sum, result) => sum + ((result.nets?.fen) || 0), 0) / validStudentResults.length,
+        sosyal: validStudentResults.reduce((sum, result) => sum + ((result.nets?.sosyal) || 0), 0) / validStudentResults.length
       };
 
       return {
@@ -211,11 +211,11 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     return studentResults.map((result, index) => ({
       sira: index + 1,
       tarih: new Date(result.createdAt).toLocaleDateString('tr-TR'),
-      toplamNet: result.nets.total,
-      turkce: result.nets.turkce || 0,
-      matematik: result.nets.matematik || 0,
-      fen: result.nets.fen || 0,
-      sosyal: result.nets.sosyal || 0,
+      toplamNet: result.nets?.total || 0,
+      turkce: result.nets?.turkce || 0,
+      matematik: result.nets?.matematik || 0,
+      fen: result.nets?.fen || 0,
+      sosyal: result.nets?.sosyal || 0,
       classAverage: studentClassAverage
     }));
   }, [selectedStudent, results, studentClassAverage]);

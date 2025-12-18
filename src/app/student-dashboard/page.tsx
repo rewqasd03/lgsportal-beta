@@ -288,12 +288,12 @@ function StudentDashboardContent() {
           
           // Genel net ortalaması: ders bazlı netlerin toplamı
           const dersNets = [
-            classAverages.turkce || 0,
-            classAverages.matematik || 0,
-            classAverages.fen || 0,
-            classAverages.sosyal || 0,
-            classAverages.din || 0,
-            classAverages.ingilizce || 0
+            (classAverages?.turkce) || 0,
+            (classAverages?.matematik) || 0,
+            (classAverages?.fen) || 0,
+            (classAverages?.sosyal) || 0,
+            (classAverages?.din) || 0,
+            (classAverages?.ingilizce) || 0
           ];
           
           generalAverageNet = dersNets.reduce((sum, net) => sum + net, 0);
@@ -2131,8 +2131,8 @@ function StudentDashboardContent() {
                     
                     // Toplam net'i hesapla (ders bazındaki netlerin toplamı)
                     const nets: Record<string, number> = result.nets || {};
-                    const totalNet = (nets.turkce || 0) + (nets.sosyal || 0) + (nets.din || 0) + 
-                                   (nets.ingilizce || 0) + (nets.matematik || 0) + (nets.fen || 0);
+                    const totalNet = ((nets?.turkce) || 0) + ((nets?.sosyal) || 0) + ((nets?.din) || 0) + 
+                                   ((nets?.ingilizce) || 0) + ((nets?.matematik) || 0) + ((nets?.fen) || 0);
                     
                     return {
                       studentId: result.studentId,
