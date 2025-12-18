@@ -96,11 +96,11 @@ export interface PerformanceMatrix {
   subjectAnalysis: { [key: string]: number };
 }
 
-// Öğrenci kimlik doğrulama (Sınıf + Okul Numarası + PIN)
+// Öğrenci kimlik doğrulama (Geriye uyumlu - hem eski hem yeni sistem)
 export const authenticateStudent = async (studentClass: string, schoolNumber: string, pin?: string): Promise<Student | null> => {
   try {
     // Önce PIN kontrolü varsa, PIN ile kimlik doğrulama yap
-    if (pin) {
+    if (pin && pin.trim() !== '') {
       const pinQuery = query(
         collection(db, 'students'),
         where('pin', '==', pin)
