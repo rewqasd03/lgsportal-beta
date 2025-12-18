@@ -3,273 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase Debug - Eksik Deneme Kaydı</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <title>LGS Portalı - Öğrenci Başarı Takip Sistemi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f7fa;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        .header {
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
         }
-        .header h1 {
-            margin: 0;
-            font-size: 2.5em;
-            font-weight: 300;
+        .card-hover {
+            transition: all 0.3s ease;
         }
-        .header p {
-            margin: 10px 0 0 0;
-            opacity: 0.9;
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
-        .content {
-            padding: 30px;
-        }
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-        .section h3 {
-            margin-top: 0;
-            color: #2d3748;
-        }
-        .debug-output {
-            background: #1a202c;
-            color: #e2e8f0;
-            padding: 20px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            white-space: pre-wrap;
-            max-height: 500px;
-            overflow-y: auto;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        .loading {
-            text-align: center;
-            padding: 50px;
-            color: #667eea;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .success { color: #48bb78; }
-        .error { color: #f56565; }
-        .warning { color: #ed8936; }
-        .info { color: #4299e1; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🔍 Firebase Debug</h1>
-            <p>Eksik Deneme Kaydı Sorunu Analizi</p>
-        </div>
-        
-        <div class="content">
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <p>Firebase verileri analiz ediliyor...</p>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <!-- Navigation -->
+    <nav class="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            LGS Portalı
+                        </h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/student-dashboard" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                        Öğrenci Paneli
+                    </a>
+                    <a href="/panel" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                        Öğretmen Paneli
+                    </a>
+                </div>
             </div>
-            
-            <div id="debug-output" class="debug-output" style="display: none;"></div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-purple-200/30 rounded-full blur-3xl"></div>
+        
+        <div class="relative z-10 max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+                    <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        LGS Portalı
+                    </span>
+                </h1>
+                <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                    Öğrenciler başarılarını takip edebilir, öğretmenler sınıf performanslarını anlık olarak görebilir.
+                    LGS sınavına hazırlık için kapsamlı takip sistemi.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/student-dashboard" 
+                       class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:scale-105 transition-all duration-300 shadow-xl">
+                        🎓 Öğrenci Paneli
+                    </a>
+                    <a href="/panel" 
+                       class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 shadow-xl">
+                        📚 Öğretmen Paneli
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Features Section -->
+    <div class="py-16 bg-white/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Özellikler</h2>
+                <p class="text-lg text-gray-600">LGS Portalı'nın sunduğu tüm özellikler</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Öğrenci Paneli -->
+                <div class="bg-white rounded-2xl p-8 shadow-xl card-hover">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-2xl">🎓</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Öğrenci Paneli</h3>
+                        <p class="text-gray-600 mb-6">
+                            Kişisel başarı takibi, deneme sonuçları analizi ve gelişim raporları
+                        </p>
+                        <a href="/student-dashboard" 
+                           class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-lg text-blue-600 bg-blue-100 hover:bg-blue-200 transition-colors">
+                            Panele Git →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Öğretmen Paneli -->
+                <div class="bg-white rounded-2xl p-8 shadow-xl card-hover">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-2xl">📚</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Öğretmen Paneli</h3>
+                        <p class="text-gray-600 mb-6">
+                            Sınıf performans analizi, veri girişi ve rapor oluşturma
+                        </p>
+                        <a href="/panel" 
+                           class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-lg text-green-600 bg-green-100 hover:bg-green-200 transition-colors">
+                            Panele Git →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Analitik & Raporlar -->
+                <div class="bg-white rounded-2xl p-8 shadow-xl card-hover">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-2xl">📊</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Analitik & Raporlar</h3>
+                        <p class="text-gray-600 mb-6">
+                            Detaylı performans analizleri ve kapsamlı raporlama sistemi
+                        </p>
+                        <a href="/panel" 
+                           class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-lg text-purple-600 bg-purple-100 hover:bg-purple-200 transition-colors">
+                            Raporları Gör →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="py-16 gradient-bg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-bold text-white mb-4">İletişim</h2>
+            <p class="text-xl text-blue-100 mb-8">
+                Sorularınız ve önerileriniz için bizimle iletişime geçin
+            </p>
+            <a href="mailto:uysal.mu07@gmail.com" 
+               class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-xl text-blue-600 bg-white hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-xl">
+                📧 uysal.mu07@gmail.com
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-400">
+                © 2025 LGS Portalı | Developed by Murat UYSAL
+            </p>
+        </div>
+    </footer>
+
+    <!-- Script -->
     <script>
-        // Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyBYfBhkLIfjqpnL9MxBhxW6iJeC0VAEDLk",
-            authDomain: "kopruler-basari-portali.firebaseapp.com",
-            projectId: "kopruler-basari-portali",
-            storageBucket: "kopruler-basari-portali.firebasestorage.app",
-            messagingSenderId: "318334276429",
-            appId: "1:318334276429:web:7caa5e5b9dccb564d71d04",
-            measurementId: "G-EF6P77SMFP"
-        };
-
-        // Firebase'i initialize et
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        function log(message, className = '') {
-            const output = document.getElementById('debug-output');
-            const span = document.createElement('span');
-            if (className) span.className = className;
-            span.textContent = message;
-            output.appendChild(span);
-            output.appendChild(document.createElement('br'));
-            console.log(message);
-        }
-
-        function showResults() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('debug-output').style.display = 'block';
-        }
-
-        async function debugExamDataInconsistency() {
-            try {
-                log('🔍 Firebase Debug: Eksik Deneme Kaydı Sorunu Analizi', 'info');
-                log('='.repeat(80), 'info');
-                
-                // 1. Exams tablosundaki tüm verileri al
-                log('\n📊 1. Exams Tablosu Analizi:', 'info');
-                const examsQuery = await db.collection('exams').get();
-                const examsData = examsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                log(`   Toplam Exam Kaydı: ${examsData.length}`, 'success');
-                log('   Exam ID\'leri:', 'info');
-                examsData.forEach((exam, index) => {
-                    const title = exam.title || 'Başlık yok';
-                    const date = exam.date || 'Tarih yok';
-                    log(`   ${index + 1}. ${exam.id} - ${title} (${date})`);
-                });
-                
-                // 2. Results tablosundaki tüm verileri al
-                log('\n📊 2. Results Tablosu Analizi:', 'info');
-                const resultsQuery = await db.collection('results').get();
-                const resultsData = resultsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                log(`   Toplam Result Kaydı: ${resultsData.length}`, 'success');
-                
-                // 3. Hangi examId'lerin results tablosunda bulunduğunu bul
-                const resultExamIds = [...new Set(resultsData.map(r => r.examId))];
-                log('\n📊 3. Results Tablosundaki ExamId\'ler:', 'info');
-                log(`   Toplam Benzersiz ExamId: ${resultExamIds.length}`, 'success');
-                resultExamIds.forEach((examId, index) => {
-                    const examResults = resultsData.filter(r => r.examId === examId);
-                    log(`   ${index + 1}. ${examId} (${examResults.length} sonuç)`);
-                });
-                
-                // 4. Hangi examId'lerin eksik olduğunu bul
-                const availableExamIds = examsData.map(e => e.id);
-                const missingExamIds = resultExamIds.filter(id => !availableExamIds.includes(id));
-                
-                log('\n⚠️ 4. EKSİK EXAM KAYITLARI:', 'warning');
-                if (missingExamIds.length === 0) {
-                    log('   ✅ Tüm exam kayıtları mevcut - Sorun başka yerde olabilir', 'success');
-                } else {
-                    log(`   ❌ ${missingExamIds.length} adet eksik exam kaydı bulundu:`, 'error');
-                    missingExamIds.forEach((missingId, index) => {
-                        const relatedResults = resultsData.filter(r => r.examId === missingId);
-                        const studentIds = relatedResults.slice(0, 5).map(r => r.studentId).join(', ');
-                        log(`   ${index + 1}. ${missingId}`, 'error');
-                        log(`      - Results tablosunda ${relatedResults.length} kayıt bulunuyor`, 'warning');
-                        log(`      - İlk birkaç studentId: ${studentIds}`, 'warning');
-                    });
-                }
-                
-                // 5. Sınıf bazında analiz
-                log('\n📊 5. Sınıf Bazında Analiz:', 'info');
-                const studentsQuery = await db.collection('students').get();
-                const studentsData = studentsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                log(`   Toplam Öğrenci: ${studentsData.length}`, 'success');
-                
-                // 8-A sınıfını örnek alalım
-                const sinif8A = studentsData.filter(s => s.class === '8-A');
-                log(`   8-A Sınıfı Öğrenci Sayısı: ${sinif8A.length}`, 'success');
-                
-                if (sinif8A.length > 0) {
-                    const sinif8AResults = resultsData.filter(r => sinif8A.some(s => s.id === r.studentId));
-                    const sinif8AExamIds = [...new Set(sinif8AResults.map(r => r.examId))];
-                    
-                    log('\n   8-A Sınıfı Exam Durumu:', 'info');
-                    sinif8AExamIds.forEach(examId => {
-                        const examExists = availableExamIds.includes(examId);
-                        const exam = examsData.find(e => e.id === examId);
-                        const hasResults = sinif8AResults.filter(r => r.examId === examId);
-                        
-                        const status = examExists ? '✅ Mevcut' : '❌ Eksik';
-                        log(`   - ${examId}: ${status} (${hasResults.length} sonuç)`, examExists ? 'success' : 'error');
-                        if (exam) {
-                            log(`     Başlık: ${exam.title || 'Başlık yok'}`);
-                        }
-                    });
-                }
-                
-                // 6. Eksik kayıtlar için detaylı analiz
-                if (missingExamIds.length > 0) {
-                    log('\n🔍 6. Eksik Kayıtlar İçin Detaylı Analiz:', 'info');
-                    
-                    for (const missingId of missingExamIds) {
-                        log(`\n   ExamId: ${missingId}`, 'warning');
-                        const relatedResults = resultsData.filter(r => r.examId === missingId);
-                        
-                        log(`   - Toplam Sonuç: ${relatedResults.length}`, 'info');
-                        const studentIds = relatedResults.slice(0, 10).map(r => r.studentId).join(', ');
-                        log(`   - Öğrenci ID'leri: ${studentIds}`, 'info');
-                        
-                        // İlk sonucun detaylarını göster
-                        if (relatedResults.length > 0) {
-                            const firstResult = relatedResults[0];
-                            log(`   - İlk Sonuç Detayı:`, 'info');
-                            log(`     * StudentId: ${firstResult.studentId}`, 'info');
-                            log(`     * ExamId: ${firstResult.examId}`, 'info');
-                            log(`     * Nets: ${JSON.stringify(firstResult.nets)}`, 'info');
-                            log(`     * Scores: ${JSON.stringify(firstResult.scores)}`, 'info');
-                            log(`     * CreatedAt: ${firstResult.createdAt}`, 'info');
-                        }
+        // Simple navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click tracking
+            const buttons = document.querySelectorAll('a[href]');
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href.startsWith('/')) {
+                        e.preventDefault();
+                        alert('Bu sayfa henüz deploy edilmemiştir. GitHub Pages üzerinden erişilebilir hale getirilecektir.');
                     }
-                }
-                
-                log('\n' + '='.repeat(80), 'info');
-                log('🎯 SONUÇ:', 'info');
-                if (missingExamIds.length > 0) {
-                    log(`❌ ${missingExamIds.length} adet exam kaydı eksik. Bu "Eksik Deneme Kaydı" sorununun nedeni.`, 'error');
-                    log('🔧 ÇÖZÜM ÖNERİLERİ:', 'info');
-                    log('1. Bu examId\'ler için eksik exam kayıtları oluştur', 'info');
-                    log('2. Ya da results tablosundaki bu kayıtları sil', 'info');
-                    log('3. Ya da examId\'leri mevcut exam kayıtlarıyla eşleştir', 'info');
-                    
-                    // Çözüm scriptini hazırla
-                    log('\n🛠️ OTOMATİK ÇÖZÜM SCRIPTI:', 'info');
-                    log('Aşağıdaki examId\'ler için eksik kayıtlar oluşturulacak:', 'warning');
-                    missingExamIds.forEach(id => {
-                        log(`   - ${id}`, 'warning');
-                    });
-                    
-                } else {
-                    log('✅ Exams tablosunda sorun bulunamadı. Sorun başka yerde olabilir.', 'success');
-                }
-                
-                showResults();
-                
-            } catch (error) {
-                log('❌ Firebase bağlantı hatası: ' + error.message, 'error');
-                console.error('Firebase error:', error);
-                showResults();
-            }
-        }
-
-        // Sayfa yüklendiğinde debug'u çalıştır
-        window.addEventListener('load', debugExamDataInconsistency);
+                });
+            });
+        });
     </script>
 </body>
 </html>
