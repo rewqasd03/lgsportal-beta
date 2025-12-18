@@ -31,7 +31,6 @@ interface ReportData {
     generalAverageScore: number;
     studentTotalNet: number;
     studentTotalScore: number;
-    isMissingExam?: boolean;
   }[];
   studentTargets?: {[subject: string]: number};
 }
@@ -168,14 +167,18 @@ function StudentDashboardContent() {
 
       console.log('Geçerli sonuçlar (0 puan hariç):', validStudentResults.length);
 
-      // Sınıfının katıldığı tüm denemeleri bul (8 deneme olması gerekiyor)
+      // Sınıfının katıldığı denemeleri bul (sadece mevcut exam kayıtları olan)
       const classResults = resultsData.filter(r => {
         const student = studentsData.find(s => s.id === r.studentId);
         return student && student.class === studentData.class;
       });
       
+      // Sadece mevcut exam kayıtları olan denemeleri dahil et
+      const classExamIds = new Set(classResults.map(r => r.examId).filter(examId => 
+        examsData.find(e => e.id === examId)
+      ));
+      
       const validStudentExamIds = validStudentResults.map(r => r.examId);
-      const classExamIds = new Set(classResults.map(r => r.examId));
       
       console.log('✅ Sınıfın katıldığı denemeler:', classExamIds.size);
       console.log('✅ Öğrencinin sonucu olan denemeler:', validStudentExamIds.length);
@@ -211,30 +214,15 @@ function StudentDashboardContent() {
         // Exam kaydı bulundu mu?
         const exam = examsData.find(e => e.id === examId);
         
-        // Bu öğrencinin bu denemede sonucu var mı?
-        const studentResult = validStudentResults.find(r => r.examId === examId);
-        
+        // Sadece mevcut exam kayıtları olan denemeleri göster
         if (!exam) {
-          // Exam kaydı eksik - yine de denemeyi göster ama "eksik" olarak işaretle
-          console.log('⚠️ Eksik exam kaydı:', examId, 'Ekleniyor ama eksik işaretlenecek');
-          examResults.push({
-            exam: {
-              id: examId,
-              title: 'Eksik Deneme Kaydı',
-              date: 'Bilinmiyor',
-              generalAverages: {}
-            },
-            studentResults: [],
-            classAverage: 0,
-            classAverageScore: 0,
-            generalAverage: 0,
-            generalAverageScore: 0,
-            studentTotalNet: 0,
-            studentTotalScore: 0,
-            isMissingExam: true
-          });
+          // Eksik exam kaydını tamamen yok say - hiçbir şey ekleme
+          console.log('⚠️ Eksik exam kaydı yok sayılıyor:', examId);
           continue;
         }
+        
+        // Bu öğrencinin bu denemede sonucu var mı?
+        const studentResult = validStudentResults.find(r => r.examId === examId);
         
         if (!studentResult) {
           // Öğrencinin sonucu yok ama exam kaydı mevcut - "sonuç yok" olarak ekle
