@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Student, Exam, Result } from '../../firebase';
 // import { toast } from 'react-hot-toast'; // Commented out
@@ -66,6 +66,16 @@ const StudentReport: React.FC<StudentReportProps> = ({
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+  
+  // PDF Export için ref'ler
+  const pageRefs = {
+    1: useRef<HTMLDivElement>(null),
+    2: useRef<HTMLDivElement>(null),
+    3: useRef<HTMLDivElement>(null),
+    4: useRef<HTMLDivElement>(null),
+    5: useRef<HTMLDivElement>(null) // Puan Gelişim sayfası için
+  };
 
   // URL parametrelerini kontrol et
   useEffect(() => {
@@ -219,6 +229,72 @@ const StudentReport: React.FC<StudentReportProps> = ({
     ? reportData.examResults.reduce((sum, r) => sum + r.studentTotalNet, 0) / reportData.examResults.length
     : 0;
 
+  // PDF Export Fonksiyonu
+  const exportToPDF = async () => {
+    setIsExporting(true);
+    try {
+      // jsPDF ve html2canvas'i dinamik olarak import et
+      const jsPDF = (await import('jspdf')).default;
+      const html2canvas = (await import('html2canvas')).default;
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const margin = 10;
+      let yPosition = margin;
+
+      // PDF başlığı
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      const title = reportData.student ? 
+        `${reportData.student.name} - ${reportData.student.class} Öğrenci Raporu` : 
+        `${reportData.className} Sınıf Raporu`;
+      
+      pdf.text(title, margin, yPosition);
+      yPosition += 20;
+
+      // Her sayfa için
+      for (let pageNum = 1; pageNum <= 5; pageNum++) {
+        const pageRef = pageRefs[pageNum as keyof typeof pageRefs]?.current;
+        if (!pageRef) continue;
+
+        // Sayfa içeriğini canvas'a çevir
+        const canvas = await html2canvas(pageRef, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - (margin * 2);
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // Yeni sayfa ekle (ilk sayfa hariç)
+        if (pageNum > 1) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+
+        // Resmi PDF'e ekle
+        pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, imgHeight);
+      }
+
+      // PDF'i indir
+      const fileName = reportData.student ? 
+        `ogrenci-raporu-${reportData.student.name.replace(/\s+/g, '-')}.pdf` :
+        `sinif-raporu-${reportData.className}.pdf`;
+      
+      pdf.save(fileName);
+      
+      toast.success('PDF başarıyla oluşturuldu!');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('PDF oluşturulurken hata oluştu');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -236,12 +312,33 @@ const StudentReport: React.FC<StudentReportProps> = ({
                 }
               </p>
             </div>
-            <button
-              onClick={() => window.print()}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              🖨️ Yazdır
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={exportToPDF}
+                disabled={isExporting}
+                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {isExporting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    PDF Oluşturuluyor...
+                  </>
+                ) : (
+                  <>
+                    📄 PDF İndir
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                🖨️ Yazdır
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -249,17 +346,24 @@ const StudentReport: React.FC<StudentReportProps> = ({
       {/* Navigation */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex space-x-8">
-            {[1, 2, 3, 4].map(page => (
+          <div className="flex space-x-8 overflow-x-auto">
+            {[
+              { num: 1, label: 'Genel Görünüm', icon: '📊' },
+              { num: 2, label: 'Net Gelişim', icon: '📈' },
+              { num: 3, label: 'Puan Gelişim', icon: '🎯' },
+              { num: 4, label: 'Denemeler', icon: '📋' },
+              { num: 5, label: 'Ders Bazında', icon: '📚' }
+            ].map(page => (
               <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${currentPage === page
+                key={page.num}
+                onClick={() => setCurrentPage(page.num)}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                  currentPage === page.num
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
+                }`}
               >
-                Sayfa {page}
+                {page.icon} {page.label}
               </button>
             ))}
           </div>
@@ -268,10 +372,31 @@ const StudentReport: React.FC<StudentReportProps> = ({
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {currentPage === 1 && <PageOne reportData={reportData} />}
-        {currentPage === 2 && <PageTwo reportData={reportData} />}
-        {currentPage === 3 && <PageThree reportData={reportData} />}
-        {currentPage === 4 && <PageFour reportData={reportData} />}
+        {currentPage === 1 && (
+          <div ref={pageRefs[1]}>
+            <PageOne reportData={reportData} />
+          </div>
+        )}
+        {currentPage === 2 && (
+          <div ref={pageRefs[2]}>
+            <PageTwo reportData={reportData} />
+          </div>
+        )}
+        {currentPage === 3 && (
+          <div ref={pageRefs[3]}>
+            <ScoreProgressPage reportData={reportData} />
+          </div>
+        )}
+        {currentPage === 4 && (
+          <div ref={pageRefs[4]}>
+            <PageFour reportData={reportData} />
+          </div>
+        )}
+        {currentPage === 5 && (
+          <div ref={pageRefs[5]}>
+            <PageThree reportData={reportData} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -568,6 +693,234 @@ const PageThree: React.FC<{ reportData: ReportData }> = ({ reportData }) => {
               )}
             </ul>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Sayfa 3: Puan Gelişim Analizi
+const ScoreProgressPage: React.FC<{ reportData: ReportData }> = ({ reportData }) => {
+  // Puan verilerini hazırla
+  const scoreData = reportData.examResults.map((r, index) => {
+    // Gerçek puan verisini al (result.scores.puan veya result.puan veya result.totalScore)
+    const score = r.studentResults[0]?.scores?.puan ? 
+      parseFloat(r.studentResults[0].scores.puan) : 
+      (r.studentResults[0]?.puan || r.studentResults[0]?.totalScore || 0);
+    
+    return {
+      exam: r.exam.title,
+      puan: score,
+      net: r.studentTotalNet,
+      tarih: new Date(r.exam.date).toLocaleDateString('tr-TR')
+    };
+  }).filter(item => item.puan > 0); // Sadece puanı olan denemeleri göster
+
+  // İstatistikler
+  const totalScores = scoreData.map(d => d.puan);
+  const avgScore = totalScores.length > 0 ? totalScores.reduce((sum, s) => sum + s, 0) / totalScores.length : 0;
+  const bestScore = totalScores.length > 0 ? Math.max(...totalScores) : 0;
+  const worstScore = totalScores.length > 0 ? Math.min(...totalScores) : 0;
+  const scoreTrend = scoreData.length >= 2 ? 
+    scoreData[scoreData.length - 1].puan - scoreData[scoreData.length - 2].puan : 0;
+
+  // Puan aralıkları analizi
+  const scoreRanges = {
+    '450+': scoreData.filter(d => d.puan >= 450).length,
+    '400-449': scoreData.filter(d => d.puan >= 400 && d.puan < 450).length,
+    '350-399': scoreData.filter(d => d.puan >= 350 && d.puan < 400).length,
+    '300-349': scoreData.filter(d => d.puan >= 300 && d.puan < 350).length,
+    '300-': scoreData.filter(d => d.puan < 300).length
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Puan İstatistikleri */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">🎯 Ortalama Puan</h3>
+          <p className="text-3xl font-bold text-blue-600">{avgScore.toFixed(1)}</p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">🏆 En Yüksek Puan</h3>
+          <p className="text-3xl font-bold text-green-600">{bestScore.toFixed(1)}</p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">📉 En Düşük Puan</h3>
+          <p className="text-3xl font-bold text-red-600">{worstScore.toFixed(1)}</p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">📈 Son Trend</h3>
+          <p className={`text-3xl font-bold ${scoreTrend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {scoreTrend >= 0 ? '+' : ''}{scoreTrend.toFixed(1)}
+          </p>
+        </div>
+      </div>
+
+      {/* Puan Trendi Grafik */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">📈 Puan Gelişim Trendi</h3>
+        <div className="h-96">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={scoreData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="exam" 
+                angle={-45} 
+                textAnchor="end" 
+                height={100}
+                interval={0}
+                tick={{ fontSize: 10 }}
+              />
+              <YAxis domain={[200, 500]} />
+              <Tooltip 
+                formatter={(value, name) => [
+                  name === 'puan' ? `${value} puan` : `${value} net`,
+                  name === 'puan' ? 'Puan' : 'Net'
+                ]}
+                labelFormatter={(label) => `Deneme: ${label}`}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="puan"
+                stroke="#8B5CF6"
+                strokeWidth={3}
+                name="Puan"
+                dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 6 }}
+                activeDot={{ r: 8 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="net"
+                stroke="#3B82F6"
+                strokeWidth={2}
+                name="Net"
+                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Puan Aralıkları Analizi */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">📊 Puan Aralıkları</h3>
+          <div className="space-y-3">
+            {Object.entries(scoreRanges).map(([range, count]) => (
+              <div key={range} className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">{range} Puan</span>
+                <div className="flex items-center">
+                  <div className="w-32 bg-gray-200 rounded-full h-2 mr-3">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(count / Math.max(...Object.values(scoreRanges))) * 100}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm font-bold text-gray-900 w-8">{count}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">🎯 Puan Performansı</h3>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">LGS Başarı Hedefi:</span>
+              <span className="font-bold text-purple-600">450+ Puan</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Mevcut Durum:</span>
+              <span className={`font-bold ${avgScore >= 450 ? 'text-green-600' : avgScore >= 400 ? 'text-yellow-600' : 'text-red-600'}`}>
+                {avgScore >= 450 ? 'Mükemmel' : avgScore >= 400 ? 'İyi' : 'Gelişim Gerekli'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Hedefe Uzaklık:</span>
+              <span className="font-bold text-blue-600">
+                {Math.max(0, 450 - avgScore).toFixed(1)} puan
+              </span>
+            </div>
+            <div className="pt-2 border-t">
+              <div className="bg-gray-200 rounded-full h-3">
+                <div 
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min((avgScore / 500) * 100, 100)}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1 text-center">
+                %{((avgScore / 500) * 100).toFixed(1)} tamamlandı
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Detaylı Puan Tablosu */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-800">📋 Detaylı Puan Analizi</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deneme</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Puan</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {scoreData.map((item, index) => {
+                const isImprovement = index > 0 ? item.puan > scoreData[index - 1].puan : false;
+                const isDecline = index > 0 ? item.puan < scoreData[index - 1].puan : false;
+                
+                return (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {item.exam}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.tarih}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-purple-600">
+                      {item.puan.toFixed(1)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.net.toFixed(1)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {isImprovement && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          ↗️ Artış
+                        </span>
+                      )}
+                      {isDecline && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          ↘️ Azalış
+                        </span>
+                      )}
+                      {!isImprovement && !isDecline && index === 0 && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          📊 İlk Deneme
+                        </span>
+                      )}
+                      {!isImprovement && !isDecline && index > 0 && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          ➡️ Sabit
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
