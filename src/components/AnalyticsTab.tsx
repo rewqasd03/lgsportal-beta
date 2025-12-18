@@ -418,35 +418,126 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
   );
 
   const renderTrends = () => {
+    // Seçili sınıfa göre öğrencileri filtrele
+    const filteredStudents = selectedClass === 'all' 
+      ? students 
+      : students.filter(student => student.class === selectedClass);
+
+    // Öğrencileri sınıfa göre grupla
+    const groupedStudents = filteredStudents.reduce((acc, student) => {
+      if (!acc[student.class]) {
+        acc[student.class] = [];
+      }
+      acc[student.class].push(student);
+      return acc;
+    }, {} as Record<string, Student[]>);
+
+    // Öğrenci raporuna yönlendirme fonksiyonu
+    const handleStudentReport = (student: Student) => {
+      // URL parametresi olarak öğrenci bilgilerini geç
+      const studentParams = new URLSearchParams({
+        studentId: student.id,
+        studentName: student.name,
+        studentClass: student.class,
+        studentNumber: student.number
+      });
+      router.push(`/ogrenci?${studentParams.toString()}`);
+    };
+
     return (
-      <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-        <div className="max-w-md mx-auto">
-          <div className="mb-6">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      <div className="space-y-6">
+        {/* Başlık */}
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Trend Analizi</h2>
-            <p className="text-gray-600 mb-6">
-              Detaylı öğrenci trend analizi ve gelişim takibi için Student Dashboard'a yönlendirileceksiniz.
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">📊 Sınıf Bazlı Öğrenci Listesi</h2>
+            <p className="text-gray-600">
+              Öğrenci detay raporunu görüntülemek için aşağıdaki öğrencilerden birine tıklayın.
             </p>
           </div>
-          
-          <button
-            onClick={() => router.push('/student-dashboard')}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-            Student Dashboard'a Git
-          </button>
-          
-          <p className="text-xs text-gray-500 mt-4">
-            Student Dashboard'da detaylı trend analizi, grafikler ve gelişim takibi yapabilirsiniz.
-          </p>
         </div>
+
+        {/* Sınıf Bazlı Öğrenci Listesi */}
+        {Object.entries(groupedStudents).map(([className, classStudents]) => (
+          <div key={className} className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                {className} Sınıfı ({classStudents.length} öğrenci)
+              </h3>
+            </div>
+            
+            <div className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {classStudents.map((student) => (
+                  <div
+                    key={student.id}
+                    onClick={() => handleStudentReport(student)}
+                    className="bg-gradient-to-br from-gray-50 to-gray-100 hover:from-blue-50 hover:to-indigo-50 border border-gray-200 hover:border-blue-300 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 group"
+                  >
+                    <div className="text-center">
+                      {/* Öğrenci Avatar */}
+                      <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:from-blue-500 group-hover:to-indigo-600 transition-colors">
+                        <span className="text-white font-bold text-lg">
+                          {student.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                        </span>
+                      </div>
+                      
+                      {/* Öğrenci Bilgileri */}
+                      <h4 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
+                        {student.name}
+                      </h4>
+                      <p className="text-sm text-gray-600 mb-2">
+                        No: {student.number}
+                      </p>
+                      
+                      {/* Görüntülenme Bilgisi */}
+                      <div className="flex items-center justify-center gap-2 text-xs text-gray-500 mb-3">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span>{student.viewCount || 0} görüntülenme</span>
+                      </div>
+                      
+                      {/* Rapor Butonu */}
+                      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group-hover:shadow-md">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="text-sm">Raporu Görüntüle</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Eğer öğrenci yoksa */}
+        {filteredStudents.length === 0 && (
+          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Öğrenci Bulunamadı</h3>
+            <p className="text-gray-600">
+              {selectedClass === 'all' 
+                ? 'Henüz hiç öğrenci kaydı bulunmuyor.' 
+                : `${selectedClass} sınıfında kayıtlı öğrenci bulunmuyor.`
+              }
+            </p>
+          </div>
+        )}
       </div>
     );
   };
