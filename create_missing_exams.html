@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eksik Exam Kayıtlarını Oluştur</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ffc107; }
+        .info { color: #17a2b8; }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Eksik Exam Kayıtlarını Oluştur</h1>
+        <p>Bu sayfa, Firebase'deki eksik exam kayıtlarını otomatik olarak oluşturur.</p>
+        
+        <button class="button" onclick="analyzeAndCreate()">🔍 Analiz Et ve Oluştur</button>
+        <button class="button" onclick="clearLog()">🗑️ Log'u Temizle</button>
+        
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYfBhkLIfjqpnL9MxBhxW6iJeC0VAEDLk",
+            authDomain: "kopruler-basari-portali.firebaseapp.com",
+            projectId: "kopruler-basari-portali",
+            storageBucket: "kopruler-basari-portali.firebasestorage.app",
+            messagingSenderId: "318334276429",
+            appId: "1:318334276429:web:7caa5e5b9dccb564d71d04",
+            measurementId: "G-EF6P77SMFP"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function log(message, className = '') {
+            const logDiv = document.getElementById('log');
+            const span = document.createElement('span');
+            if (className) span.className = className;
+            span.textContent = message;
+            logDiv.appendChild(span);
+            logDiv.appendChild(document.createElement('br'));
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function analyzeAndCreate() {
+            log('🚀 Eksik Exam Kayıtlarını Tespit Etme ve Oluşturma Başlatılıyor...', 'info');
+            log('='.repeat(80), 'info');
+
+            try {
+                // 1. Mevcut exam kayıtlarını al
+                log('\n📊 1. Mevcut Exam Kayıtları Analiz Ediliyor...', 'info');
+                const examsQuery = await db.collection('exams').get();
+                const examsData = examsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                log(`   ✅ ${examsData.length} adet mevcut exam kaydı bulundu`, 'success');
+
+                // 2. Results tablosundaki examId'leri al
+                log('\n📊 2. Results Tablosundaki ExamId\'ler Analiz Ediliyor...', 'info');
+                const resultsQuery = await db.collection('results').get();
+                const resultsData = resultsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                const resultExamIds = [...new Set(resultsData.map(r => r.examId))];
+                log(`   ✅ ${resultsData.length} adet result kaydı, ${resultExamIds.length} benzersiz examId bulundu`, 'success');
+
+                // 3. Eksik examId'leri tespit et
+                log('\n🔍 3. Eksik Exam Kayıtları Tespit Ediliyor...', 'info');
+                const availableExamIds = examsData.map(e => e.id);
+                const missingExamIds = resultExamIds.filter(id => !availableExamIds.includes(id));
+
+                if (missingExamIds.length === 0) {
+                    log('   ✅ Tüm exam kayıtları mevcut! Sorun başka yerde olabilir.', 'success');
+                    return;
+                }
+
+                log(`   ❌ ${missingExamIds.length} adet eksik exam kaydı tespit edildi:`, 'error');
+                missingExamIds.forEach((id, index) => {
+                    const relatedResults = resultsData.filter(r => r.examId === id);
+                    log(`   ${index + 1}. ${id} (${relatedResults.length} result ile ilişkili)`, 'warning');
+                });
+
+                // 4. Her eksik exam için kayıt oluştur
+                log('\n🛠️ 4. Eksik Exam Kayıtları Oluşturuluyor...', 'info');
+                
+                for (const examId of missingExamIds) {
+                    const relatedResults = resultsData.filter(r => r.examId === examId);
+                    const studentIds = [...new Set(relatedResults.map(r => r.studentId))];
+                    
+                    // Exam tarihini tahmin et (result'lardan en eski tarihi al)
+                    const dates = relatedResults
+                        .map(r => r.createdAt)
+                        .filter(date => date)
+                        .sort();
+                    const estimatedDate = dates.length > 0 ? dates[0].split('T')[0] : new Date().toISOString().split('T')[0];
+
+                    const examData = {
+                        title: `MUBA Deneme ${examId.slice(-2)}`, // ID'nin son 2 hanesini kullan
+                        date: estimatedDate,
+                        generalAverages: {},
+                        createdAt: new Date().toISOString(),
+                        source: 'auto_created_missing_reference',
+                        studentCount: studentIds.length,
+                        originalExamId: examId
+                    };
+
+                    log(`\n📝 Oluşturulacak Exam:`, 'info');
+                    log(`   ID: ${examId}`, 'info');
+                    log(`   Başlık: ${examData.title}`, 'info');
+                    log(`   Tarih: ${examData.date}`, 'info');
+                    log(`   Etkilenen Öğrenci: ${studentIds.length}`, 'info');
+                    log(`   İlk 5 Öğrenci ID: ${studentIds.slice(0, 5).join(', ')}`, 'info');
+
+                    try {
+                        // Firebase'e kaydet
+                        await db.collection('exams').doc(examId).set(examData);
+                        log(`   ✅ Başarıyla oluşturuldu!`, 'success');
+                    } catch (error) {
+                        log(`   ❌ Oluşturulurken hata: ${error.message}`, 'error');
+                    }
+                }
+
+                // 5. Sonuç özeti
+                log('\n' + '='.repeat(80), 'info');
+                log('🎯 İŞLEM TAMAMLANDI!', 'success');
+                log(`✅ ${missingExamIds.length} adet eksik exam kaydı oluşturuldu`, 'success');
+                log('🔧 Student Dashboard artık bu denemeleri düzgün gösterecek', 'info');
+                log('💡 "Eksik Deneme Kaydı" mesajı artık görünmeyecek', 'info');
+
+            } catch (error) {
+                log(`❌ İşlem sırasında hata oluştu: ${error.message}`, 'error');
+                console.error('Hata detayı:', error);
+            }
+        }
+    </script>
+</body>
+</html>
