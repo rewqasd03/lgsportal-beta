@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eksik Deneme Referanslarını Temizle</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #dc3545;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: #c82333;
+        }
+        .button.secondary {
+            background: #6c757d;
+        }
+        .button.secondary:hover {
+            background: #5a6268;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .info { color: #17a2b8; }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Eksik Deneme Referanslarını Temizle</h1>
+        <p><strong>UYARI:</strong> Bu işlem, exams tablosunda karşılık gelen kaydı olmayan results kayıtlarını kalıcı olarak silecektir.</p>
+        
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalExams">0</div>
+                <div class="stat-label">Mevcut Exam</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalResults">0</div>
+                <div class="stat-label">Toplam Result</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="missingExams">0</div>
+                <div class="stat-label">Eksik Exam</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="affectedResults">0</div>
+                <div class="stat-label">Silinecek Result</div>
+            </div>
+        </div>
+        
+        <button class="button" onclick="analyzeAndClean()" id="cleanBtn">🔍 Analiz Et ve Temizle</button>
+        <button class="button secondary" onclick="clearLog()">🗑️ Log'u Temizle</button>
+        
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYfBhkLIfjqpnL9MxBhxW6iJeC0VAEDLk",
+            authDomain: "kopruler-basari-portali.firebaseapp.com",
+            projectId: "kopruler-basari-portali",
+            storageBucket: "kopruler-basari-portali.firebasestorage.app",
+            messagingSenderId: "318334276429",
+            appId: "1:318334276429:web:7caa5e5b9dccb564d71d04",
+            measurementId: "G-EF6P77SMFP"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function log(message, className = '') {
+            const logDiv = document.getElementById('log');
+            const span = document.createElement('span');
+            if (className) span.className = className;
+            span.textContent = message;
+            logDiv.appendChild(span);
+            logDiv.appendChild(document.createElement('br'));
+            console.log(message);
+        }
+
+        function updateStats(stats) {
+            document.getElementById('totalExams').textContent = stats.totalExams;
+            document.getElementById('totalResults').textContent = stats.totalResults;
+            document.getElementById('missingExams').textContent = stats.missingExamCount;
+            document.getElementById('affectedResults').textContent = stats.affectedResults;
+            document.getElementById('stats').style.display = 'grid';
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('stats').style.display = 'none';
+        }
+
+        async function analyzeAndClean() {
+            const cleanBtn = document.getElementById('cleanBtn');
+            cleanBtn.disabled = true;
+            cleanBtn.textContent = '⏳ İşleniyor...';
+
+            log('🚀 Eksik Deneme Referanslarını Temizleme Başlatılıyor...', 'info');
+            log('='.repeat(100), 'info');
+
+            try {
+                // 1. Mevcut exam kayıtlarını al
+                log('\n📊 1. Mevcut Exam Kayıtları Analiz Ediliyor...', 'info');
+                const examsQuery = await db.collection('exams').get();
+                const examsData = examsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                log(`   ✅ ${examsData.length} adet mevcut exam kaydı bulundu`, 'success');
+
+                // 2. Results tablosundaki tüm kayıtları al
+                log('\n📊 2. Results Tablosundaki Kayıtlar Analiz Ediliyor...', 'info');
+                const resultsQuery = await db.collection('results').get();
+                const resultsData = resultsQuery.docs.map(doc => ({ 
+                    id: doc.id, 
+                    ...doc.data() 
+                }));
+                log(`   ✅ ${resultsData.length} adet result kaydı bulundu`, 'success');
+
+                // 3. Hangi examId'lerin results tablosunda bulunduğunu bul
+                const resultExamIds = [...new Set(resultsData.map(r => r.examId))];
+                log(`   📋 ${resultExamIds.length} benzersiz examId tespit edildi`, 'info');
+
+                // 4. Eksik examId'leri tespit et
+                log('\n🔍 3. Eksik Exam Kayıtları Tespit Ediliyor...', 'info');
+                const availableExamIds = examsData.map(e => e.id);
+                const missingExamIds = resultExamIds.filter(id => !availableExamIds.includes(id));
+
+                // İstatistikleri güncelle
+                updateStats({
+                    totalExams: examsData.length,
+                    totalResults: resultsData.length,
+                    missingExamCount: missingExamIds.length,
+                    affectedResults: resultsData.filter(r => missingExamIds.includes(r.examId)).length
+                });
+
+                if (missingExamIds.length === 0) {
+                    log('   ✅ Tüm exam kayıtları mevcut! Temizlenecek kayıt yok.', 'success');
+                    cleanBtn.disabled = false;
+                    cleanBtn.textContent = '🔍 Analiz Et ve Temizle';
+                    return;
+                }
+
+                log(`   ❌ ${missingExamIds.length} adet eksik exam kaydı tespit edildi:`, 'error');
+
+                // 5. Her eksik exam için detayları göster
+                log('\n📋 4. Eksik Exam Detayları:', 'info');
+                const affectedResults = [];
+                
+                for (const missingId of missingExamIds) {
+                    const relatedResults = resultsData.filter(r => r.examId === missingId);
+                    const studentIds = [...new Set(relatedResults.map(r => r.studentId))];
+                    
+                    log(`\n   🔍 ExamId: ${missingId}`, 'warning');
+                    log(`      - İlişkili Result Sayısı: ${relatedResults.length}`, 'info');
+                    log(`      - Etkilenen Öğrenci Sayısı: ${studentIds.length}`, 'info');
+                    log(`      - Öğrenci ID'leri: ${studentIds.slice(0, 10).join(', ')}${studentIds.length > 10 ? '...' : ''}`, 'info');
+                    
+                    affectedResults.push(...relatedResults);
+                }
+
+                // 6. Onay iste
+                log('\n⚠️ 5. İşlem Onayı Gerekli:', 'warning');
+                log(`   📊 ÖZET:`, 'info');
+                log(`      - Silinecek Result Kaydı: ${affectedResults.length}`, 'error');
+                log(`      - Etkilenen Öğrenci Sayısı: ${[...new Set(affectedResults.map(r => r.studentId))].length}`, 'warning');
+                log(`      - İşlem Türü: Kalıcı silme (geri alınamaz)`, 'error');
+
+                if (affectedResults.length > 100) {
+                    log(`   🚨 UYARI: ${affectedResults.length} adet kayıt silinecek. Bu büyük bir işlem.`, 'error');
+                }
+
+                // 7. Temizleme işlemini gerçekleştir
+                log('\n🗑️ 6. Temizleme İşlemi Başlatılıyor...', 'info');
+                
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (let i = 0; i < missingExamIds.length; i++) {
+                    const missingId = missingExamIds[i];
+                    const relatedResults = resultsData.filter(r => r.examId === missingId);
+                    
+                    log(`\n   🗑️ Temizleniyor: ${missingId} (${i + 1}/${missingExamIds.length})`, 'info');
+                    
+                    for (const result of relatedResults) {
+                        try {
+                            await db.collection('results').doc(result.id).delete();
+                            successCount++;
+                            
+                            if (successCount % 10 === 0) {
+                                log(`      ✅ ${successCount} kayıt silindi...`, 'success');
+                            }
+                        } catch (error) {
+                            errorCount++;
+                            log(`      ❌ Hata: ${result.id} - ${error.message}`, 'error');
+                        }
+                    }
+                    
+                    log(`   ✅ ${missingId} için ${relatedResults.length} kayıt işlendi`, 'success');
+                }
+
+                // 8. Sonuç raporu
+                log('\n' + '='.repeat(100), 'info');
+                log('🎯 TEMİZLEME İŞLEMİ TAMAMLANDI!', 'success');
+                log(`✅ Başarıyla silinen kayıt: ${successCount}`, 'success');
+                
+                if (errorCount > 0) {
+                    log(`❌ Hata alan kayıt sayısı: ${errorCount}`, 'error');
+                }
+                
+                log('🔧 "Eksik Deneme Kaydı" sorunu çözüldü!', 'success');
+                log('📱 Student Dashboard artık düzgün çalışacak', 'info');
+
+            } catch (error) {
+                log(`❌ İşlem sırasında hata oluştu: ${error.message}`, 'error');
+                console.error('Hata detayı:', error);
+            } finally {
+                cleanBtn.disabled = false;
+                cleanBtn.textContent = '🔍 Analiz Et ve Temizle';
+            }
+        }
+    </script>
+</body>
+</html>
