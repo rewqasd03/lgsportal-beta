@@ -72,12 +72,11 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
   const [viewType, setViewType] = useState<'overview' | 'comparison' | 'trends'>('overview');
   const [selectedStudent, setSelectedStudent] = useState<string>('');
 
-  // Debug: Exams verisini logla
-  console.log('📊 AnalyticsTab Debug:', {
-    examsLength: exams.length,
-    examsSample: exams.slice(0, 3).map(e => ({ id: e.id, title: e.title })),
-    resultsLength: results.length,
-    resultsSample: results.slice(0, 3).map(r => ({ id: r.id, examId: r.examId }))
+  // Exams verisini kontrol et
+  console.log('🔍 Exams debug:', {
+    totalExams: exams.length,
+    examsWithTitle: exams.filter(e => e.title && e.title.trim()).length,
+    sampleTitles: exams.slice(0, 5).map(e => ({ id: e.id, title: e.title }))
   });
 
   // Sınıf değişince öğrenci seçimini temizle
@@ -86,6 +85,17 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     setSelectedStudent(''); // Öğrenci seçimini temizle
   };
   const [trendsViewType, setTrendsViewType] = useState<'net' | 'puan'>('net');
+
+  // Gerçek exam başlığını al
+  const getExamTitle = (examId: string, fallbackIndex: number) => {
+    const exam = exams.find(e => e.id === examId);
+    if (exam && exam.title && exam.title.trim()) {
+      return exam.title.trim();
+    }
+    // Eğer exam başlığı yoksa tarihe göre fallback
+    const examDate = new Date().toLocaleDateString('tr-TR');
+    return `Deneme ${fallbackIndex + 1} (${examDate})`;
+  };
 
   // Performans verilerini hesapla
   const performanceData = useMemo((): PerformanceComparison[] => {
@@ -217,9 +227,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
     return studentResults.map((result, index) => {
-      // Gerçek deneme bilgilerini al
-      const examInfo = exams.find(e => e.id === result.examId);
-      const examTitle = examInfo?.title || `Deneme ${index + 1}`;
+      const examTitle = getExamTitle(result.examId, index);
       
       return {
         sira: index + 1,
@@ -564,25 +572,11 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     );
     
     const netChartData = sortedResults.map((result, index) => {
-      // Gerçek deneme bilgilerini al
-      const examInfo = exams.find(e => e.id === result.examId);
-      
-      // Debug: Her result için examId kontrolü
-      if (index < 5) { // İlk 5 result için debug
-        console.log(`🔍 Result ${index + 1}:`, {
-          resultId: result.id,
-          examId: result.examId,
-          examInfoFound: !!examInfo,
-          examTitle: examInfo?.title,
-          allExamsIds: exams.map(e => e.id).slice(0, 10)
-        });
-      }
-      
-      const examTitle = (examInfo?.title && examInfo.title.trim()) ? examInfo.title : `Deneme ${index + 1}`;
+      const examTitle = getExamTitle(result.examId, index);
       const examDate = new Date(result.createdAt).toLocaleDateString('tr-TR');
       
       return {
-        exam: `${examTitle}`,
+        exam: examTitle,
         examDate: examDate,
         sira: index + 1,
         öğrenci: result.nets?.total || 0,
@@ -593,13 +587,11 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     
     const scoreChartData = sortedResults.map((result, index) => {
       const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
-      // Gerçek deneme bilgilerini al
-      const examInfo = exams.find(e => e.id === result.examId);
-      const examTitle = examInfo?.title || `Deneme ${index + 1}`;
+      const examTitle = getExamTitle(result.examId, index);
       const examDate = new Date(result.createdAt).toLocaleDateString('tr-TR');
       
       return {
-        exam: `${examTitle}`,
+        exam: examTitle,
         examDate: examDate,
         sira: index + 1,
         öğrenci: score,
@@ -907,9 +899,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                       const development = index > 0 ? (currentNet - previousNet) : 0;
                       const score = result.scores?.puan ? parseFloat(result.scores.puan) : (result.puan || 0);
                       
-                      // Gerçek deneme bilgilerini al
-                      const examInfo = exams.find(e => e.id === result.examId);
-                      const examTitle = (examInfo?.title && examInfo.title.trim()) ? examInfo.title : `Deneme ${index + 1}`;
+                      const examTitle = getExamTitle(result.examId, index);
                       
                       return (
                         <tr key={result.id} className="border-b border-gray-100 hover:bg-gray-50">
@@ -1011,9 +1001,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                     : 0;
 
                   const subjectData = analysis.studentResults.map((result, index) => {
-                    // Gerçek deneme bilgilerini al
-                    const examInfo = exams.find(e => e.id === result.examId);
-                    const examTitle = examInfo?.title || `Deneme ${index + 1}`;
+                    const examTitle = getExamTitle(result.examId, index);
                     
                     return {
                       exam: examTitle,
