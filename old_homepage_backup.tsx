@@ -4,254 +4,10 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { Student, Exam, getStudents, getExams } from "../firebase";
 
-// Deneme Zamanlayıcısı Modal Component
-function ExamTimerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [selectedSession, setSelectedSession] = useState<{
-    name: string;
-    duration: number; // dakika
-  } | null>(null);
-  
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
-
-  const sessions = [
-    { name: "Sözel Oturum", duration: 75 },
-    { name: "Sayısal Oturum", duration: 80 }
-  ];
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            setIsRunning(false);
-            // Süre bitince sesli uyarı (tarayıcı destekliyorsa)
-            if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification('Deneme Zamanlayıcısı', {
-                body: `${selectedSession?.name} süresi doldu!`,
-                icon: '/favicon.ico'
-              });
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isRunning, timeLeft, selectedSession]);
-
-  // Tarih ve saati güncelle
-  useEffect(() => {
-    const updateDateTime = () => {
-      setCurrentDateTime(new Date());
-    };
-    
-    updateDateTime(); // İlk güncelleme
-    const dateInterval = setInterval(updateDateTime, 1000); // Her saniye güncelle
-    
-    return () => clearInterval(dateInterval);
-  }, []);
-
-  // Türkçe tarih formatı
-  const formatTurkishDate = (date: Date) => {
-    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
-    const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 
-                   'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-    
-    const dayName = days[date.getDay()];
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-    const time = date.toLocaleTimeString('tr-TR', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      second: '2-digit'
-    });
-    
-    return {
-      dayName,
-      dateString: `${day} ${month} ${year}`,
-      time
-    };
-  };
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    
-    if (hours > 0) {
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const startTimer = (session: { name: string; duration: number }) => {
-    setSelectedSession(session);
-    setTimeLeft(session.duration * 60);
-    setIsRunning(true);
-  };
-
-  const pauseTimer = () => {
-    setIsRunning(false);
-  };
-
-  const resumeTimer = () => {
-    setIsRunning(true);
-  };
-
-  const resetTimer = () => {
-    setIsRunning(false);
-    setTimeLeft(0);
-    setSelectedSession(null);
-  };
-
-  const stopTimer = () => {
-    resetTimer();
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  const { dayName, dateString, time } = formatTurkishDate(currentDateTime);
-
-  return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center z-50">
-      <div className="w-full h-full flex flex-col justify-center items-center text-white p-8">
-        {/* Tarih ve Saat Bilgisi */}
-        <div className="text-center mb-8">
-          <div className="text-2xl font-bold text-blue-300 mb-2">
-            {dayName}
-          </div>
-          <div className="text-xl text-blue-200 mb-2">
-            {dateString}
-          </div>
-          <div className="text-3xl font-bold text-white">
-            {time}
-          </div>
-        </div>
-
-        <div className="text-center mb-12">
-          <h3 className="text-4xl font-bold mb-4">⏱️ Deneme Zamanlayıcısı</h3>
-          <p className="text-xl text-blue-200">Deneme sınavınız için süre takibi yapın</p>
-        </div>
-
-        {!selectedSession ? (
-          // Oturum Seçimi
-          <div className="space-y-8 w-full max-w-2xl">
-            <h4 className="text-2xl font-bold text-center mb-8">Oturum Seçin</h4>
-            {sessions.map((session, index) => (
-              <button
-                key={index}
-                onClick={() => startTimer(session)}
-                className="w-full p-8 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-3xl transition-all duration-300 hover:scale-105 flex items-center justify-between shadow-2xl"
-              >
-                <div className="text-left">
-                  <div className="text-3xl font-bold mb-2">{session.name}</div>
-                  <div className="text-xl opacity-90">{session.duration} Dakika</div>
-                </div>
-                <div className="text-6xl">
-                  {session.name.includes('Sözel') ? '📝' : '🔢'}
-                </div>
-              </button>
-            ))}
-          </div>
-        ) : (
-          // Zamanlayıcı
-          <div className="text-center w-full max-w-4xl">
-            {/* Tarih ve Saat Bilgisi - Zamanlayıcı Modunda */}
-            <div className="text-center mb-6">
-              <div className="text-xl font-bold text-blue-300 mb-1">
-                {dayName}
-              </div>
-              <div className="text-lg text-blue-200 mb-1">
-                {dateString}
-              </div>
-              <div className="text-2xl font-bold text-white">
-                {time}
-              </div>
-            </div>
-
-            <div className="mb-12">
-              <h4 className="text-4xl font-bold mb-8">{selectedSession.name}</h4>
-              <div className={`text-8xl sm:text-9xl md:text-[12rem] lg:text-[14rem] font-bold mb-8 leading-none ${timeLeft <= 300 ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
-                {formatTime(timeLeft)}
-              </div>
-              {timeLeft <= 300 && timeLeft > 0 && (
-                <div className="text-red-400 text-2xl font-bold animate-bounce">
-                  ⚠️ Son 5 dakika!
-                </div>
-              )}
-              {timeLeft === 0 && (
-                <div className="text-green-400">
-                  <div className="text-6xl font-bold mb-4">🎉</div>
-                  <div className="text-4xl font-bold mb-2">Başarılar!</div>
-                  <div className="text-2xl">Deneme süreniz tamamlandı!</div>
-                </div>
-              )}
-            </div>
-
-            {timeLeft > 0 && (
-              <div className="flex gap-4 justify-center">
-                {!isRunning ? (
-                  <button
-                    onClick={resumeTimer}
-                    className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl transition-colors text-xl font-bold flex items-center gap-3"
-                  >
-                    ▶️ Devam
-                  </button>
-                ) : (
-                  <button
-                    onClick={pauseTimer}
-                    className="px-8 py-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded-2xl transition-colors text-xl font-bold flex items-center gap-3"
-                  >
-                    ⏸️ Duraklat
-                  </button>
-                )}
-                
-                <button
-                  onClick={resetTimer}
-                  className="px-8 py-4 bg-gray-500 hover:bg-gray-600 text-white rounded-2xl transition-colors text-xl font-bold flex items-center gap-3"
-                >
-                  🔄 Sıfırla
-                </button>
-              </div>
-            )}
-
-            {timeLeft === 0 && (
-              <div className="mt-8">
-                <button
-                  onClick={resetTimer}
-                  className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl transition-colors text-xl font-bold flex items-center gap-3 mx-auto"
-                >
-                  🔄 Yeni Deneme Başlat
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="mt-12">
-          <button
-            onClick={stopTimer}
-            className="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 text-xl flex items-center gap-3 mx-auto"
-          >
-            ❌ Zamanlayıcıyı Kapat
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function HomePage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
 
   useEffect(() => {
     // Firebase'den veri oku
@@ -349,7 +105,7 @@ export default function HomePage() {
           <img
             src="/projelogo.png"
             alt="LGS Portalı"
-            className="w-36 h-36 mx-auto mb-4 hover:scale-110 transition-transform duration-300 drop-shadow-xl"
+            className="w-20 h-20 mx-auto mb-4 hover:scale-110 transition-transform duration-300 drop-shadow-xl"
           />
           <h1 className="text-xs sm:text-sm font-black tracking-tight text-center mb-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
             LGS Portalı
@@ -357,6 +113,8 @@ export default function HomePage() {
           <p className="text-center text-xs text-gray-600 leading-relaxed max-w-lg mx-auto mb-6">
             Öğrenciler başarılarını takip edebilir, öğretmenler sınıf performanslarını anlık olarak görebilir.
           </p>
+
+
         </div>
 
         {/* İstatistik Kartları */}
@@ -499,6 +257,8 @@ export default function HomePage() {
           </div>
         )}
 
+
+
         {/* Giriş Butonları */}
         <div className="flex flex-col items-center gap-3 mb-6">
           <Link href="/ogrenci">
@@ -514,69 +274,8 @@ export default function HomePage() {
             </button>
           </Link>
 
-          {/* Deneme Zamanlayıcısı Butonu */}
-          <button
-            onClick={() => setIsTimerModalOpen(true)}
-            className="px-8 py-3 rounded-2xl text-white text-xs font-bold shadow-2xl bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 hover:scale-105 hover:shadow-red-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2"
-          >
-            <span className="text-xs">⏱️</span>
-            <span>Deneme Zamanlayıcısı</span>
-          </button>
 
-          <div className="relative">
-            <button 
-              onClick={() => {
-                const modal = document.getElementById('contact-modal');
-                if (modal) modal.classList.remove('hidden');
-              }}
-              className="px-8 py-3 rounded-2xl text-white text-xs font-bold shadow-2xl bg-gradient-to-r from-purple-500 via-pink-600 to-rose-600 hover:from-purple-600 hover:to-pink-700 hover:scale-105 hover:shadow-pink-500/50 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2"
-            >
-              <span className="text-xs">📧</span>
-              <span>İletişim</span>
-            </button>
-            
-            {/* İletişim Modal */}
-            <div id="contact-modal" className="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-xl shadow-2xl w-full max-w-md sm:max-w-lg lg:max-w-xl max-h-[90vh] overflow-y-auto p-6">
-                <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white text-2xl">📧</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">Geliştiriciye Ulaşın</h3>
-                  <p className="text-gray-600 text-sm">
-                    Sorularınız, önerileriniz veya teknik destek için geliştiriciye ulaşabilirsiniz.
-                  </p>
-                </div>
-                
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
-                  <h4 className="font-semibold text-gray-800 mb-3 text-center">Geliştiriciye ulaşmak için aşağıdaki mail adresinden iletinizi gönderebilirsiniz:</h4>
-                  <a 
-                    href="mailto:uysal.mu07@gmail.com" 
-                    className="block w-full text-center bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:scale-105"
-                  >
-                    uysal.mu07@gmail.com
-                  </a>
-                </div>
-                
-                <button 
-                  onClick={() => {
-                    const modal = document.getElementById('contact-modal');
-                    if (modal) modal.classList.add('hidden');
-                  }}
-                  className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-all duration-300"
-                >
-                  Kapat
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
-
-        {/* Deneme Zamanlayıcısı Modal */}
-        <ExamTimerModal 
-          isOpen={isTimerModalOpen} 
-          onClose={() => setIsTimerModalOpen(false)} 
-        />
 
         {/* Footer */}
         <footer className="text-center text-xs text-gray-500 mt-6">
