@@ -312,9 +312,29 @@ const StudentReport: React.FC<StudentReportProps> = ({
                 }
               </p>
             </div>
+          <div className="flex space-x-3">
+            <button
+              onClick={exportToPDF}
+              disabled={isExporting}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            >
+              {isExporting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span className="text-sm">PDF</span>
+                </>
+              ) : (
+                <>
+                  📄 PDF İndir
+                </>
+              )}
+            </button>
             <button
               onClick={() => window.print()}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               🖨️ Yazdır
             </button>
@@ -353,7 +373,7 @@ const StudentReport: React.FC<StudentReportProps> = ({
       <div className="max-w-7xl mx-auto px-4 py-8">
         {currentPage === 1 && (
           <div ref={pageRefs[1]}>
-            <PageOne reportData={reportData} onExportPDF={exportToPDF} isExporting={isExporting} />
+            <PageOne reportData={reportData} />
           </div>
         )}
         {currentPage === 2 && (
@@ -382,13 +402,7 @@ const StudentReport: React.FC<StudentReportProps> = ({
 };
 
 // Sayfa 1: Genel Özet + Çizgi Grafik
-interface PageOneProps {
-  reportData: ReportData;
-  onExportPDF: () => void;
-  isExporting: boolean;
-}
-
-const PageOne: React.FC<PageOneProps> = ({ reportData, onExportPDF, isExporting }) => {
+const PageOne: React.FC<{ reportData: ReportData }> = ({ reportData }) => {
   const lineData = reportData.examResults.map((r, index) => ({
     exam: r.exam.title,
     [reportData.student ? 'Öğrenci' : 'Sınıf']: r.studentTotalNet,
@@ -415,16 +429,12 @@ const PageOne: React.FC<PageOneProps> = ({ reportData, onExportPDF, isExporting 
 
   return (
     <div className="space-y-6">
-      {/* PDF İndir Butonu */}
+      {/* Başlık */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">📊 Genel Görünüm</h2>
         <p className="text-gray-600 mb-4">Öğrenci performansının genel analizi</p>
         
-        <button
-          onClick={onExportPDF}
-          disabled={isExporting}
-          className="w-full bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
-        >
+
           {isExporting ? (
             <>
               <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
