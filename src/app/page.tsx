@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import { Student, Exam, getStudents, getExams } from "../firebase";
 
 // Deneme Zamanlayıcısı Modal Component
 function ExamTimerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -248,73 +247,26 @@ function ExamTimerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
 }
 
 export default function HomePage() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
 
-  useEffect(() => {
-    // Firebase'den veri oku
-    const loadData = async () => {
-      try {
-        const [studentsData, examsData] = await Promise.all([
-          getStudents(),
-          getExams()
-        ]);
-
-        setStudents(studentsData);
-        setExams(examsData);
-      } catch (error) {
-        console.error('Ana sayfa veri okuma hatası:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  // İstatistikler
-  const totalStudents = students.length;
-  const totalExams = exams.length;
-  const totalViews = students.reduce((sum, student) => sum + (student.viewCount || 0), 0);
-  const activeStudents = students.filter(student => (student.viewCount || 0) > 0).length;
-  const averageViews = totalStudents > 0 ? Math.round(totalViews / totalStudents) : 0;
+  // Demo veriler - Firebase yerine statik
+  const totalStudents = 0;
+  const totalExams = 0;
+  const totalViews = 0;
+  const activeStudents = 0;
+  const averageViews = 0;
+  const totalClasses = 0;
 
   // Sınıf bazlı detaylı istatistikler
-  const detailedClassStats = students.reduce((acc, student) => {
-    if (!acc[student.class]) {
-      acc[student.class] = {
-        studentCount: 0,
-        activeStudents: 0,
-        totalViewCount: 0,
-        totalExams: 0
-      };
-    }
-    acc[student.class].studentCount++;
-    acc[student.class].totalViewCount += student.viewCount || 0;
-    if ((student.viewCount || 0) > 0) {
-      acc[student.class].activeStudents++;
-    }
-
-    // Her sınıf için toplam deneme sayısı (basitleştirilmiş)
-    acc[student.class].totalExams = Math.max(acc[student.class].totalExams, totalExams);
-
-    return acc;
-  }, {} as Record<string, {
+  const detailedClassStats: Record<string, {
     studentCount: number;
     activeStudents: number;
     totalViewCount: number;
     totalExams: number;
-  }>);
-
-  const totalClasses = Object.keys(detailedClassStats).length;
+  }> = {};
 
   // En aktif 10 öğrenci
-  const topActiveStudents = students
-    .filter(student => (student.viewCount || 0) > 0)
-    .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
-    .slice(0, 10);
+  const topActiveStudents: any[] = [];
 
   // Renk paleti
   const colors = [
@@ -326,16 +278,7 @@ export default function HomePage() {
     'from-teal-500 to-teal-600'
   ];
 
-  if (loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
-        </div>
-      </main>
-    );
-  }
+
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 font-sans relative overflow-hidden">
