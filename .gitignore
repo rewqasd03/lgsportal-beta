@@ -918,3 +918,6 @@ build_output/
 shell_output_save/
 temp_pdf_subsets/
 extract/
+
+# User input files - read only
+user_input_files/
