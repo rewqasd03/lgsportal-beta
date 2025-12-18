@@ -72,6 +72,14 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
   const [viewType, setViewType] = useState<'overview' | 'comparison' | 'trends'>('overview');
   const [selectedStudent, setSelectedStudent] = useState<string>('');
 
+  // Debug: Exams verisini logla
+  console.log('📊 AnalyticsTab Debug:', {
+    examsLength: exams.length,
+    examsSample: exams.slice(0, 3).map(e => ({ id: e.id, title: e.title })),
+    resultsLength: results.length,
+    resultsSample: results.slice(0, 3).map(r => ({ id: r.id, examId: r.examId }))
+  });
+
   // Sınıf değişince öğrenci seçimini temizle
   const handleClassChange = (newClass: string) => {
     setSelectedClass(newClass);
@@ -558,7 +566,19 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
     const netChartData = sortedResults.map((result, index) => {
       // Gerçek deneme bilgilerini al
       const examInfo = exams.find(e => e.id === result.examId);
-      const examTitle = examInfo?.title || `Deneme ${index + 1}`;
+      
+      // Debug: Her result için examId kontrolü
+      if (index < 5) { // İlk 5 result için debug
+        console.log(`🔍 Result ${index + 1}:`, {
+          resultId: result.id,
+          examId: result.examId,
+          examInfoFound: !!examInfo,
+          examTitle: examInfo?.title,
+          allExamsIds: exams.map(e => e.id).slice(0, 10)
+        });
+      }
+      
+      const examTitle = (examInfo?.title && examInfo.title.trim()) ? examInfo.title : `Deneme ${index + 1}`;
       const examDate = new Date(result.createdAt).toLocaleDateString('tr-TR');
       
       return {
@@ -889,7 +909,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ students, results, exams })
                       
                       // Gerçek deneme bilgilerini al
                       const examInfo = exams.find(e => e.id === result.examId);
-                      const examTitle = examInfo?.title || `Deneme ${index + 1}`;
+                      const examTitle = (examInfo?.title && examInfo.title.trim()) ? examInfo.title : `Deneme ${index + 1}`;
                       
                       return (
                         <tr key={result.id} className="border-b border-gray-100 hover:bg-gray-50">
