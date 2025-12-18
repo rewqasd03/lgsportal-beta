@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts';
 
-import { getStudents, getExams, getResults, addStudent, addExam, addResult, deleteStudent, deleteExam, deleteResult, updateStudent, updateResult, updateExam, saveStudentTargets, getAllTargets, getStudentScoreTarget, mapDashboardKeysToPanel, mapPanelKeysToDashboard, db, doc, getDoc, incrementStudentViewCount, Student, Exam, Result } from "../../firebase";
+import { getStudents, getExams, getResults, addStudent, addExam, addResult, deleteStudent, deleteExam, deleteResult, updateStudent, updateResult, updateExam, saveStudentTargets, getAllTargets, getStudentScoreTarget, mapDashboardKeysToPanel, mapPanelKeysToDashboard, db, doc, getDoc, incrementStudentViewCount, generateStudentPin, assignPinsToAllStudents, Student, Exam, Result } from "../../firebase";
 import AnalyticsTab from "../../components/AnalyticsTab";
 // PDF İçe Aktarım Tab Component
 const PDFImportTab = ({ students, exams, onDataUpdate }: { 
@@ -1794,6 +1794,7 @@ export default function FoncsDataEntry() {
       lastViewDate: new Date().toISOString()
     });
     const [loadingStudents, setLoadingStudents] = useState(false);
+    const [assigningPins, setAssigningPins] = useState(false);
 
     const handleAddStudent = async () => {
       if (!studentForm.name.trim() || !studentForm.class) {
@@ -1825,12 +1826,37 @@ export default function FoncsDataEntry() {
         });
         setShowAddForm(false);
         
-        showToast("Öğrenci başarıyla eklendi!", "success");
+        showToast("Öğrenci başarıyla eklendi! (PIN otomatik atandı)", "success");
       } catch (error) {
         console.error('Add student error:', error);
         showToast("Öğrenci eklenirken hata oluştu", "error");
       } finally {
         setLoadingStudents(false);
+      }
+    };
+
+    // Tüm öğrencilere PIN ata
+    const handleAssignPinsToAll = async () => {
+      if (!confirm('Tüm öğrencilere otomatik PIN atanacak. Devam etmek istiyor musunuz?')) {
+        return;
+      }
+
+      try {
+        setAssigningPins(true);
+        const result = await assignPinsToAllStudents();
+        await loadData();
+        
+        if (result.errors.length === 0) {
+          showToast(`✅ ${result.updated} öğrenciye başarıyla PIN atandı!`, "success");
+        } else {
+          showToast(`⚠️ ${result.updated} öğrenciye PIN atandı, ${result.errors.length} hata oluştu`, "info");
+          console.log('Hatalar:', result.errors);
+        }
+      } catch (error) {
+        console.error('PIN atama hatası:', error);
+        showToast("PIN atama işlemi sırasında hata oluştu", "error");
+      } finally {
+        setAssigningPins(false);
       }
     };
 
@@ -1986,15 +2012,24 @@ export default function FoncsDataEntry() {
           </div>
         )}
 
-        {/* Add Student Button */}
+        {/* Add Student Button and PIN Management */}
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-800">Öğrenci Listesi</h2>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="bg-indigo-500 text-white px-6 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
-          >
-            + Yeni Öğrenci
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleAssignPinsToAll}
+              disabled={assigningPins}
+              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 text-sm"
+            >
+              {assigningPins ? '🔄 PIN Atanıyor...' : '🔐 Tüm Öğrencilere PIN Ata'}
+            </button>
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="bg-indigo-500 text-white px-6 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
+            >
+              + Yeni Öğrenci
+            </button>
+          </div>
         </div>
 
         {/* 📚 Sınıf Bazında Kategorize Edilmiş Öğrenci Listesi */}
