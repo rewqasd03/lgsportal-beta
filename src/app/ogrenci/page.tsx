@@ -89,7 +89,7 @@ const StudentLoginPage: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                🔐 Güvenlik Kodu (PIN)
+                🔐 PIN Kodu
               </label>
               <input
                 type="password"
@@ -102,9 +102,6 @@ const StudentLoginPage: React.FC = () => {
                 title="4 haneli sayısal PIN kodunuzu girin"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Öğretmeninizden aldığınız 4 haneli PIN kodunu girin
-              </p>
             </div>
 
             {error && (
