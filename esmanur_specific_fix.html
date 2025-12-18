@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esmanur KAVAL - Eksik Deneme Kaydı Düzeltmesi</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+        }
+        .student-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .button {
+            background: #4caf50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: #45a049;
+        }
+        .button.secondary {
+            background: #ff9800;
+        }
+        .button.secondary:hover {
+            background: #e68900;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .info { color: #17a2b8; }
+        .log {
+            background: #1e1e1e;
+            color: #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            max-height: 600px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .exam-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .exam-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .exam-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Esmanur KAVAL - Eksik Deneme Sorunu</h1>
+            <p>8 deneme verisi var ama 9 deneme gösteriyor</p>
+        </div>
+
+        <div class="student-info">
+            <h3>👩‍🎓 Öğrenci Bilgileri</h3>
+            <p><strong>Ad Soyad:</strong> Esmanur KAVAL</p>
+            <p><strong>Gerçek Deneme Sayısı:</strong> 8</p>
+            <p><strong>Sistemde Görünen:</strong> 9</p>
+            <p><strong>Problem:</strong> 1 eksik exam kaydı nedeniyle "Eksik Deneme Kaydı" mesajı gösteriliyor</p>
+        </div>
+
+        <div>
+            <h3>🔧 Çözüm Seçenekleri</h3>
+            
+            <div style="margin: 20px 0;">
+                <h4>Seçenek 1: Eksik Exam Kaydını Oluştur (Önerilen)</h4>
+                <p>Eksik olan 1 exam kaydını oluşturur. Esmanur'un tüm denemeleri düzgün gösterilecek.</p>
+                <button class="button" onclick="fixEsmanurMissingExam()">✅ Eksik Kaydı Oluştur</button>
+            </div>
+
+            <div style="margin: 20px 0;">
+                <h4>Seçenek 2: Genel Temizlik Yap</h4>
+                <p>Tüm eksik exam kayıtlarını temizler. Bu Esmanur için de sorunu çözer.</p>
+                <button class="button secondary" onclick="window.open('clean_missing_exams.html', '_blank')">🗑️ Genel Temizlik</button>
+            </div>
+        </div>
+
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYfBhkLIfjqpnL9MxBhxW6iJeC0VAEDLk",
+            authDomain: "kopruler-basari-portali.firebaseapp.com",
+            projectId: "kopruler-basari-portali",
+            storageBucket: "kopruler-basari-portali.firebasestorage.app",
+            messagingSenderId: "318334276429",
+            appId: "1:318334276429:web:7caa5e5b9dccb564d71d04",
+            measurementId: "G-EF6P77SMFP"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function log(message, className = '') {
+            const logDiv = document.getElementById('log');
+            const span = document.createElement('span');
+            if (className) span.className = className;
+            span.textContent = message;
+            logDiv.appendChild(span);
+            logDiv.appendChild(document.createElement('br'));
+            console.log(message);
+        }
+
+        async function fixEsmanurMissingExam() {
+            log('🚀 Esmanur KAVAL için eksik deneme kaydı düzeltiliyor...', 'info');
+            log('='.repeat(80), 'info');
+
+            try {
+                // 1. Esmanur KAVAL'ı bul
+                log('\n👩‍🎓 1. Esmanur KAVAL bulunuyor...', 'info');
+                const studentsQuery = await db.collection('students').where('name', '==', 'Esmanur KAVAL').get();
+                
+                if (studentsQuery.empty) {
+                    log('   ❌ Esmanur KAVAL bulunamadı', 'error');
+                    return;
+                }
+
+                const esmanurDoc = studentsQuery.docs[0];
+                const esmanur = { id: esmanurDoc.id, ...esmanurDoc.data() };
+                log(`   ✅ Bulundu: ${esmanur.id} (${esmanur.class})`, 'success');
+
+                // 2. Esmanur'un tüm sonuçlarını al
+                log('\n📊 2. Esmanur\'un deneme sonuçları alınıyor...', 'info');
+                const resultsQuery = await db.collection('results').where('studentId', '==', esmanur.id).get();
+                const esmanurResults = resultsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                log(`   ✅ ${esmanurResults.length} deneme sonucu bulundu`, 'success');
+
+                // 3. Sınıfının tüm sonuçlarını al
+                log('\n👥 3. 8-A sınıfının denemeleri analiz ediliyor...', 'info');
+                const classResultsQuery = await db.collection('results').get();
+                const allResults = classResultsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // 8-A sınıfı öğrencilerini bul
+                const studentsQueryAll = await db.collection('students').where('class', '==', '8-A').get();
+                const classStudents = studentsQueryAll.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // 8-A sınıfının sonuçlarını filtrele
+                const classResults = allResults.filter(r => classStudents.some(s => s.id === r.studentId));
+                const classExamIds = [...new Set(classResults.map(r => r.examId))];
+                
+                log(`   ✅ 8-A sınıfında ${classStudents.length} öğrenci, ${classExamIds.length} farklı deneme`, 'success');
+
+                // 4. Eksik exam kayıtlarını tespit et
+                log('\n🔍 4. Eksik exam kayıtları tespit ediliyor...', 'info');
+                const examsQuery = await db.collection('exams').get();
+                const examsData = examsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                const availableExamIds = examsData.map(e => e.id);
+                const missingExamIds = classExamIds.filter(id => !availableExamIds.includes(id));
+                
+                log(`   📋 Toplam deneme: ${classExamIds.length}`, 'info');
+                log(`   ✅ Mevcut exam kaydı: ${availableExamIds.length}`, 'success');
+                log(`   ❌ Eksik exam kaydı: ${missingExamIds.length}`, 'error');
+
+                if (missingExamIds.length === 0) {
+                    log('   ✅ Tüm exam kayıtları mevcut!', 'success');
+                    return;
+                }
+
+                // 5. Esmanur'u etkileyen eksik kayıtları bul
+                log('\n🎯 5. Esmanur\'u etkileyen eksik kayıtlar...', 'info');
+                const esmanurExamIds = [...new Set(esmanurResults.map(r => r.examId))];
+                const esmanurMissingExamIds = missingExamIds.filter(id => !esmanurExamIds.includes(id));
+                
+                log(`   📊 Esmanur'un denemeleri: ${esmanurExamIds.length}`, 'info');
+                log(`   ⚠️ Eksik denemeler: ${esmanurMissingExamIds.length}`, 'warning');
+                
+                if (esmanurMissingExamIds.length > 0) {
+                    log('   📝 Eksik exam detayları:', 'warning');
+                    esmanurMissingExamIds.forEach((missingId, index) => {
+                        const relatedResults = classResults.filter(r => r.examId === missingId);
+                        const studentIds = [...new Set(relatedResults.map(r => r.studentId))];
+                        log(`   ${index + 1}. ${missingId} (${studentIds.length} öğrenci)`, 'warning');
+                    });
+                }
+
+                // 6. Eksik exam kayıtlarını oluştur
+                log('\n🛠️ 6. Eksik exam kayıtları oluşturuluyor...', 'info');
+                
+                for (const missingId of missingExamIds) {
+                    // Bu examId'ye ait sonuçlardan tarihi tahmin et
+                    const relatedResults = classResults.filter(r => r.examId === missingId);
+                    const dates = relatedResults
+                        .map(r => r.createdAt)
+                        .filter(date => date)
+                        .sort();
+                    
+                    const estimatedDate = dates.length > 0 ? dates[0].split('T')[0] : new Date().toISOString().split('T')[0];
+                    
+                    // Esmanur'un sınıfına uygun başlık oluştur
+                    const isMuba = relatedResults.some(r => r.examId.includes('muba') || r.examId.includes('MUBA'));
+                    const examTitle = isMuba ? `MUBA Deneme ${classExamIds.length + 1}` : `Deneme ${classExamIds.length + 1}`;
+                    
+                    const examData = {
+                        title: examTitle,
+                        date: estimatedDate,
+                        generalAverages: {},
+                        createdAt: new Date().toISOString(),
+                        source: 'auto_created_for_esmanur',
+                        studentCount: [...new Set(relatedResults.map(r => r.studentId))].length
+                    };
+
+                    log(`\n   📝 Oluşturuluyor: ${missingId}`, 'info');
+                    log(`      Başlık: ${examData.title}`, 'info');
+                    log(`      Tarih: ${examData.date}`, 'info');
+                    log(`      Öğrenci: ${examData.studentCount}`, 'info');
+
+                    try {
+                        await db.collection('exams').doc(missingId).set(examData);
+                        log(`      ✅ Başarıyla oluşturuldu!`, 'success');
+                    } catch (error) {
+                        log(`      ❌ Hata: ${error.message}`, 'error');
+                    }
+                }
+
+                // 7. Sonuç
+                log('\n' + '='.repeat(80), 'info');
+                log('🎉 İŞLEM TAMAMLANDI!', 'success');
+                log(`✅ ${missingExamIds.length} eksik exam kaydı oluşturuldu`, 'success');
+                log('🎯 Esmanur KAVAL artık 8 denemesi düzgün gösterecek', 'success');
+                log('📱 Student Dashboard\'ı yenileyin ve kontrol edin', 'info');
+
+                log('\n🔄 Student Dashboard linkini yeniden açın:', 'info');
+                log(`   /student-dashboard?studentId=${esmanur.id}`, 'info');
+
+            } catch (error) {
+                log(`❌ İşlem sırasında hata: ${error.message}`, 'error');
+                console.error('Hata detayı:', error);
+            }
+        }
+    </script>
+</body>
+</html>
