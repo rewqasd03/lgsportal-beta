@@ -43,7 +43,7 @@ async function assignPinsToStudents() {
     console.log(`⚠️ ${studentsWithoutPin.length} öğrencinin PIN'i yok`);
     
     if (studentsWithoutPin.length === 0) {
-      console.log('✅ Tüm öğrencilerin PIN\\'i mevcut!');
+      console.log('✅ Tüm öğrencilerin PIN\'i mevcut!');
       return;
     }
     
