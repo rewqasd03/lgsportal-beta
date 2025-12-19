@@ -28,5 +28,18 @@
     "@types/node": "^20.8.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0"
-  }
+  },
+  "main": "assign-pins.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/rewqasd03/lgsportal-beta.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rewqasd03/lgsportal-beta/issues"
+  },
+  "homepage": "https://github.com/rewqasd03/lgsportal-beta#readme",
+  "description": ""
 }
