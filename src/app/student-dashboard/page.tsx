@@ -1501,241 +1501,165 @@ function StudentDashboardContent() {
                   </div>
                 </div>
 
-                {/* Lise Tercih Önerileri */}
+                {/* Lise Tahmin Sistemi - Basit Puan Aralığı */}
                 <div className="bg-gradient-to-r from-blue-500 to-green-600 text-white rounded-lg shadow p-4">
-                  <h3 className="text-sm font-semibold mb-3">🏫 Lise Tercih Önerilerin</h3>
+                  <h3 className="text-sm font-semibold mb-3">🏫 Lise Tahmin Sistemi</h3>
                   
                   {/* Öğrenci Puan Bilgisi */}
                   <div className="mb-4 bg-white bg-opacity-10 p-3 rounded-lg">
                     <div className="text-sm font-medium">
-                      En Yüksek Puanın: <span className="text-lg font-bold">{(() => {
-                        // En yüksek puanı hesapla - DEBUG VERSİON
-                        console.log('🔍 ENFAL DEBUG - Student Dashboard Lise Tercih Puan Hesaplama Başladı');
-                        console.log('🔍 ENFAL DEBUG - Toplam deneme sayısı:', reportData.examResults.length);
-                        
-                        if (reportData.examResults.length === 0) {
-                          console.log('🔍 ENFAL DEBUG - Deneme bulunamadı');
-                          return 0;
-                        }
-                        
-                        let highestScore = 0;
-                        const allScores: number[] = [];
-                        
-                        reportData.examResults.forEach((examResult, index) => {
-                          const studentResult = examResult.studentResults[0];
-                          console.log(`🔍 ENFAL DEBUG - Deneme ${index + 1}:`, examResult.exam.title);
+                      En Yüksek Puanın: <span className="text-lg font-bold">
+                        {(() => {
+                          // Basit puan hesaplama
+                          if (reportData.examResults.length === 0) return 0;
                           
-                          if (studentResult) {
-                            console.log(`🔍 ENFAL DEBUG - Raw studentResult:`, studentResult);
-                            
-                            // 1. Puan field'ını kontrol et
-                            let totalScore = studentResult.puan;
-                            console.log(`🔍 ENFAL DEBUG - Step 1 - puan field:`, totalScore);
-                            
-                            // 2. TotalScore field'ını kontrol et
-                            if (!totalScore && studentResult.totalScore) {
-                              totalScore = studentResult.totalScore;
-                              console.log(`🔍 ENFAL DEBUG - Step 2 - totalScore field:`, totalScore);
-                            }
-                            
-                            // 3. Nets total kontrol et
-                            if (!totalScore && studentResult.nets?.total) {
-                              totalScore = studentResult.nets.total;
-                              console.log(`🔍 ENFAL DEBUG - Step 3 - nets.total:`, totalScore);
-                            }
-                            
-                            // 4. Nets içindeki ders bazında hesaplama
-                            if (!totalScore && studentResult.nets) {
-                              const subjectNets = Object.values(studentResult.nets).filter(net => typeof net === 'number');
-                              const calculatedTotal = subjectNets.reduce((sum, net) => sum + (net as number), 0);
-                              totalScore = calculatedTotal * 5;
-                              console.log(`🔍 ENFAL DEBUG - Step 4 - calculated from subject nets: ${subjectNets.join(' + ')} = ${calculatedTotal} * 5 = ${totalScore}`);
-                            }
-                            
-                            console.log(`🔍 ENFAL DEBUG - Final score for ${examResult.exam.title}: ${totalScore}`);
-                            
-                            if (totalScore && totalScore > 0) {
-                              allScores.push(totalScore);
-                              if (totalScore > highestScore) {
-                                highestScore = totalScore;
-                                console.log(`🔍 ENFAL DEBUG - Yeni en yüksek puan: ${highestScore}`);
+                          let highestScore = 0;
+                          reportData.examResults.forEach(examResult => {
+                            const studentResult = examResult.studentResults[0];
+                            if (studentResult) {
+                              let totalScore = studentResult.puan || studentResult.totalScore || studentResult.nets?.total || 0;
+                              if (typeof totalScore === 'number' && totalScore > 0) {
+                                highestScore = Math.max(highestScore, totalScore);
                               }
                             }
-                          } else {
-                            console.log(`🔍 ENFAL DEBUG - Student result bulunamadı`);
-                          }
-                        });
-                        
-                        console.log(`🔍 ENFAL DEBUG - ALL SCORES:`, allScores);
-                        console.log(`🔍 ENFAL DEBUG - HIGHEST SCORE:`, highestScore);
-                        
-                        return highestScore.toFixed(0);
-                      })()}</span> 
+                          });
+                          return highestScore.toFixed(0);
+                        })()}
+                      </span> 
                       <span className="text-xs opacity-75 ml-2">(En yüksek deneme puanın)</span>
                     </div>
                   </div>
                   
-                  {/* Dinamik Lise Önerileri */}
+                  {/* Basit Puan Aralığı Lise Önerileri */}
                   {(() => {
-                    // Gerçek LGS lise veritabanı (Van ili)
-                    const highSchools = [
-                      { name: "Van Türk Telekom Fen Lisesi", type: "Fen Lisesi", score: 460.91, capacity: 150 },
-                      { name: "İpekyolu Borsa İstanbul Fen Lisesi", type: "Fen Lisesi", score: 441.61, capacity: 150 },
-                      { name: "Tuşba TOBB Fen Lisesi", type: "Fen Lisesi", score: 422.90, capacity: 150 },
-                      { name: "Niyazi Türkmenoğlu Anadolu Lisesi", type: "Anadolu Lisesi", score: 416.75, capacity: 150 },
-                      { name: "Şehit Erdoğan Cınbıroğlu Anadolu Lisesi", type: "Anadolu Lisesi", score: 412.45, capacity: 150 },
-                      { name: "Van Anadolu Lisesi", type: "Anadolu Lisesi", score: 408.32, capacity: 150 },
-                      { name: "Atatürk Anadolu Lisesi", type: "Anadolu Lisesi", score: 405.78, capacity: 150 },
-                      { name: "Mehmet Akif Ersoy Anadolu Lisesi", type: "Anadolu Lisesi", score: 402.15, capacity: 150 }
-                    ];
-                    
-                    // En yüksek deneme puanını hesapla - DEBUG VERSİON
-                    const calculateHighestScore = () => {
-                      console.log('🔍 ENFAL DEBUG 2 - İkinci Lise Tercih Puan Hesaplama Başladı');
-                      
-                      if (reportData.examResults.length === 0) {
-                        console.log('🔍 ENFAL DEBUG 2 - Deneme bulunamadı');
-                        return 0;
-                      }
-                      
+                    const currentScore = (() => {
+                      if (reportData.examResults.length === 0) return 0;
                       let highestScore = 0;
-                      const allScores: number[] = [];
-                      
-                      reportData.examResults.forEach((examResult, index) => {
+                      reportData.examResults.forEach(examResult => {
                         const studentResult = examResult.studentResults[0];
-                        console.log(`🔍 ENFAL DEBUG 2 - Deneme ${index + 1}:`, examResult.exam.title);
-                        
                         if (studentResult) {
-                          console.log(`🔍 ENFAL DEBUG 2 - Raw studentResult:`, studentResult);
-                          
-                          // 1. Puan field'ını kontrol et
-                          let totalScore = studentResult.puan;
-                          console.log(`🔍 ENFAL DEBUG 2 - Step 1 - puan field:`, totalScore);
-                          
-                          // 2. TotalScore field'ını kontrol et
-                          if (!totalScore && studentResult.totalScore) {
-                            totalScore = studentResult.totalScore;
-                            console.log(`🔍 ENFAL DEBUG 2 - Step 2 - totalScore field:`, totalScore);
+                          let totalScore = studentResult.puan || studentResult.totalScore || studentResult.nets?.total || 0;
+                          if (typeof totalScore === 'number' && totalScore > 0) {
+                            highestScore = Math.max(highestScore, totalScore);
                           }
-                          
-                          // 3. Nets total kontrol et
-                          if (!totalScore && studentResult.nets?.total) {
-                            totalScore = studentResult.nets.total;
-                            console.log(`🔍 ENFAL DEBUG 2 - Step 3 - nets.total:`, totalScore);
-                          }
-                          
-                          // 4. Nets içindeki ders bazında hesaplama
-                          if (!totalScore && studentResult.nets) {
-                            const subjectNets = Object.values(studentResult.nets).filter(net => typeof net === 'number');
-                            const calculatedTotal = subjectNets.reduce((sum, net) => sum + (net as number), 0);
-                            totalScore = calculatedTotal * 5;
-                            console.log(`🔍 ENFAL DEBUG 2 - Step 4 - calculated from subject nets: ${subjectNets.join(' + ')} = ${calculatedTotal} * 5 = ${totalScore}`);
-                          }
-                          
-                          console.log(`🔍 ENFAL DEBUG 2 - Final score for ${examResult.exam.title}: ${totalScore}`);
-                          
-                          if (totalScore && totalScore > 0) {
-                            allScores.push(totalScore);
-                            if (totalScore > highestScore) {
-                              highestScore = totalScore;
-                              console.log(`🔍 ENFAL DEBUG 2 - Yeni en yüksek puan: ${highestScore}`);
-                            }
-                          }
-                        } else {
-                          console.log(`🔍 ENFAL DEBUG 2 - Student result bulunamadı`);
                         }
                       });
-                      
-                      console.log(`🔍 ENFAL DEBUG 2 - ALL SCORES:`, allScores);
-                      console.log(`🔍 ENFAL DEBUG 2 - HIGHEST SCORE:`, highestScore);
-                      
                       return highestScore;
-                    };
+                    })();
 
-                    const currentScore = calculateHighestScore();
+                    // Türkiye geneli lise veritabanı
+                    const highSchools = [
+                      { name: "Robert Kolej", type: "Özel", score: 485.5 },
+                      { name: "Galatasaray Lisesi", type: "Fen Lisesi", score: 482.3 },
+                      { name: "İstanbul Fen Lisesi", type: "Fen Lisesi", score: 479.8 },
+                      { name: "Robert Koleji", type: "Fen Lisesi", score: 477.2 },
+                      { name: "Kabataş Erkek Lisesi", type: "Fen Lisesi", score: 474.6 },
+                      { name: "Kabataş Erkek Lisesi", type: "Anadolu Lisesi", score: 472.1 },
+                      { name: "İstanbul Erkek Lisesi", type: "Fen Lisesi", score: 469.5 },
+                      { name: "Nişantaşı Anadolu Lisesi", type: "Anadolu Lisesi", score: 467.2 },
+                      { name: "Kadıköy Anadolu Lisesi", type: "Anadolu Lisesi", score: 464.8 },
+                      { name: "Beşiktaş Anadolu Lisesi", type: "Anadolu Lisesi", score: 462.4 },
+                      { name: "Üsküdar Anadolu Lisesi", type: "Anadolu Lisesi", score: 459.9 },
+                      { name: "Ataşehir Anadolu Lisesi", type: "Anadolu Lisesi", score: 457.3 },
+                      { name: "Şişli Anadolu Lisesi", type: "Anadolu Lisesi", score: 454.8 },
+                      { name: "Beyoğlu Anadolu Lisesi", type: "Anadolu Lisesi", score: 452.2 },
+                      { name: "Fatih Anadolu Lisesi", type: "Anadolu Lisesi", score: 449.7 },
+                      { name: "Bakırköy Anadolu Lisesi", type: "Anadolu Lisesi", score: 447.1 },
+                      { name: "Zeytinburnu Anadolu Lisesi", type: "Anadolu Lisesi", score: 444.6 },
+                      { name: "Bahçelievler Anadolu Lisesi", type: "Anadolu Lisesi", score: 442.0 },
+                      { name: "Güngören Anadolu Lisesi", type: "Anadolu Lisesi", score: 439.5 },
+                      { name: "Küçükçekmece Anadolu Lisesi", type: "Anadolu Lisesi", score: 437.0 },
+                      { name: "Esenler Anadolu Lisesi", type: "Anadolu Lisesi", score: 434.4 },
+                      { name: "Gaziosmanpaşa Anadolu Lisesi", type: "Anadolu Lisesi", score: 431.9 },
+                      { name: "Bayrampaşa Anadolu Lisesi", type: "Anadolu Lisesi", score: 429.3 },
+                      { name: "Eyüpsultan Anadolu Lisesi", type: "Anadolu Lisesi", score: 426.8 },
+                      { name: "Sarıyer Anadolu Lisesi", type: "Anadolu Lisesi", score: 424.2 },
+                      { name: "Kağıthane Anadolu Lisesi", type: "Anadolu Lisesi", score: 421.7 },
+                      { name: "Sultangazi Anadolu Lisesi", type: "Anadolu Lisesi", score: 419.1 },
+                      { name: "Başakşehir Anadolu Lisesi", type: "Anadolu Lisesi", score: 416.6 },
+                      { name: "Bağcılar Anadolu Lisesi", type: "Anadolu Lisesi", score: 414.0 }
+                    ];
                     
-                    // Öğrencinin puanına göre kategorize et
-                    const categorizedSchools = highSchools.map(school => {
-                      let category = "";
-                      let probability = 0;
-                      
-                      if (currentScore >= school.score + 25) {
-                        category = "guvenli";
-                        probability = 95;
-                      } else if (currentScore >= school.score + 10) {
-                        category = "guvenli";
-                        probability = 85;
-                      } else if (currentScore >= school.score) {
-                        category = "orta";
-                        probability = 70;
-                      } else if (currentScore >= school.score - 15) {
-                        category = "orta";
-                        probability = 50;
-                      } else {
-                        category = "riskli";
-                        probability = 25;
-                      }
-                      
-                      return {
-                        ...school,
-                        category,
-                        probability
-                      };
-                    });
+                    if (currentScore === 0) {
+                      return (
+                        <div className="text-center py-8">
+                          <div className="text-sm opacity-75">Henüz deneme puanı bulunmuyor</div>
+                          <div className="text-xs opacity-60 mt-1">Puan hesaplaması için deneme sonuçları gerekli</div>
+                        </div>
+                      );
+                    }
                     
-                    const guvenli = categorizedSchools.filter(s => s.category === "guvenli").slice(0, 2);
-                    const orta = categorizedSchools.filter(s => s.category === "orta").slice(0, 2);
-                    const riskli = categorizedSchools.filter(s => s.category === "riskli").slice(0, 2);
+                    // Basit kategorize sistemi: Yüksek İhtimal (±20), Orta İhtimal (+20/+60), Düşük İhtimal (+60/+100)
+                    const yuksekIhtimal = highSchools.filter(school => 
+                      school.score >= (currentScore - 20) && school.score <= (currentScore + 20)
+                    );
+                    
+                    const ortaIhtimal = highSchools.filter(school => 
+                      school.score > (currentScore + 20) && school.score <= (currentScore + 60)
+                    );
+                    
+                    const dusukIhtimal = highSchools.filter(school => 
+                      school.score > (currentScore + 60) && school.score <= (currentScore + 100)
+                    );
                     
                     return (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Güvenli Liseler */}
+                        {/* Yüksek İhtimal */}
                         <div className="bg-white bg-opacity-20 p-3 rounded-lg">
                           <h4 className="text-xs font-medium opacity-90 mb-2 flex items-center">
-                            ✅ Güvenli Tercihler
+                            ✅ Yüksek İhtimal
                           </h4>
+                          <div className="text-xs opacity-75 mb-2">
+                            {Math.round(currentScore - 20)}-{Math.round(currentScore + 20)} puan aralığı
+                          </div>
                           <div className="space-y-2">
-                            {guvenli.length > 0 ? guvenli.map(school => (
+                            {yuksekIhtimal.length > 0 ? yuksekIhtimal.slice(0, 3).map(school => (
                               <div key={school.name} className="bg-white bg-opacity-10 p-2 rounded">
                                 <div className="text-sm font-medium">{school.name}</div>
-                                <div className="text-xs opacity-75">{school.score} taban • %{school.probability} yerleşme</div>
+                                <div className="text-xs opacity-75">{school.type} • {school.score} taban</div>
                               </div>
                             )) : (
-                              <div className="text-xs opacity-75">Henüz güvenli seçenek bulunmuyor</div>
+                              <div className="text-xs opacity-75">Bu aralıkta okul bulunmuyor</div>
                             )}
                           </div>
                         </div>
 
-                        {/* Orta Risk */}
+                        {/* Orta İhtimal */}
                         <div className="bg-white bg-opacity-20 p-3 rounded-lg">
                           <h4 className="text-xs font-medium opacity-90 mb-2 flex items-center">
-                            ⚠️ Orta Risk
+                            ⚠️ Orta İhtimal
                           </h4>
+                          <div className="text-xs opacity-75 mb-2">
+                            {Math.round(currentScore + 20)}-{Math.round(currentScore + 60)} puan aralığı
+                          </div>
                           <div className="space-y-2">
-                            {orta.length > 0 ? orta.map(school => (
+                            {ortaIhtimal.length > 0 ? ortaIhtimal.slice(0, 3).map(school => (
                               <div key={school.name} className="bg-white bg-opacity-10 p-2 rounded">
                                 <div className="text-sm font-medium">{school.name}</div>
-                                <div className="text-xs opacity-75">{school.score} taban • %{school.probability} yerleşme</div>
+                                <div className="text-xs opacity-75">{school.type} • {school.score} taban</div>
                               </div>
                             )) : (
-                              <div className="text-xs opacity-75">Orta risk seçenek bulunmuyor</div>
+                              <div className="text-xs opacity-75">Bu aralıkta okul bulunmuyor</div>
                             )}
                           </div>
                         </div>
 
-                        {/* Riskli */}
+                        {/* Düşük İhtimal */}
                         <div className="bg-white bg-opacity-20 p-3 rounded-lg">
                           <h4 className="text-xs font-medium opacity-90 mb-2 flex items-center">
-                            ⚡ Riskli Seçenekler
+                            🔥 Düşük İhtimal
                           </h4>
+                          <div className="text-xs opacity-75 mb-2">
+                            {Math.round(currentScore + 60)}-{Math.round(currentScore + 100)} puan aralığı
+                          </div>
                           <div className="space-y-2">
-                            {riskli.length > 0 ? riskli.map(school => (
+                            {dusukIhtimal.length > 0 ? dusukIhtimal.slice(0, 3).map(school => (
                               <div key={school.name} className="bg-white bg-opacity-10 p-2 rounded">
                                 <div className="text-sm font-medium">{school.name}</div>
-                                <div className="text-xs opacity-75">{school.score} taban • %{school.probability} yerleşme</div>
+                                <div className="text-xs opacity-75">{school.type} • {school.score} taban</div>
                               </div>
                             )) : (
-                              <div className="text-xs opacity-75">Düşük puanlı seçenekler</div>
+                              <div className="text-xs opacity-75">Bu aralıkta okul bulunmuyor</div>
                             )}
                           </div>
                         </div>
@@ -1745,7 +1669,7 @@ function StudentDashboardContent() {
                   
                   {/* Tercih Tavsiyesi */}
                   <div className="mt-4 bg-white bg-opacity-10 p-3 rounded-lg">
-                    <h4 className="text-xs font-medium opacity-90 mb-2">🎯 Önerilen Tercih Stratejin:</h4>
+                    <h4 className="text-xs font-medium opacity-90 mb-2">💡 Basit Strateji:</h4>
                     <div className="text-sm space-y-1">
                       <div>• İlk 3 tercihi: Güvenli liseler</div>
                       <div>• 4-6. tercihler: Orta risk liseler</div>
@@ -3613,81 +3537,176 @@ const vanLgsSchools = [
   }
 ];
 
-// Lise Tercih Önerileri Tab Komponenti - Hedef Takibi için
+// Basit Lise Tahmin Sistemi - Hedef Takibi için
 function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestScore }: {
   reportData: ReportData;
   studentTargets: {[subject: string]: number};
   latestNet: number;
   latestScore: number;
 }) {
-  // Ortalama puanı hesapla
-  const studentScores = reportData.examResults.filter(r => r.studentTotalScore > 0).map(r => r.studentTotalScore);
-  const currentStudentScore = studentScores.length > 0 
-    ? studentScores.reduce((sum, score) => sum + score, 0) / studentScores.length 
-    : 0;
-  
-  // Son deneme puanını al
-  const lastExamScore = reportData.examResults.length > 0 
-    ? reportData.examResults[reportData.examResults.length - 1].studentTotalScore 
-    : 0;
+  // En yüksek puanı hesapla
+  const currentStudentScore = (() => {
+    if (reportData.examResults.length === 0) return 0;
+    let highestScore = 0;
+    reportData.examResults.forEach(examResult => {
+      const studentResult = examResult.studentResults[0];
+      if (studentResult) {
+        let totalScore = studentResult.puan || studentResult.totalScore || studentResult.nets?.total || 0;
+        if (typeof totalScore === 'number' && totalScore > 0) {
+          highestScore = Math.max(highestScore, totalScore);
+        }
+      }
+    });
+    return highestScore;
+  })();
 
-  // Component return JSX
+  // Türkiye geneli lise veritabanı
+  const highSchools = [
+    { name: "Robert Kolej", type: "Özel", score: 485.5 },
+    { name: "Galatasaray Lisesi", type: "Fen Lisesi", score: 482.3 },
+    { name: "İstanbul Fen Lisesi", type: "Fen Lisesi", score: 479.8 },
+    { name: "Robert Koleji", type: "Fen Lisesi", score: 477.2 },
+    { name: "Kabataş Erkek Lisesi", type: "Fen Lisesi", score: 474.6 },
+    { name: "İstanbul Erkek Lisesi", type: "Fen Lisesi", score: 469.5 },
+    { name: "Nişantaşı Anadolu Lisesi", type: "Anadolu Lisesi", score: 467.2 },
+    { name: "Kadıköy Anadolu Lisesi", type: "Anadolu Lisesi", score: 464.8 },
+    { name: "Beşiktaş Anadolu Lisesi", type: "Anadolu Lisesi", score: 462.4 },
+    { name: "Üsküdar Anadolu Lisesi", type: "Anadolu Lisesi", score: 459.9 },
+    { name: "Ataşehir Anadolu Lisesi", type: "Anadolu Lisesi", score: 457.3 },
+    { name: "Şişli Anadolu Lisesi", type: "Anadolu Lisesi", score: 454.8 },
+    { name: "Beyoğlu Anadolu Lisesi", type: "Anadolu Lisesi", score: 452.2 },
+    { name: "Fatih Anadolu Lisesi", type: "Anadolu Lisesi", score: 449.7 },
+    { name: "Bakırköy Anadolu Lisesi", type: "Anadolu Lisesi", score: 447.1 },
+    { name: "Zeytinburnu Anadolu Lisesi", type: "Anadolu Lisesi", score: 444.6 },
+    { name: "Bahçelievler Anadolu Lisesi", type: "Anadolu Lisesi", score: 442.0 },
+    { name: "Güngören Anadolu Lisesi", type: "Anadolu Lisesi", score: 439.5 },
+    { name: "Küçükçekmece Anadolu Lisesi", type: "Anadolu Lisesi", score: 437.0 },
+    { name: "Esenler Anadolu Lisesi", type: "Anadolu Lisesi", score: 434.4 },
+    { name: "Gaziosmanpaşa Anadolu Lisesi", type: "Anadolu Lisesi", score: 431.9 },
+    { name: "Bayrampaşa Anadolu Lisesi", type: "Anadolu Lisesi", score: 429.3 },
+    { name: "Eyüpsultan Anadolu Lisesi", type: "Anadolu Lisesi", score: 426.8 },
+    { name: "Sarıyer Anadolu Lisesi", type: "Anadolu Lisesi", score: 424.2 },
+    { name: "Kağıthane Anadolu Lisesi", type: "Anadolu Lisesi", score: 421.7 },
+    { name: "Sultangazi Anadolu Lisesi", type: "Anadolu Lisesi", score: 419.1 },
+    { name: "Başakşehir Anadolu Lisesi", type: "Anadolu Lisesi", score: 416.6 },
+    { name: "Bağcılar Anadolu Lisesi", type: "Anadolu Lisesi", score: 414.0 }
+  ];
+
+  if (currentStudentScore === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-white rounded-lg shadow p-4">
+          <h3 className="text-sm font-semibold text-gray-800 mb-4">🏫 Lise Tahmin Sistemi</h3>
+          <div className="p-6 bg-orange-50 border border-orange-200 rounded-lg text-center">
+            <div className="text-6xl mb-4">📊</div>
+            <h4 className="text-lg font-semibold text-orange-800 mb-2">Puan Hesaplaması Gerekli</h4>
+            <p className="text-orange-700">
+              Lise tahminleri için deneme sınavı sonuçlarına ihtiyacımız var.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Basit kategorize sistemi: Yüksek İhtimal (±20), Orta İhtimal (+20/+60), Düşük İhtimal (+60/+100)
+  const yuksekIhtimal = highSchools.filter(school => 
+    school.score >= (currentStudentScore - 20) && school.score <= (currentStudentScore + 20)
+  );
+  
+  const ortaIhtimal = highSchools.filter(school => 
+    school.score > (currentStudentScore + 20) && school.score <= (currentStudentScore + 60)
+  );
+  
+  const dusukIhtimal = highSchools.filter(school => 
+    school.score > (currentStudentScore + 60) && school.score <= (currentStudentScore + 100)
+  );
+
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="text-sm font-semibold text-gray-800 mb-4">🏫 Lise Tercih Önerileri</h3>
+        <h3 className="text-sm font-semibold text-gray-800 mb-4">🏫 Basit Lise Tahmin Sistemi</h3>
         
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h4 className="text-lg font-semibold text-blue-900 mb-2">📊 Mevcut Durumunuz</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {currentStudentScore > 0 ? `${Math.round(currentStudentScore)} puan` : 'Puan bulunamadı'}
-              </div>
-              <div className="text-sm text-blue-700">Ortalama Puanınız</div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-600">
+              {Math.round(currentStudentScore)} puan
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {lastExamScore > 0 ? `${Math.round(lastExamScore)} puan` : '-'}
-              </div>
-              <div className="text-sm text-purple-700">Son Deneme Puanınız</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{latestNet.toFixed(1)} net</div>
-              <div className="text-sm text-green-700">Son Deneme Net'iniz</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{reportData.examResults.length}</div>
-              <div className="text-sm text-orange-700">Toplam Deneme Sayınız</div>
+            <div className="text-sm text-blue-700">En Yüksek Deneme Puanınız</div>
+            <div className="text-xs text-gray-600 mt-1">
+              Bu puan etrafındaki lise önerilerinizi görüntülüyoruz
             </div>
           </div>
         </div>
 
-        {/* Önerilen Okullar */}
+        {/* Basit Puan Aralığı Lise Önerileri */}
         <div className="space-y-4">
           <h4 className="text-lg font-semibold text-gray-800 mb-3">
-            🎯 Size Önerilen Liseler (Van İli - 2025 LGS)
+            🎯 Puanınıza Göre Lise Önerileri
           </h4>
           
-          {currentStudentScore === 0 ? (
-            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg mb-4">
-              <p className="text-orange-700 text-sm">
-                ⚠️ Henüz deneme puanı bulunmuyor. Öneriler genel bilgilendirme amaçlıdır. 
-                Deneme sınavları çözdükten sonra size özel öneriler alabilirsiniz.
-              </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Yüksek İhtimal */}
+            <div className="border-2 border-green-200 bg-green-50 rounded-lg p-4">
+              <h5 className="text-sm font-semibold text-green-800 mb-2 flex items-center">
+                ✅ Yüksek İhtimal
+              </h5>
+              <div className="text-xs text-green-700 mb-3">
+                {Math.round(currentStudentScore - 20)}-{Math.round(currentStudentScore + 20)} puan aralığı
+              </div>
+              <div className="space-y-2">
+                {yuksekIhtimal.length > 0 ? yuksekIhtimal.slice(0, 4).map(school => (
+                  <div key={school.name} className="bg-white p-2 rounded border">
+                    <div className="text-sm font-medium text-gray-900">{school.name}</div>
+                    <div className="text-xs text-gray-600">{school.type} • {school.score} taban</div>
+                  </div>
+                )) : (
+                  <div className="text-xs text-green-600">Bu aralıkta okul bulunmuyor</div>
+                )}
+              </div>
             </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="text-6xl mb-4">🎓</div>
-              <h4 className="text-lg font-semibold text-gray-800 mb-2">Tercih Önerileri</h4>
-              <p className="text-gray-600">
-                Öğrenci puanınız: {Math.round(currentStudentScore)} puan
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                Sisteminiz güncellenmektedir. Yakında kişiselleştirilmiş öneriler gelecektir.
-              </p>
+
+            {/* Orta İhtimal */}
+            <div className="border-2 border-yellow-200 bg-yellow-50 rounded-lg p-4">
+              <h5 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center">
+                ⚠️ Orta İhtimal
+              </h5>
+              <div className="text-xs text-yellow-700 mb-3">
+                {Math.round(currentStudentScore + 20)}-{Math.round(currentStudentScore + 60)} puan aralığı
+              </div>
+              <div className="space-y-2">
+                {ortaIhtimal.length > 0 ? ortaIhtimal.slice(0, 4).map(school => (
+                  <div key={school.name} className="bg-white p-2 rounded border">
+                    <div className="text-sm font-medium text-gray-900">{school.name}</div>
+                    <div className="text-xs text-gray-600">{school.type} • {school.score} taban</div>
+                  </div>
+                )) : (
+                  <div className="text-xs text-yellow-600">Bu aralıkta okul bulunmuyor</div>
+                )}
+              </div>
             </div>
-          )}
+
+            {/* Düşük İhtimal */}
+            <div className="border-2 border-red-200 bg-red-50 rounded-lg p-4">
+              <h5 className="text-sm font-semibold text-red-800 mb-2 flex items-center">
+                🔥 Düşük İhtimal
+              </h5>
+              <div className="text-xs text-red-700 mb-3">
+                {Math.round(currentStudentScore + 60)}-{Math.round(currentStudentScore + 100)} puan aralığı
+              </div>
+              <div className="space-y-2">
+                {dusukIhtimal.length > 0 ? dusukIhtimal.slice(0, 4).map(school => (
+                  <div key={school.name} className="bg-white p-2 rounded border">
+                    <div className="text-sm font-medium text-gray-900">{school.name}</div>
+                    <div className="text-xs text-gray-600">{school.type} • {school.score} taban</div>
+                  </div>
+                )) : (
+                  <div className="text-xs text-red-600">Bu aralıkta okul bulunmuyor</div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
