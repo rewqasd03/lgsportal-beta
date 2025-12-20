@@ -5728,12 +5728,11 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
   students: any[]; 
   onDataUpdate: () => void;
 }) => {
-  const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [selectedSinif, setSelectedSinif] = useState<string>('');
+  const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [selectedDers, setSelectedDers] = useState<string>('');
   const [selectedGrade, setSelectedGrade] = useState<string>('');
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-  const [comments, setComments] = useState<string>('');
+  const [freeComments, setFreeComments] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [missingTopics, setMissingTopics] = useState<any[]>([]);
 
@@ -5997,12 +5996,17 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
   // Sınıf listesi
   const siniflar = Array.from(new Set(students.map(s => s.class))).sort();
 
-  // Seçili ders ve sınıfa göre mevcut konular
-  const availableTopics = selectedDers && selectedGrade ? 
-    topicsDatabase[selectedDers as keyof typeof topicsDatabase]?.[selectedGrade as keyof typeof topicsDatabase.turkce] || [] : [];
-
   // Seçili sınıfın öğrencileri
   const seciliSinifOgrencileri = students.filter(s => s.class === selectedSinif);
+  
+  // Sınıf seçimine göre grade ayarla
+  useEffect(() => {
+    if (selectedSinif) {
+      const grade = selectedSinif.split('-')[0];
+      setSelectedGrade(grade);
+      setSelectedStudent(''); // Sınıf değişince öğrenci seçimini sıfırla
+    }
+  }, [selectedSinif]);
 
   // Mevcut eksik konu bildirimlerini yükle
   useEffect(() => {
@@ -6027,19 +6031,12 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
     }
   };
 
-  // Konu seçimi
-  const handleTopicToggle = (topic: string) => {
-    setSelectedTopics(prev => 
-      prev.includes(topic) 
-        ? prev.filter(t => t !== topic)
-        : [...prev, topic]
-    );
-  };
+
 
   // Eksik konu bildirimi kaydet
   const handleSaveMissingTopics = async () => {
-    if (!selectedStudent || !selectedDers || selectedTopics.length === 0) {
-      alert('Lütfen öğrenci, ders ve en az bir konu seçiniz!');
+    if (!selectedStudent || !selectedDers || !freeComments.trim()) {
+      alert('Lütfen öğrenci, ders ve yorum alanını doldurunuz!');
       return;
     }
 
@@ -6055,8 +6052,8 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
         teacherId: 'current_teacher', // Gerçek uygulamada oturum açan öğretmen
         subject: selectedDers,
         class: student.class,
-        selectedTopics: selectedTopics,
-        teacherComments: comments.trim(),
+        selectedTopics: [], // Artık konu seçmiyoruz
+        teacherComments: freeComments.trim(),
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 1 hafta sonra
       });
 
@@ -6065,8 +6062,7 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
       setSelectedSinif('');
       setSelectedDers('');
       setSelectedGrade('');
-      setSelectedTopics([]);
-      setComments('');
+      setFreeComments('');
 
       // Listeyi yenile
       await loadMissingTopics();
@@ -6081,17 +6077,22 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
     }
   };
 
-  // Öğrenci seçimi
-  const handleStudentChange = (studentId: string) => {
-    setSelectedStudent(studentId);
-    const student = students.find(s => s.id === studentId);
-    if (student) {
-      setSelectedSinif(student.class);
-      // Sınıf numarasını çıkar (örn: "8-A" -> "8")
-      const grade = student.class.split('-')[0];
-      setSelectedGrade(grade);
+  // Öğrenci seçimine göre sınıf bilgisini güncelle
+  useEffect(() => {
+    if (selectedStudent) {
+      const student = students.find(s => s.id === selectedStudent);
+      if (student && student.class !== selectedSinif) {
+        setSelectedSinif(student.class);
+      }
     }
-  };
+  }, [selectedStudent]);
+
+  // Ders seçimi değiştiğinde form'u temizle
+  useEffect(() => {
+    if (selectedDers) {
+      setSelectedStudent('');
+    }
+  }, [selectedDers]);
 
   return (
     <div className="space-y-6">
@@ -6111,6 +6112,25 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Sınıf Seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              🏛️ Sınıf Seçin
+            </label>
+            <select
+              value={selectedSinif}
+              onChange={(e) => setSelectedSinif(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            >
+              <option value="">Sınıf seçiniz...</option>
+              {siniflar.map(sinif => (
+                <option key={sinif} value={sinif}>
+                  {sinif}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Öğrenci Seçimi */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -6118,13 +6138,14 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
             </label>
             <select
               value={selectedStudent}
-              onChange={(e) => handleStudentChange(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              onChange={(e) => setSelectedStudent(e.target.value)}
+              disabled={!selectedSinif}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-100"
             >
               <option value="">Öğrenci seçiniz...</option>
-              {students.map(student => (
+              {seciliSinifOgrencileri.map(student => (
                 <option key={student.id} value={student.id}>
-                  {student.name} ({student.class})
+                  {student.name}
                 </option>
               ))}
             </select>
@@ -6149,19 +6170,6 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
             </select>
           </div>
 
-          {/* Sınıf Bilgisi (Sadece görüntüleme) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              🏛️ Sınıf
-            </label>
-            <input
-              type="text"
-              value={selectedSinif || 'Öğrenci seçiniz...'}
-              disabled
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-            />
-          </div>
-
           {/* Sınıf Seviyesi (Sadece görüntüleme) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -6169,58 +6177,34 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
             </label>
             <input
               type="text"
-              value={selectedGrade ? `${selectedGrade}. Sınıf` : 'Öğrenci seçiniz...'}
+              value={selectedGrade ? `${selectedGrade}. Sınıf` : 'Sınıf seçiniz...'}
               disabled
               className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
             />
           </div>
         </div>
 
-        {/* Konu Seçimi */}
-        {selectedDers && selectedGrade && availableTopics.length > 0 && (
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              📖 Çalışılması Gereken Konuları Seçin
-            </label>
-            <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {availableTopics.map((topic, index) => (
-                  <label key={index} className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedTopics.includes(topic)}
-                      onChange={() => handleTopicToggle(topic)}
-                      className="mt-1 h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
-                    />
-                    <span className="text-sm text-gray-700 leading-tight">{topic}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Toplam {availableTopics.length} konu mevcut, {selectedTopics.length} konu seçildi
-            </p>
-          </div>
-        )}
-
-        {/* Yorumlar */}
+        {/* Serbest Yorum Alanı */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            💬 Ek Yorumlar (Opsiyonel)
+            📝 Eksik Konu Bildirimi ve Öneriler
           </label>
           <textarea
-            value={comments}
-            onChange={(e) => setComments(e.target.value)}
-            placeholder="Öğrenciye özel çalışma tavsiyelerinizi, motivasyon mesajlarınızı veya ek açıklamalarınızı buraya yazabilirsiniz..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 h-24 resize-none"
+            value={freeComments}
+            onChange={(e) => setFreeComments(e.target.value)}
+            placeholder="Öğrencinin hangi konularda eksik kaldığını, çalışması gereken alanları, motivasyon mesajlarınızı ve özel tavsiyelerinizi buraya detaylıca yazabilirsiniz..."
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 h-32 resize-none"
           />
+          <p className="text-xs text-gray-500 mt-2">
+            Bu alan öğrencinin çalışması gereken konuları ve size özel önerilerinizi yazmak için tasarlanmıştır.
+          </p>
         </div>
 
         {/* Kaydet Butonu */}
         <div className="flex justify-end">
           <button
             onClick={handleSaveMissingTopics}
-            disabled={loading || !selectedStudent || !selectedDers || selectedTopics.length === 0}
+            disabled={loading || !selectedStudent || !selectedDers || !freeComments.trim()}
             className="bg-red-500 text-white px-8 py-3 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center"
           >
             {loading ? (
