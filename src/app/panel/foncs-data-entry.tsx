@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts';
 
-import { getStudents, getExams, getResults, addStudent, addExam, addResult, deleteStudent, deleteExam, deleteResult, updateStudent, updateResult, updateExam, saveStudentTargets, getAllTargets, getStudentScoreTarget, mapDashboardKeysToPanel, mapPanelKeysToDashboard, db, doc, getDoc, incrementStudentViewCount, generateStudentPin, assignPinsToAllStudents, Student, Exam, Result } from "../../firebase";
+import { getStudents, getExams, getResults, addStudent, addExam, addResult, deleteStudent, deleteExam, deleteResult, updateStudent, updateResult, updateExam, saveStudentTargets, getAllTargets, getStudentScoreTarget, mapDashboardKeysToPanel, mapPanelKeysToDashboard, db, doc, getDoc, incrementStudentViewCount, generateStudentPin, assignPinsToAllStudents, createMissingTopic, getMissingTopicsByClass, Student, Exam, Result } from "../../firebase";
 import AnalyticsTab from "../../components/AnalyticsTab";
 // PDF İçe Aktarım Tab Component
 const PDFImportTab = ({ students, exams, onDataUpdate }: { 
@@ -1103,6 +1103,7 @@ const TABS: Tab[] = [
   { key: "excel-import", label: "📊 Excel İçe Aktar" },
   { key: "kitap-sinavi", label: "📚 Kitap Sınavı" },
   { key: "odev-takibi", label: "📝 Ödev Takibi" },
+  { key: "eksik-konu", label: "🎯 Eksik Konu Bildirimi" },
 
   { key: "hedef", label: "🎯 Hedef Belirleme" },
   { key: "lgs-hesaplama", label: "🧮 LGS Puan Hesaplama" },
@@ -4034,6 +4035,7 @@ export default function FoncsDataEntry() {
       case "excel-import": return <ExcelImportTab students={students} exams={exams} onDataUpdate={loadDataFromFirebase} />;
       case "kitap-sinavi": return <KitapSinaviTab students={students} onDataUpdate={loadDataFromFirebase} />;
       case "odev-takibi": return <OdevTakibiTab students={students} onDataUpdate={loadDataFromFirebase} />;
+      case "eksik-konu": return <EksikKonuBildirimiTab students={students} onDataUpdate={loadDataFromFirebase} />;
 
       case "hedef": return <TargetTab />;
       case "lgs-hesaplama": return <LGSCalculatorTab />;
@@ -5720,6 +5722,1216 @@ const KitapSinaviTab = ({ students, onDataUpdate }: {
   );
 };
 
+
+// 📝 Eksik Konu Bildirimi Tab Component
+const EksikKonuBildirimiTab = ({ students, onDataUpdate }: { 
+  students: any[]; 
+  onDataUpdate: () => void;
+}) => {
+  const [selectedStudent, setSelectedStudent] = useState<string>('');
+  const [selectedSinif, setSelectedSinif] = useState<string>('');
+  const [selectedDers, setSelectedDers] = useState<string>('');
+  const [selectedGrade, setSelectedGrade] = useState<string>('');
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [comments, setComments] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [missingTopics, setMissingTopics] = useState<any[]>([]);
+
+  // Konular veritabanı
+  const topicsDatabase = {
+    turkce: {
+      '5': [
+        'Gerçek Anlam, Mecaz Anlam, Terim Anlam',
+        'Eş Anlamlı ve Yakın Anlamlı Kelimeler',
+        'Zıt Anlamlı Sözcükler',
+        'Eş Sesli Sözcükler',
+        'Deyimler',
+        'Atasözleri',
+        'Neden-Sonuç Cümleleri',
+        'Amaç-Sonuç Cümleleri',
+        'Koşul-Sonuç Cümleleri',
+        'Karşılaştırma Cümleleri',
+        'Öznel ve Nesnel Yargılı Cümleler',
+        'Örtülü Anlam',
+        'Geçiş ve Bağlantı İfadeleri',
+        'Cümlede Anlam İlişkileri',
+        'Cümle Yorumlama',
+        'Anlatım Biçimleri',
+        'Düşünceyi Geliştirme Yolları',
+        'Anlatıcı Türleri',
+        'Paragrafın Anlam Yönü',
+        'Paragrafın Yapı Yönü',
+        'Görsel Yorumlama',
+        'Harita ve Kroki Okuma',
+        'Tablo ve Grafik Okuma',
+        'Karikatür Okuma',
+        'Akıllı İşaretleri Okuma',
+        'Yazım Kuralları',
+        'Noktalama İşaretleri',
+        'Kök',
+        'Ek',
+        'Söz Sanatları',
+        'Yazı Türleri'
+      ],
+      '6': [
+        'Gerçek Anlam, Mecaz Anlam, Terim Anlam',
+        'Eş Anlamlı ve Yakın Anlamlı Kelimeler',
+        'Zıt Anlamlı Sözcükler',
+        'Eş Sesli Sözcükler',
+        'Deyimler',
+        'Atasözleri',
+        'Neden-Sonuç Cümleleri',
+        'Amaç-Sonuç Cümleleri',
+        'Koşul-Sonuç Cümleleri',
+        'Karşılaştırma Cümleleri',
+        'Öznel ve Nesnel Yargılı Cümleler',
+        'Örtülü Anlam',
+        'Geçiş ve Bağlantı İfadeleri',
+        'Cümlede Anlam İlişkileri',
+        'Cümle Yorumlama',
+        'Anlatım Biçimleri',
+        'Düşünceyi Geliştirme Yolları',
+        'Anlatıcı Türleri',
+        'Paragrafın Anlam Yönü',
+        'Paragrafın Yapı Yönü',
+        'Tablo ve Grafik İnceleme',
+        'Görsel Yorumlama',
+        'Yazım Kuralları',
+        'Noktalama İşaretleri',
+        'Ek',
+        'Yapı Bakımından Sözcükler',
+        'İsim',
+        'Sıfat',
+        'Tamlama',
+        'Zamir',
+        'Edat',
+        'Bağlaç',
+        'Ünlem',
+        'Söz Sanatları',
+        'Yazı Türleri',
+        'Şiirde Ahenk Unsurları'
+      ],
+      '7': [
+        'Gerçek Anlam, Mecaz Anlam ve Terim Anlam',
+        'Eş Anlamlı ve Yakın Anlamlı Kelimeler',
+        'Zıt Anlamlı Kelimeler',
+        'Eş Sesli Sözcükler',
+        'Deyimler',
+        'Atasözleri',
+        'Neden – Sonuç Cümleleri',
+        'Amaç – Sonuç Cümleleri',
+        'Koşul – Sonuç Cümleleri',
+        'Karşılaştırma Cümleleri',
+        'Öznel ve Nesnel Yargılı Cümleler',
+        'Örtülü Anlam',
+        'Geçiş ve Bağlantı İfadeleri',
+        'Cümlede Anlam İlişkileri',
+        'Cümle Yorumlama',
+        'Anlatım Biçimleri',
+        'Düşünceyi Geliştirme Yolları',
+        'Anlatıcı Türleri',
+        'Paragrafın Anlam Yönü',
+        'Paragrafın Yapı Yönü',
+        'Tablo ve Grafik İnceleme',
+        'Görsel Yorumlama',
+        'Yazım (İmla) Kuralları',
+        'Noktalama İşaretleri',
+        'Fiiller',
+        'Anlamlarına Göre Fiiller',
+        'Yapılarına Göre Fiiller',
+        'Fiil Çekimi',
+        'Fiillerde Anlam Kayması',
+        'Ek Fiil',
+        'Birleşik Zamanlı Fiiller',
+        'Zarflar',
+        'Anlatım Bozuklukları',
+        'Söz Sanatları',
+        'Yazı (Metin) Türleri'
+      ],
+      '8': [
+        'İyimserlik ve Kötümserlik Üzerine',
+        'Kaşağı',
+        'İnsanla Güzel',
+        'Kedi ile Fare (Dinleme / İzleme Metni)',
+        'Ayaz\'ın Definesi (Serbest Okuma Metni)',
+        'Bayrağımızın Altında',
+        'Atatürk ve Müzik',
+        'Kınalı Ali\'nin Mektubu',
+        'Atatürk\'ü Gördüm (Dinleme / İzleme Metni)',
+        'Bir Bayrak Rüzgâr Bekliyor (Serbest Okuma Metni)',
+        'Gündelik Hayatımızda E-Hastalıklar',
+        'Simit ve Peynir\'le Bilim İnsanı Öyküleri',
+        'Parktaki Bilim',
+        'Uzay Giysileri (Dinleme / İzleme Metni)',
+        'Eski Çağlardan Beri Dişlerimize Çok İyi Baktık (Serbest Okuma Metni)',
+        'Kaldırımlar',
+        'Portakal',
+        'Dilimiz Kuşatma Altında',
+        'Karanlığın Rengi Beyaz (Dinleme / İzleme Metni)',
+        'Masal Ağacı (Serbest Okuma Metni)',
+        'Eşref Saat',
+        'Türkiye',
+        'Peri Bacaları',
+        'Robinson Crusoe (Dinleme / İzleme Metni)',
+        'İstanbul\'la Hasbihâl (Serbest Okuma Metni)',
+        'Göç Destanı',
+        'Vatan Sevgisini İçten Duyanlar',
+        'Bir Fincan Kahve',
+        'Kız Kulesi (Dinleme / İzleme Metni)',
+        'Karagöz (Serbest Okuma Metni)',
+        'Yılkı Atı',
+        'Rüzgâr',
+        'Gündüzünü Kaybeden Kuş',
+        'Hava Kirliliği (Dinleme / İzleme Metni)',
+        'Canberra (Kanberra) (Serbest Okuma Metni)',
+        'Haritada Bir Nokta',
+        'Yaşamaya Dair',
+        'Kalbim Rumeli\'de Kaldı',
+        'Zeytinyağı Üretimi (Dinleme / İzleme Metni)',
+        'İmece (Serbest Okuma Metni)'
+      ]
+    },
+    matematik: {
+      '5': [
+        'Doğal Sayılar',
+        'Milyonlar',
+        'Örüntüler',
+        'Doğal Sayılarla Toplama ve Çıkarma',
+        'Doğal Sayılarla Çarpma',
+        'Doğal Sayılarla Bölme',
+        'Bir Sayının Karesi ve Küpü',
+        'Parantezli İşlemler',
+        'Kesirler',
+        'Birim Kesirler',
+        'Bileşik ve Tam Sayılı Kesirler',
+        'Denk Kesirler ve Sıralama',
+        'Kesirlerle İşlemler',
+        'Kesirlerle Toplama ve Çıkarma',
+        'Ondalık Gösterim',
+        'Ondalık Gösterimlerin Basamak Değerleri',
+        'Ondalık Gösterimlerle Karşılaştırma',
+        'Ondalık Gösterimlerle Toplama ve Çıkarma',
+        'Yüzdeler',
+        'Kesir, Ondalık Gösterim ve Yüzde İfadelerini Karşılaştırma',
+        'Bir Niceliğin Yüzdesini Bulma',
+        'Doğru, Doğru Parçası ve Işın',
+        'İki Noktanın Birbirine Göre Durumu',
+        'Eşit Uzunluktaki Doğru Parçaları',
+        'Açılar',
+        'Bir Doğruya Dikme Çizme',
+        'Çokgenler',
+        'Üçgen ve Dörtgen Türleri',
+        'Üçgen ve Dörtgenlerin İç Açılarının Toplamı',
+        'Araştırma Sorusu',
+        'Sıklık Tablosu ve Sütun Grafiği',
+        'Uzunluk Ölçme',
+        'Çevre',
+        'Zaman Ölçme',
+        'Alan Ölçme',
+        'Dikdörtgenin Alanı',
+        'Alanı Tahmin Etme',
+        'Aynı Alanı Farklı Dikdörtgenler Oluşturma',
+        'Dikdörtgenler Prizması',
+        'Dikdörtgenler Prizmasının Açınımı ve Yüzey Alanı'
+      ],
+      '6': [
+        'Doğal Sayılarla İşlemler',
+        'Üslü İfadeler',
+        'İşlem Önceliği',
+        'Dağılma Özelliği ve Ortak Çarpan Özelliği',
+        'Doğal Sayı Problemleri',
+        'Çarpanlar ve Katlar',
+        'Çarpanlar ve Katlar',
+        'Bölünebilme Kuralları',
+        'Asal Sayılar',
+        'İki Doğal Sayının Ortak Bölenleri ve Ortak Katları',
+        'Kümeler',
+        'Tam Sayılar',
+        'Mutlak Değer ve Tam Sayıları Sıralama',
+        'Kesirlerle İşlemler',
+        'Kesirleri Sıralama',
+        'Kesirlerle Toplama ve Çıkarma',
+        'Kesirlerle Çarpma',
+        'Kesirlerle Bölme',
+        'Kesirlerle İşlemlerin Sonucunu Tahmin Etme',
+        'Kesir Problemleri',
+        'Ondalık Gösterim',
+        'Bölme, Kesir ve Ondalık Gösterim (Basamak Değeri)',
+        'Ondalık Gösterim Verilen Sayıları Yuvarlama',
+        'Ondalık Gösterim Verilen Sayılarla Çarpma',
+        'Ondalık Gösterim Verilen Sayılarla Bölme',
+        'Ondalık Sayılarla İşlemlerin Sonucunu Tahmin Etme',
+        'Ondalık Sayılarla Problem Çözme',
+        'Oran',
+        'Birimli ve Birimsiz Oranlar',
+        'Cebirsel İfadeler',
+        'Cebirsel İfadeleri Modelleme',
+        'Araştırma Sorusu Oluşturma, Veri Toplama ve Değerlendirme',
+        'Aritmetik Ortalama ve Açıklık',
+        'İki Veri Grubundan Karşılaştırma Yapma',
+        'Açılar',
+        'Komşu, Tümler, Bütünler ve Ters Açılar',
+        'Alan Ölçme',
+        'Paralelkenarın Yüksekliği ve Alanı',
+        'Üçgenin Yüksekliği ve Alanı',
+        'Alan Ölçme Birimleri',
+        'Arazi Ölçme Birimleri',
+        'Alan Problemleri',
+        'Çember',
+        'Çember Çizme ve Elemanları',
+        'Çemberde Çevre / Çap Oranı ve π (Pi)',
+        'Geometrik Cisimler',
+        'Dikdörtgenler Prizmasının Hacmi',
+        'Hacim Ölçme Birimleri',
+        'Hacim Ölçme Problemleri',
+        'Hacmi Tahmin Etme',
+        'Sıvı Ölçme',
+        'Sıvı Ölçme Problemleri'
+      ],
+      '7': [
+        'Tam Sayılarla İşlemler',
+        'Tam Sayılar',
+        'Tam Sayılarla Toplama',
+        'Toplama İşleminin Özellikleri',
+        'Tam Sayılarla Çıkarma',
+        'Tam Sayılarla Çarpma',
+        'Çarpma İşleminin Özellikleri',
+        'Tam Sayılarla Bölme',
+        'Tam Sayıların Kuvvetleri',
+        'Tam Sayı Problemleri',
+        'Rasyonel Sayılar ve İşlemler',
+        'Rasyonel Sayılar',
+        'Rasyonel Sayıların Ondalık Gösterimleri',
+        'Ondalık Gösterimleri Rasyonel Sayıya Çevirme',
+        'Rasyonel Sayıları Sıralama',
+        'Rasyonel Sayılarla İşlemler',
+        'Rasyonel Sayılarla Toplama ve Çıkarma',
+        'Rasyonel Sayılarla Toplama İşleminin Özellikleri',
+        'Rasyonel Sayılarla Çarpma',
+        'Rasyonel Sayılarla Çarpma İşleminin Özellikleri',
+        'Rasyonel Sayılarla Bölme',
+        'Rasyonel Sayılarda 0, 1 ve -1\'in Etkisi',
+        'Rasyonel Sayılarla Çok Adımlı İşlemler',
+        'Rasyonel Sayıların Karesi ve Küpü',
+        'Rasyonel Sayı Problemleri',
+        'Cebirsel İfadelerden Denklemlere',
+        'Cebirsel İfadeler',
+        'Cebirsel İfadelerle Toplama ve Çıkarma',
+        'Bir Doğal Sayı ile Cebirsel İfadeyi Çarpma',
+        'Örüntüler ve İlişkiler',
+        'Eşitlik ve Denklem',
+        'Bir Bilinmeyenli Birinci Dereceden Denklemler',
+        'Eşitliğin Korunumu',
+        'Denklemleri Çözme',
+        'Bir Bilinmeyenli Birinci Dereceden Denklem Problemleri',
+        'Oran ve Orantıdan Yüzdeler',
+        'Oran ve Orantı',
+        'Orantı',
+        'Doğru Orantı',
+        'Doğru Orantılı İki Niceliğin Orantı Sabiti',
+        'Ters Orantı',
+        'Doğru ve Ters Orantı Problemleri',
+        'Yüzdeler',
+        'Bir Niceliğin Belirtilen Yüzdesini Bulma',
+        'Bir Niceliğin Yüzde Kaçı Olduğunu Hesaplama',
+        'Bir Niceliği Belirli Bir Yüzde Artırma ve Azaltma, Yüzde Problemleri',
+        'Doğrular ve Açılardan Çokgenler, Çember ve Daire',
+        'Doğrular ve Açılar',
+        'Açıortay',
+        'Aynı Düzlemde Üç Doğrunun Birbirine Göre Durumları',
+        'İki Paralel Doğru ile Bir Kesenin Oluşturduğu Açılar',
+        'Çokgenler',
+        'Çokgenlerin İç ve Dış Açıları',
+        'Düzgün Çokgenler',
+        'Dörtgenler',
+        'Eşkenar Dörtgenin Alanı',
+        'Yamuk Alanı',
+        'Dörtgenlerin Alanları ile İlgili Problemler',
+        'Çevre-Alan İlişkisi',
+        'Çember ve Daire',
+        'Çemberde Merkez Açılar ve Gördüğü Yaylar',
+        'Çemberin Çevresi',
+        'Çember Yayının Uzunluğu',
+        'Dairenin Alanı',
+        'Daire Diliminin Alanı',
+        'Veri Analizinden Farklı Yönlerden Görünümler',
+        'Veri Analizi',
+        'Çizgi Grafiği',
+        'Yanlış Yorumlamalara Neden Olabilecek Çizgi Grafikleri',
+        'Aritmetik Ortalama, Ortanca, Tepe Değer',
+        'Daire Grafiği',
+        'Veri İçin Uygun Grafik Belirleme',
+        'Farklı Yönlerden Görünümler',
+        'Farklı Yönlerden Görünümlerden Yapı Oluşturma'
+      ],
+      '8': [
+        'Çarpanlar ve Katlar',
+        'Pozitif Tam Sayıların Pozitif Tam Sayı Çarpanları',
+        'En Küçük Ortak Kat (EKOK)',
+        'En Büyük Ortak Bölen (EBOB)',
+        'Üslü İfadeler',
+        'Üslü İfadelerle İşlemler',
+        'Farklı Tamsayı Kuvvetleriyle 10 Sayısını İfade Etme ve Çarpanlara Ayırma',
+        'Bilimsel Gösterim',
+        'Kareköklü İfadeler',
+        'Mükemmel Kare Pozitif Tamsayıların Karekökünü Bulma',
+        'Mükemmel Olmayan Kare Köklü Bir Sayının Hangi İki Doğal Sayı Arasında Olduğunu Belirleme',
+        'Karekök İfadesini \'√ab\' Şeklinde Yazma ve Karekökün Katsayısını Kök İçine Alma',
+        'Kareköklü İfadelerle Çarpma ve Bölme İşlemleri',
+        'Kareköklü İfadelerle Toplama ve Çıkarma İşlemleri',
+        'Ondalık Gösterimlerin Kareköklerini Belirleme',
+        'Gerçek Sayılar',
+        'Veri Analizi',
+        'Uygun Grafik ile Veriyi Gösterme ve Yorumlama',
+        'Basit Olayların Olma Olasılığı',
+        'Basit Bir Olayın Olası Sonuçlarını Belirleme ve Karşılaştırma',
+        'Bir Olayın Gerçekleşme Olasılığı',
+        'Cebirsel İfadeler ve Özdeşlikler',
+        'Cebirsel İfadeleri Farklı Biçimlerde Yazma',
+        'Cebirsel İfadelerde Çarpma',
+        'Özdeşlikleri Modelleme',
+        'Cebirsel İfadeleri Çarpanlara Ayırma',
+        'Doğrusal Denklemler',
+        'Bir Değişkenli Birinci Dereceden Denklemler',
+        'Koordinat Sistemi',
+        'Doğrusal İlişki',
+        'Doğrusal Denklemlerin Grafiği',
+        'Eğim',
+        'Eşitsizlikler',
+        'Bir Değişkenli Birinci Dereceden Eşitsizlikleri Yazma ve Sayı Doğrusunda Gösterme',
+        'Bir Değişkenli Birinci Dereceden Eşitsizlikleri Çözme',
+        'Üçgenler',
+        'Üçgende Yükseklik, Kenarortay ve Açıortay',
+        'Üçgenin Kenar Uzunlukları Arasındaki İlişki',
+        'Üçgenin Kenar Uzunlukları ve Açı Ölçüleri Arasındaki İlişki',
+        'Belirli Bir Üçgen Çizme',
+        'Pisagor Teoremi',
+        'Eşlik ve Benzerlik',
+        'Çokgenlerde Eşlik ve Benzerlik İlişkisi',
+        'Çokgenlerde Eşlik ve Benzerlik Oranı',
+        'Dönüşüm Geometrisi',
+        'Öteleme',
+        'Yansıma',
+        'Art Arda Öteleme ve Yansıma',
+        'Geometrik Cisimler',
+        'Dik Prizmalar',
+        'Dik Dairesel Silindir',
+        'Dik Dairesel Silindirin Hacmi',
+        'Dik Piramit',
+        'Dik Koni'
+      ]
+    },
+    fen: {
+      '5': [
+        'Güneş\'in Yapısı ve Özellikleri',
+        'Ay\'ın Yapısı ve Özellikleri',
+        'Ay\'ın Hareketleri ve Evreleri',
+        'Güneş, Dünya ve Ay',
+        'Güneş\'in Hareketleri',
+        'Dünya\'nın Hareketleri',
+        'Ay\'ın Hareketleri',
+        'Canlıları Tanıyalım',
+        'Mikroskobik Organizmalar',
+        'Mantarlar',
+        'Bitkiler',
+        'Hayvanlar',
+        'Kuvvetin Ölçülmesi',
+        'Dinamometre',
+        'Sürtünme Kuvveti',
+        'Hava Ortamında Sürtünme Kuvveti',
+        'Su Ortamında Sürtünme Kuvveti',
+        'Maddenin Hâl Değişimi',
+        'Ergime ve Donma',
+        'Buharlaşma, Kaynama ve Yoğuşma',
+        'Maddenin Ayırt Edici Özellikleri',
+        'Ergime Noktası ve Donma Noktası',
+        'Isı ve Sıcaklık',
+        'Isı Alışverişi',
+        'Isının Maddenin Üzerindeki Etkisi',
+        'Genleşme ve Büzüşme',
+        'Katılarda Genleşme ve Büzüşme',
+        'Sıvılarda Genleşme ve Büzüşme',
+        'Gazlarda Genleşme ve Büzüşme',
+        'Işığın Yayılması',
+        'Işığın Yansıması',
+        'Yansıma Kanunları',
+        'Işığın Maddeyle Etkileşimi',
+        'Tam Gölge',
+        'Biyoçeşitlilik',
+        'Biyoçeşitlilik',
+        'Türkiye\'deki Biyoçeşitlilik',
+        'Biyoçeşitliliği Tehdit Eden Faktörler',
+        'Biyoçeşitliliğin Korunması İçin Alınacak Önlemler',
+        'İnsan-Çevre İlişkisi',
+        'Çevre Kirliliği',
+        'Su Kirliliği',
+        'Toprak Kirliliği',
+        'Hava Kirliliği',
+        'Çevre Kirliliğine Karşı Alınacak Önlemler',
+        'Yıkıcı Doğal Olaylar',
+        'Deprem',
+        'Heyelan',
+        'Sel',
+        'Kasırga',
+        'Tornado',
+        'Volkanik Patlamalar',
+        'Elektrik Devre Elemanları',
+        'Devre Elemanlarının Sembollerle Gösterimi ve Devre Şemaları',
+        'Basit Elektrik Devresinde Ampul Parlaklığını Etkileyen Değişkenler'
+      ],
+      '6': [
+        'Güneş Sistemi',
+        'Güneş Sistemi',
+        'Gezegenlerin Temel Özellikleri',
+        'Gezegenlerin Uyduları',
+        'Asteroit, Meteor, Gök Taşı',
+        'Güneş ve Ay Tutulması',
+        'Güneş ve Ay Tutulması',
+        'Güneş Tutulması',
+        'Ay Tutulması',
+        'Vücudumuzdaki Sistemler',
+        'Destek ve Hareket Sistemi',
+        'Destek ve Hareket Sistemi',
+        'İskelet',
+        'Kemikler',
+        'Eklemler',
+        'Kıkırdak',
+        'Kaslar',
+        'Duruş Bozuklukları',
+        'Sindirim Sistemi',
+        'Sindirim Sistemini Oluşturan Yapı ve Organlar',
+        'Sindirim Çeşitleri',
+        'Sindirime Yardımcı Organlar',
+        'Dolaşım Sistemi',
+        'Dolaşım Sistemini Oluşturan Yapı ve Organlar',
+        'Kalbin Yapısı ve Görevi',
+        'Kan Damarları',
+        'Kan Dolaşımı',
+        'Kanın Yapısı ve Görevleri',
+        'Kan Grupları ve Kan Alışverişi',
+        'Kan Bağışı ve Toplum Açısından Önemi',
+        'Solunum Sistemi',
+        'Solunum Sistemi Oluşturan Yapı ve Organlar',
+        'Boşaltım Sistemi',
+        'Boşaltım Sistemi',
+        'Kuvvet ve Hareket',
+        'Bileşke Kuvvet',
+        'Kuvvetin Özellikleri',
+        'Bileşke Kuvvet',
+        'Dengelenmiş ve Dengelenmemiş Kuvvetler',
+        'Sabit Süratli Hareket',
+        'Sürat',
+        'Sabit Süratli Hareket',
+        'Madde ve Isı',
+        'Maddenin Tanecikli Yapısı',
+        'Maddenin Tanecikli Yapısı',
+        'Yoğunluk',
+        'Yoğunluk',
+        'Suyun Yoğunluğu ve Canlılar İçin Önemi',
+        'Madde ve Isı',
+        'Madde ve Isı',
+        'Isı İletkenliği',
+        'Isı Yalıtkanlığı',
+        'Isı Yalıtım Malzemeleri',
+        'Binalarda Kullanılan Isı Yalıtım Malzemeleri',
+        'Yakıtlar',
+        'Yakıtlar',
+        'Katı Yakıtlar',
+        'Sıvı Yakıtlar',
+        'Gaz Yakıtlar',
+        'Yenilenebilir ve Yenilenemez Enerji Kaynakları',
+        'Yakıtların Çevreye Etkisi',
+        'Ses ve Özellikleri',
+        'Sesin Yayılması',
+        'Sesin Yayılması',
+        'Sesin Katılarda Yayılması',
+        'Sesin Sıvılarda Yayılması',
+        'Sesin Gazlarda Yayılması',
+        'Sesin Farklı Ortamlarda Farklı Duyulması',
+        'Farklı Cisimlerde Üretilen Seslerin Farklılığı',
+        'Aynı Sesin Farklı Ortamlarda Farklı Duyulması',
+        'Sesin Sürati',
+        'Sesin Farklı Ortamlardaki Sürati',
+        'Ses Bir Enerjidir',
+        'Sesin Maddeyle Etkileşimi',
+        'Sesin Maddeyle Karşılaşması',
+        'Sesin Yansıması',
+        'Sesin Soğurulması ve Yalıtımı',
+        'Akustik',
+        'Vücudumuzdaki Sistemler ve Sistemlerin Sağlığı',
+        'Denetleyici ve Düzenleyici Sistemler',
+        'Denetleyici ve Düzenleyici Sistemler',
+        'Sinir Sistemi',
+        'İç Salgı Bezleri',
+        'Ergenlik Dönemi',
+        'Duyu Organları',
+        'Duyu Organları',
+        'Duyu Organlarımızın Sağlığı',
+        'Aşık Veysel Şatıroğlu',
+        'Sistemlerin Sağlığı',
+        'Sistemlerin Sağlığı ve Hastalıklar',
+        'İlk Yardım',
+        'Organ Bağışı',
+        'Elektriğin İletimi',
+        'İletken ve Yalıtkan Maddeler',
+        'İletken ve Yalıtkan Maddeler',
+        'İletken ve Yalıtkan Maddelerin Kullanım Alanları',
+        'Elektriksel Direnç ve Bağlı Olduğu Faktörler',
+        'Elektriksel Direnç',
+        'Elektriksel Direncin Bağlı Olduğu Faktörler'
+      ],
+      '7': [
+        'Güneş Sistemi ve Ötesi',
+        'Uzay Araştırmaları',
+        'Uzay Teknolojileri',
+        'Uzay Kirliliği',
+        'Teknoloji ve Uzay Araştırmaları',
+        'Teleskop',
+        'Güneş Sistemi Ötesi: Gök Cisimleri',
+        'Bulutsu (Nebula)',
+        'Yıldızlar',
+        'Galaksiler',
+        'Hücre ve Bölünmeler',
+        'Hücre',
+        'Hücrenin Temel Kısımları',
+        'DNA, Gen, Kromozom',
+        'Geçmişten Günümüze Hücre',
+        'Hücre-Doku-Organ-Sistem-Organizma',
+        'Mitoz',
+        'Hücre Bölünmesi',
+        'Mitoz Bölünmenin Canlılar İçin Önemi',
+        'Mitoz Bölünmenin Evreleri',
+        'Mayoz',
+        'Mayoz Bölünme',
+        'Mitoz ve Mayoz Bölünme Arasındaki Farklar',
+        'Kuvvet ve Enerji',
+        'Kütle ve Ağırlık İlişkisi',
+        'Ağırlık Bir Kuvvettir',
+        'Kütle ve Ağırlık Farklı Kavramlardır',
+        'Kuvvet, İş ve Enerji İlişkisi',
+        'Kuvvet ve İş',
+        'Enerji ve Enerji Çeşitleri',
+        'Enerji Dönüşümleri',
+        'Kinetik ve Potansiyel Enerji Dönüşümleri',
+        'Sürtünme Kuvveti ve Kinetik Enerji',
+        'Saf Madde ve Karışımlar',
+        'Maddenin Tanecikli Yapısı',
+        'Atomun Yapısı',
+        'Geçmişten Günümüze Atom Kavramı',
+        'Moleküller',
+        'Saf Maddeler',
+        'Saf Maddeler',
+        'Elementlerin Sembolleri',
+        'Bileşik Formülleri',
+        'Karışımlar',
+        'Karışımlar',
+        'Karışımların Ayrılması',
+        'Karışımların Ayrılması',
+        'Evsel Atıklar ve Geri Dönüşüm',
+        'Evsel Atıklar ve Geri Dönüşüm',
+        'Işığın Madde ile Etkileşimi',
+        'Işığın Soğurulması',
+        'Işığın Soğurulması',
+        'Renklerin Oluşumu',
+        'Güneş Enerjisinin Kullanım Alanları',
+        'Aynalar',
+        'Aynalar ve Aynaların Kullanım Alanları',
+        'Aynalarda Görüntü Oluşumu',
+        'Işığın Kırılması ve Mercekler',
+        'Işığın Kırılması',
+        'Mercekler ve Merceklerin Kullanım Alanları',
+        'Canlılarda Üreme, Büyüme ve Gelişme',
+        'İnsanda Üreme, Büyüme ve Gelişme',
+        'İnsanda Üremeyi Sağlayan Yapı ve Organlar',
+        'Bitki ve Hayvanlarda Üreme, Büyüme ve Gelişme',
+        'Üreme',
+        'Bitkilerde Büyüme ve Gelişme',
+        'Hayvanlarda Büyüme ve Gelişme',
+        'Elektrik Devreleri',
+        'Ampullerin Bağlanma Şekilleri',
+        'Ampullerin Seri ve Paralel Bağlanması',
+        'Elektrik Akımı',
+        'Akım Şiddeti ve Gerilim'
+      ],
+      '8': [
+        'Mevsimler ve İklim',
+        'Mevsimlerin Oluşumu',
+        'İklim ve Hava Hareketleri',
+        'Hava Olayları',
+        'Meteoroloji',
+        'Hava Tahminlerinin Günlük Yaşama Etkileri',
+        'İklim',
+        'DNA ve Genetik Kod',
+        'DNA ve Genetik Kod',
+        'DNA\'nın Kendini Eşlemesi',
+        'Kalıtım',
+        'Kalıtım ile İlgili Kavramlar',
+        'Akraba Evlilikleri',
+        'Mutasyon ve Modifikasyon',
+        'Mutasyon',
+        'Modifikasyon',
+        'Mutasyon ile Modifikasyon Arasındaki Farklar',
+        'Adaptasyon (Çevreye Uyum)',
+        'Adaptasyon',
+        'Doğal Seçilim',
+        'Biyoteknoloji',
+        'Biyoteknolojinin Uygulama Alanları',
+        'Biyoteknolojinin Olumlu Etkileri',
+        'Biyoteknolojinin Olumsuz Etkileri',
+        'Basınç',
+        'Basınç',
+        'Katı Basıncı',
+        'Sıvı Basıncı',
+        'Açık Hava Basıncı',
+        'Basıncın Günlük Yaşam ve Teknolojideki Uygulamaları',
+        'Madde ve Endüstri',
+        'Periyodik Sistem',
+        'Fiziksel ve Kimyasal Değişimler',
+        'Fiziksel Değişimler',
+        'Kimyasal Değişimler',
+        'Kimyasal Tepkimeler',
+        'Asit ve Bazlar',
+        'Asit ve Bazların Genel Özellikleri',
+        'Asit ve Bazların Madde Üzerindeki Etkileri',
+        'Asit Yağmurları',
+        'Maddenin Isı ile Etkileşimi',
+        'Türkiye\'de Kimya Endüstrisi',
+        'Türkiye\'de Kimya Sektörünün Gelişimi',
+        'Kimya Endüstrisinde Meslek Dalları ve Kimya Endüstrisine Katkı Sağlayan Kuruluşlar',
+        'Basit Makineler',
+        'Basit Makineler',
+        'Makaralar',
+        'Kaldıraçlar',
+        'Eğik Düzlem',
+        'Çıkrık',
+        'Dişli Çarklar',
+        'Kasnaklar',
+        'Enerji Dönüşümleri ve Çevre Bilimi',
+        'Besin Zinciri ve Enerji Akışı',
+        'Enerji Dönüşümleri',
+        'Fotosentez',
+        'Solunum',
+        'Madde Döngüleri ve Çevre Sorunları',
+        'Madde Döngüleri',
+        'Çevre Sorunları',
+        'Ekolojik Ayak İzi',
+        'Sürdürülebilir Kalkınma',
+        'Kaynakların Tasarruflu Kullanımı',
+        'Geri Dönüşüm',
+        'Elektrik Yükleri ve Elektrik Enerjisi',
+        'Elektrik Yükleri ve Elektriklenme',
+        'Sürtünme ile Elektriklenme',
+        'Dokunma ile Elektriklenme',
+        'Etki (Tesir) ile Elektriklenme',
+        'Elektrik Yüklü Cisimler',
+        'Topraklama',
+        'Elektrik Enerjisinin Dönüşümü',
+        'Elektrik Enerjisinin Isı ve Işık Enerjisine Dönüşümü',
+        'Elektrik Enerjisinin Hareket Enerjisine Dönüşümü',
+        'Elektrik Enerjisi Nasıl Üretilir?',
+        'Elektrik Enerjisinin Bilinçli Kullanılmasının Önemi'
+      ]
+    },
+    sosyal: {
+      '5': [
+        'Birey ve Toplum',
+        'Kültür ve Miras',
+        'İnsanlar, Yerler ve Çevreler',
+        'Bilim, Teknoloji ve Toplum',
+        'Üretim, Dağıtım ve Tüketim',
+        'Etkin Vatandaşlık',
+        'Küresel Bağlantılar'
+      ],
+      '6': [
+        'Birey ve Toplum',
+        'Kültür ve Miras',
+        'İnsanlar, Yerler ve Çevreler',
+        'Bilim, Teknoloji ve Toplum',
+        'Üretim, Dağıtım ve Tüketim',
+        'Etkin Vatandaşlık',
+        'Küresel Bağlantılar'
+      ],
+      '7': [
+        'Birey ve Toplum',
+        'Kültür ve Miras',
+        'İnsanlar, Yerler ve Çevreler',
+        'Bilim, Teknoloji ve Toplum',
+        'Üretim, Dağıtım ve Tüketim',
+        'Etkin Vatandaşlık',
+        'Küresel Bağlantılar'
+      ],
+      '8': [
+        'Bir Kahraman Doğuyor',
+        'Milli Uyanış: Bağımsızlık Yolunda Türkler',
+        'Ya İstiklal Ya Ölüm',
+        'Çağdaş Türkiye Yolunda Adımlar',
+        'Atatürk\'çülük ve Atatürk İlkeleri',
+        'Demokratikleşme Çalışmaları',
+        'Atatürk\'ten Sonra Türkiye: 1946\'dan Günümüze'
+      ]
+    },
+    din: {
+      '5': [
+        'Bilgi ve İnanç',
+        'Güzel Ahlak',
+        'Hz. Muhammed (S.A.V.)',
+        'Din ve Hayat',
+        'Hz. İbrahim (A.S.)',
+        'Kur\'an-ı Kerim\'in Metinleşmesi'
+      ],
+      '6': [
+        'Bilgi ve İnanç',
+        'Güzel Ahlak',
+        'Hz. Muhammed (S.A.V.)',
+        'Din ve Hayat',
+        'İslam\'da Değerler',
+        'Tevhid ve Risalet'
+      ],
+      '7': [
+        'Bilgi ve İnanç',
+        'Güzel Ahlak',
+        'Hz. Muhammed (S.A.V.)',
+        'Din ve Hayat',
+        'Kur\'an-ı Kerim\'in Yüce Amacı',
+        'İslam\'ın Temel Kavramları'
+      ],
+      '8': [
+        'Bilgi ve İnanç',
+        'Güzel Ahlak',
+        'Hz. Muhammed (S.A.V.)',
+        'Din ve Hayat',
+        'Kur\'an-ı Kerim\'de Bazı Kavramlar',
+        'İslam\'da Yardımlaşma ve Dayanışma'
+      ]
+    },
+    ingilizce: {
+      '5': [
+        'Introducing Oneself and Others',
+        'Family, Friends and People',
+        'Appearance and Personality',
+        'Hobbies and Interests',
+        'Food and Drinks',
+        'Free Time Activities',
+        'The Weather and Seasons',
+        'Countries and Nationalities',
+        'School and Daily Routines',
+        'Shopping'
+      ],
+      '6': [
+        'Personal Information',
+        'Family, Friends and People',
+        'Appearance and Personality',
+        'Hobbies and Interests',
+        'Food and Drinks',
+        'Free Time Activities',
+        'The Weather and Seasons',
+        'Countries and Nationalities',
+        'School and Daily Routines',
+        'At the Shops',
+        'Travelling and Places'
+      ],
+      '7': [
+        'Personal Information',
+        'Family, Friends and People',
+        'Appearance and Personality',
+        'Hobbies and Interests',
+        'Food and Drinks',
+        'Free Time Activities',
+        'The Weather and Seasons',
+        'Countries and Nationalities',
+        'School and Daily Routines',
+        'At the Shops',
+        'Travelling and Places',
+        'People and Places',
+        'Entertainment and Media'
+      ],
+      '8': [
+        'Personal Information',
+        'Family, Friends and People',
+        'Appearance and Personality',
+        'Hobbies and Interests',
+        'Food and Drinks',
+        'Free Time Activities',
+        'The Weather and Seasons',
+        'Countries and Nationalities',
+        'School and Daily Routines',
+        'At the Shops',
+        'Travelling and Places',
+        'People and Places',
+        'Entertainment and Media',
+        'Education and Jobs',
+        'Health'
+      ]
+    }
+  };
+
+  // Dersler listesi
+  const dersler = [
+    { key: 'turkce', label: '📖 Türkçe', color: '#10B981' },
+    { key: 'matematik', label: '🔢 Matematik', color: '#F59E0B' },
+    { key: 'fen', label: '🔬 Fen Bilimleri', color: '#3B82F6' },
+    { key: 'sosyal', label: '🌍 Sosyal Bilgiler', color: '#8B5CF6' },
+    { key: 'din', label: '🕌 Din Kültürü', color: '#F97316' },
+    { key: 'ingilizce', label: '🇺🇸 İngilizce', color: '#EF4444' }
+  ];
+
+  // Sınıf listesi
+  const siniflar = Array.from(new Set(students.map(s => s.class))).sort();
+
+  // Seçili ders ve sınıfa göre mevcut konular
+  const availableTopics = selectedDers && selectedGrade ? 
+    topicsDatabase[selectedDers as keyof typeof topicsDatabase]?.[selectedGrade as keyof typeof topicsDatabase.turkce] || [] : [];
+
+  // Seçili sınıfın öğrencileri
+  const seciliSinifOgrencileri = students.filter(s => s.class === selectedSinif);
+
+  // Mevcut eksik konu bildirimlerini yükle
+  useEffect(() => {
+    loadMissingTopics();
+  }, []);
+
+  const loadMissingTopics = async () => {
+    try {
+      // Tüm sınıflar için eksik konu bildirimlerini getir
+      const allTopics: any[] = [];
+      for (const sinif of siniflar) {
+        try {
+          const topics = await getMissingTopicsByClass(sinif);
+          allTopics.push(...topics);
+        } catch (error) {
+          console.error(`${sinif} sınıfı için eksik konu bildirimleri yüklenirken hata:`, error);
+        }
+      }
+      setMissingTopics(allTopics);
+    } catch (error) {
+      console.error('Eksik konu bildirimleri yüklenirken hata:', error);
+    }
+  };
+
+  // Konu seçimi
+  const handleTopicToggle = (topic: string) => {
+    setSelectedTopics(prev => 
+      prev.includes(topic) 
+        ? prev.filter(t => t !== topic)
+        : [...prev, topic]
+    );
+  };
+
+  // Eksik konu bildirimi kaydet
+  const handleSaveMissingTopics = async () => {
+    if (!selectedStudent || !selectedDers || selectedTopics.length === 0) {
+      alert('Lütfen öğrenci, ders ve en az bir konu seçiniz!');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const student = students.find(s => s.id === selectedStudent);
+      if (!student) {
+        throw new Error('Öğrenci bulunamadı');
+      }
+
+      await createMissingTopic({
+        studentId: selectedStudent,
+        teacherId: 'current_teacher', // Gerçek uygulamada oturum açan öğretmen
+        subject: selectedDers,
+        class: student.class,
+        selectedTopics: selectedTopics,
+        teacherComments: comments.trim(),
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 1 hafta sonra
+      });
+
+      // Form'u sıfırla
+      setSelectedStudent('');
+      setSelectedSinif('');
+      setSelectedDers('');
+      setSelectedGrade('');
+      setSelectedTopics([]);
+      setComments('');
+
+      // Listeyi yenile
+      await loadMissingTopics();
+
+      alert('✅ Eksik konu bildirimi başarıyla kaydedildi!');
+      onDataUpdate(); // Dashboard güncellemesi için
+    } catch (error) {
+      console.error('Eksik konu bildirimi kaydedilirken hata:', error);
+      alert('Kayıt sırasında hata oluştu!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Öğrenci seçimi
+  const handleStudentChange = (studentId: string) => {
+    setSelectedStudent(studentId);
+    const student = students.find(s => s.id === studentId);
+    if (student) {
+      setSelectedSinif(student.class);
+      // Sınıf numarasını çıkar (örn: "8-A" -> "8")
+      const grade = student.class.split('-')[0];
+      setSelectedGrade(grade);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Başlık */}
+      <div className="bg-gradient-to-r from-red-600 to-pink-600 rounded-2xl p-8 text-white">
+        <h2 className="text-3xl font-bold mb-2">🎯 Eksik Konu Bildirimi</h2>
+        <p className="text-red-100">
+          Öğrencilere çalışmaları gereken konuları bildirin ve takip edin
+        </p>
+      </div>
+
+      {/* Bildirim Formu */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+          <span className="text-red-600 mr-3">📝</span>
+          Yeni Eksik Konu Bildirimi
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Öğrenci Seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              👨‍🎓 Öğrenci Seçin
+            </label>
+            <select
+              value={selectedStudent}
+              onChange={(e) => handleStudentChange(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            >
+              <option value="">Öğrenci seçiniz...</option>
+              {students.map(student => (
+                <option key={student.id} value={student.id}>
+                  {student.name} ({student.class})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Ders Seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📚 Ders Seçin
+            </label>
+            <select
+              value={selectedDers}
+              onChange={(e) => setSelectedDers(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            >
+              <option value="">Ders seçiniz...</option>
+              {dersler.map(ders => (
+                <option key={ders.key} value={ders.key}>
+                  {ders.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sınıf Bilgisi (Sadece görüntüleme) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              🏛️ Sınıf
+            </label>
+            <input
+              type="text"
+              value={selectedSinif || 'Öğrenci seçiniz...'}
+              disabled
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+            />
+          </div>
+
+          {/* Sınıf Seviyesi (Sadece görüntüleme) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📊 Sınıf Seviyesi
+            </label>
+            <input
+              type="text"
+              value={selectedGrade ? `${selectedGrade}. Sınıf` : 'Öğrenci seçiniz...'}
+              disabled
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+            />
+          </div>
+        </div>
+
+        {/* Konu Seçimi */}
+        {selectedDers && selectedGrade && availableTopics.length > 0 && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              📖 Çalışılması Gereken Konuları Seçin
+            </label>
+            <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {availableTopics.map((topic, index) => (
+                  <label key={index} className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedTopics.includes(topic)}
+                      onChange={() => handleTopicToggle(topic)}
+                      className="mt-1 h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                    />
+                    <span className="text-sm text-gray-700 leading-tight">{topic}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Toplam {availableTopics.length} konu mevcut, {selectedTopics.length} konu seçildi
+            </p>
+          </div>
+        )}
+
+        {/* Yorumlar */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            💬 Ek Yorumlar (Opsiyonel)
+          </label>
+          <textarea
+            value={comments}
+            onChange={(e) => setComments(e.target.value)}
+            placeholder="Öğrenciye özel çalışma tavsiyelerinizi, motivasyon mesajlarınızı veya ek açıklamalarınızı buraya yazabilirsiniz..."
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 h-24 resize-none"
+          />
+        </div>
+
+        {/* Kaydet Butonu */}
+        <div className="flex justify-end">
+          <button
+            onClick={handleSaveMissingTopics}
+            disabled={loading || !selectedStudent || !selectedDers || selectedTopics.length === 0}
+            className="bg-red-500 text-white px-8 py-3 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Kaydediliyor...
+              </>
+            ) : (
+              <>
+                <span className="mr-2">💾</span>
+                Eksik Konu Bildirimi Kaydet
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Mevcut Bildirimler */}
+      {missingTopics.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+            <span className="text-blue-600 mr-3">📊</span>
+            Mevcut Eksik Konu Bildirimleri ({missingTopics.length})
+          </h3>
+          
+          <div className="space-y-4">
+            {missingTopics.slice(0, 10).map((topic) => {
+              const student = students.find(s => s.id === topic.studentId);
+              const ders = dersler.find(d => d.key === topic.subject);
+              
+              return (
+                <div key={topic.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">
+                        {student?.name || 'Bilinmeyen Öğrenci'} - {ders?.label || topic.subject}
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        {new Date(topic.createdAt).toLocaleDateString('tr-TR')}
+                      </p>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      topic.isCompleted ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {topic.isCompleted ? 'Tamamlandı' : 'Beklemede'}
+                    </span>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Çalışılması Gereken Konular:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {topic.selectedTopics.map((t, index) => (
+                        <span key={index} className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {topic.teacherComments && (
+                    <div className="bg-gray-50 rounded p-3">
+                      <p className="text-sm text-gray-700">{topic.teacherComments}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          
+          {missingTopics.length > 10 && (
+            <div className="text-center mt-4">
+              <p className="text-sm text-gray-500">
+                Son 10 bildirim gösteriliyor. Toplam {missingTopics.length} bildirim bulunuyor.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Yardım Bilgileri */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+          <span className="text-blue-600 mr-3">💡</span>
+          Nasıl Kullanılır?
+        </h3>
+        
+        <div className="space-y-3 text-blue-800">
+          <div className="flex items-start">
+            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+            <div>
+              <p className="font-medium">Öğrenci ve Ders Seçin</p>
+              <p className="text-sm">Hangi öğrencinin hangi derste eksik kaldığını belirleyin.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+            <div>
+              <p className="font-medium">Konuları İşaretleyin</p>
+              <p className="text-sm">Öğrencinin çalışması gereken konuları seçin. Birden fazla konu seçebilirsiniz.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
+            <div>
+              <p className="font-medium">Yorum Ekleyin</p>
+              <p className="text-sm">Öğrenciye özel motivasyon mesajları veya çalışma tavsiyeleri ekleyin.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
+            <div>
+              <p className="font-medium">Kaydedin ve Takip Edin</p>
+              <p className="text-sm">Bildirimi kaydedin ve öğrencinin çalışma durumunu takip edin.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 p-4 bg-blue-100 rounded-lg">
+          <p className="text-blue-900 text-sm">
+            <strong>📌 Not:</strong> Eksik konu bildirimleri öğrencinin dashboard'ında görünecektir. 
+            Öğrenci bu konuları tamamladıkça bildirim durumu güncellenebilir.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // 📝 Ödev Takibi Tab Component
 const OdevTakibiTab = ({ students, onDataUpdate }: { 

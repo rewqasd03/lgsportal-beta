@@ -2137,3 +2137,232 @@ export const bulkUpdateOdevDurumlari = async (
     throw error;
   }
 };
+
+// ========================================
+// 📚 EKSİK KONU BİLDİRİMİ SİSTEMİ
+// ========================================
+
+// Eksik Konu Bildirimi Interface'i
+export interface MissingTopic {
+  id: string;
+  studentId: string;
+  teacherId?: string;
+  subject: string;
+  class: string;
+  selectedTopics: string[]; // Çalışılması gereken konular
+  teacherComments: string; // Öğretmen yorumu
+  createdAt: string;
+  dueDate: string; // Hedef tamamlama tarihi
+  isCompleted: boolean; // Öğrenci tamamladı mı
+  studentNotes?: string; // Öğrenci notları
+  completedAt?: string; // Tamamlandığı tarih
+}
+
+// Eksik konu oluştur
+export const createMissingTopic = async (topicData: Omit<MissingTopic, 'id' | 'createdAt' | 'isCompleted'>): Promise<string> => {
+  try {
+    const topicRef = await addDoc(collection(db, 'missingTopics'), {
+      ...topicData,
+      isCompleted: false,
+      createdAt: new Date().toISOString()
+    });
+    console.log('📚 Eksik konu oluşturuldu:', topicRef.id);
+    return topicRef.id;
+  } catch (error) {
+    console.error('Eksik konu oluşturma hatası:', error);
+    throw error;
+  }
+};
+
+// Öğrencinin eksik konularını getir
+export const getMissingTopicsByStudent = async (studentId: string): Promise<MissingTopic[]> => {
+  try {
+    const topicsQuery = query(
+      collection(db, 'missingTopics'),
+      where('studentId', '==', studentId),
+      orderBy('createdAt', 'desc')
+    );
+    
+    const topicsSnapshot = await getDocs(topicsQuery);
+    return topicsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as MissingTopic[];
+  } catch (error) {
+    console.error('Eksik konuları getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Öğrencinin tamamlanmamış eksik konularını getir
+export const getPendingMissingTopicsByStudent = async (studentId: string): Promise<MissingTopic[]> => {
+  try {
+    const topicsQuery = query(
+      collection(db, 'missingTopics'),
+      where('studentId', '==', studentId),
+      where('isCompleted', '==', false),
+      orderBy('dueDate', 'asc')
+    );
+    
+    const topicsSnapshot = await getDocs(topicsQuery);
+    return topicsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as MissingTopic[];
+  } catch (error) {
+    console.error('Bekleyen eksik konuları getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Sınıfa göre eksik konu bildirimleri getir
+export const getMissingTopicsByClass = async (className: string): Promise<MissingTopic[]> => {
+  try {
+    const topicsQuery = query(
+      collection(db, 'missingTopics'),
+      where('class', '==', className),
+      orderBy('createdAt', 'desc')
+    );
+    
+    const topicsSnapshot = await getDocs(topicsQuery);
+    return topicsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as MissingTopic[];
+  } catch (error) {
+    console.error('Sınıf eksik konularını getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Eksik konu güncelle
+export const updateMissingTopic = async (topicId: string, updates: Partial<MissingTopic>): Promise<void> => {
+  try {
+    const topicRef = doc(db, 'missingTopics', topicId);
+    await updateDoc(topicRef, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    });
+    console.log('📚 Eksik konu güncellendi:', topicId);
+  } catch (error) {
+    console.error('Eksik konu güncelleme hatası:', error);
+    throw error;
+  }
+};
+
+// Öğrenci eksik konuyu tamamladı olarak işaretle
+export const markMissingTopicAsCompleted = async (
+  topicId: string, 
+  studentNotes?: string
+): Promise<void> => {
+  try {
+    const topicRef = doc(db, 'missingTopics', topicId);
+    await updateDoc(topicRef, {
+      isCompleted: true,
+      completedAt: new Date().toISOString(),
+      studentNotes: studentNotes || null,
+      updatedAt: new Date().toISOString()
+    });
+    console.log('📚 Eksik konu tamamlandı:', topicId);
+  } catch (error) {
+    console.error('Eksik konu tamamlama hatası:', error);
+    throw error;
+  }
+};
+
+// Belirli bir tarih aralığındaki eksik konu bildirimleri
+export const getMissingTopicsByDateRange = async (
+  startDate: string, 
+  endDate: string
+): Promise<MissingTopic[]> => {
+  try {
+    const topicsQuery = query(
+      collection(db, 'missingTopics'),
+      where('createdAt', '>=', startDate),
+      where('createdAt', '<=', endDate),
+      orderBy('createdAt', 'desc')
+    );
+    
+    const topicsSnapshot = await getDocs(topicsQuery);
+    return topicsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as MissingTopic[];
+  } catch (error) {
+    console.error('Tarih aralığına göre eksik konu getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Öğrenciye özgü ders bazında eksik konu özeti
+export const getMissingTopicsSummaryByStudent = async (studentId: string): Promise<{
+  [subject: string]: {
+    pending: number;
+    completed: number;
+    total: number;
+    lastUpdated: string;
+  }
+}> => {
+  try {
+    const topics = await getMissingTopicsByStudent(studentId);
+    
+    const summary: {[subject: string]: {pending: number; completed: number; total: number; lastUpdated: string}} = {};
+    
+    topics.forEach(topic => {
+      if (!summary[topic.subject]) {
+        summary[topic.subject] = {
+          pending: 0,
+          completed: 0,
+          total: 0,
+          lastUpdated: topic.createdAt
+        };
+      }
+      
+      summary[topic.subject].total++;
+      if (topic.isCompleted) {
+        summary[topic.subject].completed++;
+      } else {
+        summary[topic.subject].pending++;
+      }
+      
+      // En son güncelleme tarihini al
+      if (topic.createdAt > summary[topic.subject].lastUpdated) {
+        summary[topic.subject].lastUpdated = topic.createdAt;
+      }
+    });
+    
+    return summary;
+  } catch (error) {
+    console.error('Öğrenci eksik konu özeti hatası:', error);
+    throw error;
+  }
+};
+
+// Eksik konu sil
+export const deleteMissingTopic = async (topicId: string): Promise<void> => {
+  try {
+    const topicRef = doc(db, 'missingTopics', topicId);
+    await deleteDoc(topicRef);
+    console.log('📚 Eksik konu silindi:', topicId);
+  } catch (error) {
+    console.error('Eksik konu silme hatası:', error);
+    throw error;
+  }
+};
+
+// Toplu eksik konu güncellemesi (öğretmenler için)
+export const bulkUpdateMissingTopics = async (
+  updates: Array<{topicId: string; updates: Partial<MissingTopic>}>
+): Promise<void> => {
+  try {
+    const updatePromises = updates.map(({ topicId, updates }) => 
+      updateMissingTopic(topicId, updates)
+    );
+    
+    await Promise.all(updatePromises);
+    console.log('📚 Toplu eksik konu güncellemesi tamamlandı:', updates.length, 'konu');
+  } catch (error) {
+    console.error('Toplu eksik konu güncelleme hatası:', error);
+    throw error;
+  }
+};
