@@ -1,0 +1,134 @@
+layout-aa89c90ef2f332ab.js:1 🚫 Service Worker devre dışı - Cache temizlendi
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 🎯 Puan hedefi bulundu (5Zd35EktdEpfwHiuuQGX): 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 🎯 Puan hedefi bulundu (WzXcrN3Y7b14yby8ywU8): 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 🎯 Puan hedefi bulundu (h9F7h0wzvurxEEjU0Rbt): 460
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 🎯 Puan hedefi bulundu (mgJbki81ewecLK1QYfLB): 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Toplam deneme: 8
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Toplam sonuç: 235
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Öğrenci sonuçları: 8
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Öğrenci sonuç örneği: Object
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Eşleşen denemeler: 8
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Seçilen sonuç: Object
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Nets: Object
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Scores: Object
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Türkçe: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Matematik: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce nets: 0
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Seçilen sonuç: Object
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Nets: Object
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Scores: Object
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Türkçe: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Matematik: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce nets: 2.3699999999999997
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik nets: -2.3000000000000003
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen nets: 1.69
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal nets: 3.3499999999999996
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din nets: 4.68
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce nets: -0.98
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce nets: 2.3699999999999997
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik nets: -2.3000000000000003
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen nets: 1.69
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal nets: 3.3499999999999996
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din nets: 4.68
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce nets: -0.98
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Seçilen sonuç: Object
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Nets: Object
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Scores: Object
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Türkçe: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Matematik: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce nets: 11.68
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik nets: 0.029999999999999805
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen nets: 1.6999999999999997
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal nets: 0.69
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din nets: 6.01
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce nets: -1.98
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce nets: 11.68
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik nets: 0.029999999999999805
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen nets: 1.6999999999999997
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal nets: 0.69
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din nets: 6.01
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce nets: -1.98
