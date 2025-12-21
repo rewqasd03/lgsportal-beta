@@ -5754,6 +5754,13 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
 
   // Seçili sınıfın öğrencileri
   const seciliSinifOgrencileri = students.filter(s => s.class === selectedSinif);
+  
+  // Debug: Seçili sınıf bilgilerini console'a yazdır
+  console.log('🔍 Debug - Seçili Sınıf:', selectedSinif);
+  console.log('🔍 Debug - Toplam Öğrenci Sayısı:', students.length);
+  console.log('🔍 Debug - Seçili Sınıf Öğrenci Sayısı:', seciliSinifOgrencileri.length);
+  console.log('🔍 Debug - Seçili Ders:', selectedDers);
+  console.log('🔍 Debug - Öğrenci Durumları:', Object.keys(odevDurumlar).length);
 
   // Geçmiş kayıtları yükle
   useEffect(() => {
@@ -5913,6 +5920,44 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
     }
   };
 
+  // Sorunlu Din Kültürü verilerini temizle
+  const handleCleanDinKulturuData = async () => {
+    if (!confirm('⚠️ Din Kültürü dersindeki tüm sorunlu verileri silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { getFirestore, collection, getDocs, deleteDoc, doc } = await import('firebase/firestore');
+      const { db } = await import('../../firebase');
+      
+      const odevlerRef = collection(db, 'odevler');
+      const snapshot = await getDocs(odevlerRef);
+      
+      let deletedCount = 0;
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data();
+        // Din Kültürü ile ilgili tüm kayıtları sil
+        if (data.ders === 'din-kulturu') {
+          await deleteDoc(doc(db, 'odevler', docSnap.id));
+          deletedCount++;
+          console.log('🗑️ Silindi:', docSnap.id);
+        }
+      }
+      
+      alert(`✅ ${deletedCount} adet Din Kültürü kaydı başarıyla silindi!`);
+      
+      // Geçmiş kayıtları yeniden yükle
+      await loadGecmisKayitlar();
+      
+    } catch (error) {
+      console.error('Temizleme hatası:', error);
+      alert('❌ Temizleme sırasında bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Geçmiş kaydı düzenle
   const handleEditRecord = (record: any) => {
     setEditingRecord(record);
@@ -6046,6 +6091,16 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
               >
                 {loading ? '⏳' : '💾'} {Object.keys(dirtyStates).length > 0 ? `Kaydet (${Object.keys(dirtyStates).length})` : 'Kaydet'}
               </button>
+              
+              {/* Din Kültürü veri temizleme butonu */}
+              <button
+                onClick={handleCleanDinKulturuData}
+                disabled={loading}
+                className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm"
+                title="Din Kültürü dersindeki sorunlu verileri temizle"
+              >
+                🗑️ Din Kültürü Temizle
+              </button>
             </div>
           </div>
 
@@ -6153,6 +6208,19 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                   <p className="text-sm">
                     Bu tarihte henüz ödev kontrolü yapılmamış. Yukarıdaki öğrencilerin durumlarını işaretleyip kaydedebilirsiniz.
                   </p>
+                </div>
+              </div>
+            )}
+
+            {/* Debug bilgisi - Sadece development'ta göster */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-4 p-4 bg-gray-100 border border-gray-300 rounded-lg">
+                <div className="text-xs text-gray-600">
+                  <div>🔍 Debug: Seçili Sınıf: {selectedSinif}</div>
+                  <div>🔍 Debug: Toplam Öğrenci: {students.length}</div>
+                  <div>🔍 Debug: Seçili Sınıf Öğrenci: {seciliSinifOgrencileri.length}</div>
+                  <div>🔍 Debug: Seçili Ders: {selectedDers}</div>
+                  <div>🔍 Debug: Öğrenci Durumları: {Object.keys(odevDurumlar).length}</div>
                 </div>
               </div>
             )}
