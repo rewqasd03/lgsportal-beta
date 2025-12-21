@@ -5961,7 +5961,13 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       
       if (snapshot.size === 0) {
         console.log('✅ Firebase\'de Din Kültürü kaydı bulunamadı');
-        alert('✅ Firebase\'de Din Kültürü kaydı bulunamadı. Önbelleği temizlemek için sayfayı yenileyin.');
+        console.log('🔄 Geçmiş kayıtlar cache\'i temizleniyor...');
+        
+        // Rapor tabındaki cache'i de temizle
+        setGecmisKayitlar([]);
+        await loadGecmisKayitlar();
+        
+        alert('✅ Firebase\'de Din Kültürü kaydı bulunamadı!\n\n🔄 Geçmiş kayıtlar cache\'i temizlendi.\n📋 Sayfayı yenileyin (F5)');
       } else {
         let deletedCount = 0;
         for (const docSnap of snapshot.docs) {
@@ -6467,6 +6473,17 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                     );
                     
                     const toplamKontrol = dersKayitlari.length;
+                    
+                    // Din Kültürü için debug bilgisi
+                    if (ders.key === 'din-kulturu') {
+                      console.log('🔍 Rapor Tabı - Din Kültürü Debug:', {
+                        raporSinif,
+                        toplamGecmisKayitlar: gecmisKayitlar.length,
+                        dersKayitlari: dersKayitlari.length,
+                        toplamKontrol,
+                        dersKey: ders.key
+                      });
+                    }
                     const toplamYapildi = dersKayitlari.reduce((acc, kayit) => acc + kayit.yapildi, 0);
                     const toplamEksik = dersKayitlari.reduce((acc, kayit) => acc + kayit.eksikYapildi, 0);
                     const toplamYapilmadi = dersKayitlari.reduce((acc, kayit) => acc + kayit.yapilmadi, 0);
