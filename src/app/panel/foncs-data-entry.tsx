@@ -6418,11 +6418,17 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
     }
   };
 
-  // İstatistikler
+  // İstatistikler - Tüm öğrenciler için doğru hesaplama
   const istatistikler = {
     toplamOgrenci: seciliSinifOgrencileri.length,
-    odevYapan: Object.values(odevDurumlar).filter(yapti => yapti).length,
-    odevYapmayan: seciliSinifOgrencileri.length - Object.values(odevDurumlar).filter(yapti => yapti).length
+    odevYapan: seciliSinifOgrencileri.filter(student => {
+      const odevYapti = odevDurumlar[student.id] !== undefined ? odevDurumlar[student.id] : true;
+      return odevYapti;
+    }).length,
+    odevYapmayan: seciliSinifOgrencileri.filter(student => {
+      const odevYapti = odevDurumlar[student.id] !== undefined ? odevDurumlar[student.id] : true;
+      return !odevYapti;
+    }).length
   };
 
   return (
