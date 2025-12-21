@@ -6032,15 +6032,19 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       const allSnapshot = await getDocs(odevlerRef);
       let allDinKulturuCount = 0;
       let manualDeleteCount = 0;
+      let dinKulturuKayitlari: any[] = [];
       
       for (const docSnap of allSnapshot.docs) {
         const data = docSnap.data();
         if (data.ders === 'din-kulturu' || data.ders === 'din_kulturu' || 
             (typeof data.ders === 'string' && data.ders.toLowerCase().includes('din'))) {
           allDinKulturuCount++;
+          dinKulturuKayitlari.push({ id: docSnap.id, ...data });
           console.log('🔍 Bulunan Din Kültürü kaydı:', docSnap.id, data);
         }
       }
+      
+      console.log('📋 TÜM Din Kültürü kayıtları:', dinKulturuKayitlari);
       
       console.log(`🔍 Manuel tarama ile bulunan Din Kültürü kayıt sayısı: ${allDinKulturuCount}`);
       
@@ -6066,6 +6070,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       }
       
       console.log(`🔥 TOPLAM ${totalDeleted} adet Din Kültürü kaydı Firebase'den silindi`);
+      console.log('🗑️ Silinen kayıtlar detayı:', dinKulturuKayitlari);
       
       // TÜM cache'i temizle
       setGecmisKayitlar([]);
@@ -6082,7 +6087,8 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
         keysToRemove.forEach(key => localStorage.removeItem(key));
       }
       
-      alert(`🔥 TAMAMEN TEMİZLEDİM!\n\n${totalDeleted} adet Din Kültürü kaydı silindi\n🧹 Tüm cache temizlendi\n🔄 Sayfayı yenileyin (F5)\n\nDin Kültürü artık 0 gösterecek!`);
+      const silinenDetay = dinKulturuKayitlari.map(k => `${k.sinif} - ${k.ders} - ${k.tarih}`).join('\n');
+      alert(`🔥 TAMAMEN TEMİZLEDİM!\n\n${totalDeleted} adet Din Kültürü kaydı silindi:\n${silinenDetay}\n\n🧹 Tüm cache temizlendi\n🔄 Sayfayı yenileyin (F5)\n\nDin Kültürü artık 0 gösterecek!`);
       
       // Tüm cache'i ve state'i temizle
       setGecmisKayitlar([]);
@@ -6626,6 +6632,17 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                     const basariOrani = toplamKontrol > 0 && (toplamYapildi + toplamEksik + toplamYapilmadi) > 0 ? 
                       Math.round((toplamYapildi / (toplamYapildi + toplamEksik + toplamYapilmadi)) * 100) : 0;
                     
+                    // Din Kültürü için acil debug
+                    if (ders.key === 'din-kulturu') {
+                      console.log('🔥 ACİL - Din Kültürü Veri Analizi:', {
+                        raporSinif,
+                        toplamGecmisKayitlar: gecmisKayitlar.length,
+                        dersKayitlari: dersKayitlari,
+                        toplamKontrol,
+                        kayitlarDetay: dersKayitlari.map(k => `${k.tarih}: ${k.yapildi}/${k.eksikYapildi}/${k.yapilmadi}`)
+                      });
+                    }
+
                     return (
                       <div key={ders.key} className="bg-white p-4 rounded-lg border border-gray-200">
                         <div className="flex items-center mb-3">
@@ -6656,10 +6673,30 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                             </span>
                           </div>
                           
-                          {/* Debug bilgisi - sadece development'ta */}
-                          {process.env.NODE_ENV === 'development' && (
-                            <div className="mt-2 text-xs text-gray-400 border-t pt-1">
-                              Debug: toplamKontrol={toplamKontrol}, yapildi={toplamYapildi}, eksik={toplamEksik}, yapilmadi={toplamYapilmadi}
+                          {/* Debug bilgisi - HER ZAMAN GÖRÜNÜR */}
+                          <div className="mt-2 text-xs text-gray-400 border-t pt-1">
+                            <div>Debug: toplamKontrol={toplamKontrol}, yapildi={toplamYapildi}, eksik={toplamEksik}, yapilmadi={toplamYapilmadi}</div>
+                          </div>
+                          
+                          {/* Din Kültürü için özel debug paneli */}
+                          {ders.key === 'din-kulturu' && (
+                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                              <div className="text-sm font-bold text-red-700 mb-2">🔥 DIN KÜLTÜRÜ DEBUG PANELİ:</div>
+                              <div className="text-xs text-red-600 space-y-1">
+                                <div>📊 Toplam Geçmiş Kayıt: {gecmisKayitlar.length}</div>
+                                <div>📝 Din Kültürü Kayıt Sayısı: {dersKayitlari.length}</div>
+                                <div>🔢 Toplam Kontrol: {toplamKontrol}</div>
+                                {dersKayitlari.length > 0 && (
+                                  <div className="mt-2">
+                                    <div className="font-bold">📋 Bulunan Kayıtlar:</div>
+                                    {dersKayitlari.map((kayit, idx) => (
+                                      <div key={idx} className="ml-2">
+                                        {kayit.tarih} - {kayit.sinif}: {kayit.yapildi}/{kayit.eksikYapildi}/{kayit.yapilmadi}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
