@@ -4134,36 +4134,188 @@ const MerkeziYerlestirmePuanlariPanel = () => {
       district: "İpekyolu"
     },
     {
-      name: "Şehit Erdoğan Cınbıroğlu Anadolu Lisesi",
+      name: "Türkiye Yardımsevenler Derneği Anadolu Lisesi",
       type: "Anadolu Lisesi",
-      score: "412.45",
-      percentile: "9.12",
+      score: "387.01",
+      percentile: "12.92",
+      capacity: "120",
+      district: "Edremit"
+    },
+    {
+      name: "Van Atatürk Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "379.46",
+      percentile: "14.26",
+      capacity: "180",
+      district: "İpekyolu"
+    },
+    {
+      name: "Abdurrahman Gazi Borsa İstanbul Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "367.20",
+      percentile: "16.52",
+      capacity: "150",
+      district: "Tuşba"
+    },
+    {
+      name: "Muradiye Alpaslan Fen Lisesi",
+      type: "Fen Lisesi",
+      score: "366.59",
+      percentile: "16.63",
+      capacity: "120",
+      district: "Muradiye"
+    },
+    {
+      name: "Erciş Sosyal Bilimler Lisesi",
+      type: "Sosyal Bilimler Lisesi",
+      score: "366.09",
+      percentile: "20.09",
+      capacity: "120",
+      district: "Erciş"
+    },
+    {
+      name: "Van Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "360.29",
+      percentile: "19.06",
+      capacity: "120",
+      district: "İpekyolu"
+    },
+    {
+      name: "Van-Borsa İstanbul Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "349.74",
+      percentile: "23.59",
+      capacity: "180",
+      district: "Edremit"
+    },
+    {
+      name: "Sevim Kürüm Anadolu Lisesi",
+      type: "Anadolu Lisesi",
+      score: "349.08",
+      percentile: "18.31",
+      capacity: "120",
+      district: "Erciş"
+    },
+    {
+      name: "İskele Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "325.31",
+      percentile: "27.46",
+      capacity: "120",
+      district: "İpekyolu"
+    },
+    {
+      name: "Edremit Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "312.80",
+      percentile: "39.48",
+      capacity: "120",
+      district: "Edremit"
+    },
+    {
+      name: "Mehmet Erdemoğlu Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "305.71",
+      percentile: "30.94",
       capacity: "150",
       district: "İpekyolu"
     },
     {
-      name: "Van Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "408.32",
-      percentile: "9.87",
-      capacity: "150",
-      district: "İpekyolu"
+      name: "Şehit Polis Halil Hamuryen Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "308.52",
+      percentile: "40.76",
+      capacity: "120",
+      district: "Erciş"
     },
     {
-      name: "Atatürk Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "405.78",
-      percentile: "10.23",
-      capacity: "150",
-      district: "İpekyolu"
+      name: "Tevfik İleri Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "294.42",
+      percentile: "45.03",
+      capacity: "120",
+      district: "Erciş"
     },
     {
-      name: "Mehmet Akif Ersoy Anadolu Lisesi",
-      type: "Anadolu Lisesi",
-      score: "402.15",
-      percentile: "10.58",
+      name: "Erciş Mesleki ve Teknik Anadolu Lisesi",
+      type: "Mesleki ve Teknik Anadolu Lisesi",
+      score: "293.47",
+      percentile: "50.02",
       capacity: "150",
-      district: "İpekyolu"
+      district: "Erciş"
+    },
+    {
+      name: "Mizancı Murat Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "293.21",
+      percentile: "55.88",
+      capacity: "120",
+      district: "Edremit"
+    },
+    {
+      name: "Gevaş Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "267.96",
+      percentile: "98.45",
+      capacity: "120",
+      district: "Gevaş"
+    },
+    {
+      name: "Hüseyin Çelik Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "263.42",
+      percentile: "48.81",
+      capacity: "120",
+      district: "Tuşba"
+    },
+    {
+      name: "Özalp Kız Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "255.88",
+      percentile: "89.83",
+      capacity: "120",
+      district: "Özalp"
+    },
+    {
+      name: "Tuşba Şehit Ferhat Arslan Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "251.82",
+      percentile: "97.98",
+      capacity: "120",
+      district: "Tuşba"
+    },
+    {
+      name: "Şehit Haluk Varlı Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "221.47",
+      percentile: "94.06",
+      capacity: "120",
+      district: "Gürpınar"
+    },
+    {
+      name: "Muradiye Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "208.61",
+      percentile: "97.43",
+      capacity: "120",
+      district: "Muradiye"
+    },
+    {
+      name: "Başkale Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "199.41",
+      percentile: "99.80",
+      capacity: "120",
+      district: "Başkale"
+    },
+    {
+      name: "Çaldıran Anadolu İmam Hatip Lisesi",
+      type: "Anadolu İmam Hatip Lisesi",
+      score: "197.30",
+      percentile: "82.62",
+      capacity: "120",
+      district: "Çaldıran"
     }
   ];
 
@@ -4415,20 +4567,6 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
     try {
       const { getOgrencilOdevGecmisi } = await import('../../firebase');
       const ogrencilOdevGecmisi = await getOgrencilOdevGecmisi(reportData.student.id);
-      
-      // DEBUG: Firestore'dan gelen veriyi logla
-      console.log('🔍 DEBUG - Firestore\'dan gelen ödev verileri:', ogrencilOdevGecmisi);
-      ogrencilOdevGecmisi.forEach((odev, index) => {
-        console.log(`🔍 DEBUG - Ödev ${index + 1}:`, {
-          id: odev.id,
-          ders: odev.ders,
-          tarih: odev.tarih,
-          ogrenciDurum: odev.ogrenciDurum,
-          ogrenciDurumType: typeof odev.ogrenciDurum,
-          ogrenciDurumValue: odev.ogrenciDurum === true ? 'TRUE' : odev.ogrenciDurum === false ? 'FALSE' : 'UNDEFINED/NULL'
-        });
-      });
-      
       setOdevler(ogrencilOdevGecmisi);
     } catch (error) {
       console.error('Öğrenci ödev geçmişi yüklenirken hata:', error);
@@ -4467,18 +4605,6 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
 
   // Ödev durumunu belirle
   const getOdevDurumu = (ogrenciDurum: boolean | undefined) => {
-    // DEBUG: Durum kontrolünü logla
-    console.log('🔍 DEBUG - Durum kontrolü:', {
-      ogrenciDurum: ogrenciDurum,
-      type: typeof ogrenciDurum,
-      isTrue: ogrenciDurum === true,
-      isFalse: ogrenciDurum === false,
-      isUndefined: ogrenciDurum === undefined,
-      isNull: ogrenciDurum === null,
-      isTruthy: !!ogrenciDurum,
-      result: ogrenciDurum === true ? 'Yapıldı' : 'Yapılmadı'
-    });
-    
     // null, undefined, false değerlerini "Yapılmadı" olarak kabul et
     if (ogrenciDurum === true) {
       return { text: '✅ Yapıldı', color: 'text-green-600', bgColor: 'bg-green-100' };
