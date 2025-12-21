@@ -1102,7 +1102,7 @@ const TABS: Tab[] = [
   { key: "toplu", label: "👥 Toplu Veri" },
   { key: "excel-import", label: "📊 Excel İçe Aktar" },
   { key: "kitap-sinavi", label: "📚 Kitap Sınavı" },
-  { key: "odev-takibi", label: "📝 Ödev Takibi Yeni" },
+  { key: "odev-takibi", label: "📝 Ödev Takibi" },
   { key: "eksik-konu", label: "🎯 Eksik Konu Bildirimi" },
 
   { key: "hedef", label: "🎯 Hedef Belirleme" },
