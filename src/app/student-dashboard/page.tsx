@@ -48,6 +48,7 @@ function StudentDashboardContent() {
   const [selectedExamId, setSelectedExamId] = useState<string>('');
   const [allResultsData, setAllResultsData] = useState<Result[]>([]);
   const [allStudentsData, setAllStudentsData] = useState<Student[]>([]);
+  const [evaluationText, setEvaluationText] = useState<string>('');
   
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -2048,9 +2049,6 @@ function StudentDashboardContent() {
                     return { D, Y, B, net };
                   };
 
-                  // Değerlendirme yazısını getir
-                  const [evaluationText, setEvaluationText] = useState<string>('');
-                  
                   // Firestore'dan değerlendirme yazısını çek
                   useEffect(() => {
                     const fetchEvaluationText = async () => {
