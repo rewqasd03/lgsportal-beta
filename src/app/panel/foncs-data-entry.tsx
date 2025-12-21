@@ -6762,19 +6762,75 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
       
       console.log('🔍 Debug - Sınıfın denemeleri (exams):', allExams.length, allExams);
 
-      // Öğrencinin sonuçlarını getir
-      const resultsQuery = query(
-        collection(db, 'results'),
-        where('studentId', '==', selectedStudent),
-        orderBy('createdAt', 'desc')
-      );
-      const resultsSnapshot = await getDocs(resultsQuery);
-      const allResults = resultsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      // Öğrencinin sonuçlarını getir - Farklı yaklaşımlar dene
+      let allResults: any[] = [];
+      
+      // 1. studentId ile ara
+      try {
+        const resultsQuery = query(
+          collection(db, 'results'),
+          where('studentId', '==', selectedStudent),
+          orderBy('createdAt', 'desc')
+        );
+        const resultsSnapshot = await getDocs(resultsQuery);
+        const results1 = resultsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        console.log('🔍 Debug - studentId ile arama:', results1.length, results1);
+        if (results1.length > 0) allResults = results1;
+      } catch (error) {
+        console.log('🔍 Debug - studentId araması hatası:', error);
+      }
 
-      console.log('🔍 Debug - Öğrencinin sonuçları (results):', allResults.length, allResults);
+      // 2. studentId ile ara (farklı field adı)
+      if (allResults.length === 0) {
+        try {
+          const resultsQuery2 = query(
+            collection(db, 'results'),
+            where('student_id', '==', selectedStudent),
+            orderBy('createdAt', 'desc')
+          );
+          const resultsSnapshot2 = await getDocs(resultsQuery2);
+          const results2 = resultsSnapshot2.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          console.log('🔍 Debug - student_id ile arama:', results2.length, results2);
+          if (results2.length > 0) allResults = results2;
+        } catch (error) {
+          console.log('🔍 Debug - student_id araması hatası:', error);
+        }
+      }
+
+      // 3. Tüm sonuçları getir ve manuel filtrele (debug için)
+      if (allResults.length === 0) {
+        try {
+          const allResultsQuery = query(
+            collection(db, 'results'),
+            orderBy('createdAt', 'desc')
+          );
+          const allResultsSnapshot = await getDocs(allResultsQuery);
+          const allResultsData = allResultsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          console.log('🔍 Debug - Tüm sonuçlar (ilk 10):', allResultsData.length, allResultsData.slice(0, 10));
+          
+          // Öğrencinin sonuçlarını manuel filtrele
+          const filteredResults = allResultsData.filter((result: any) => {
+            return result.studentId === selectedStudent || 
+                   result.student_id === selectedStudent ||
+                   result.student === selectedStudent;
+          });
+          console.log('🔍 Debug - Manuel filtrelenmiş sonuçlar:', filteredResults.length, filteredResults);
+          if (filteredResults.length > 0) allResults = filteredResults;
+        } catch (error) {
+          console.log('🔍 Debug - Tüm sonuçlar araması hatası:', error);
+        }
+      }
+
+      console.log('🔍 Debug - Öğrencinin sonuçları (final):', allResults.length, allResults);
 
       // Sadece öğrencinin katıldığı denemeleri filtrele
       const studentExamIds = new Set(allResults.map((result: any) => result.examId));
@@ -6902,6 +6958,19 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
             <p className="text-blue-700">Sınıf: {selectedSinif}</p>
             <p className="text-blue-700">Toplam Sonuç: {examResults.length}</p>
             <p className="text-blue-700">Listelenen Deneme: {studentExams.length}</p>
+            
+            {examResults.length === 0 && (
+              <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded">
+                <p className="text-red-800 font-semibold">❌ Sorun Tespit Edildi!</p>
+                <p className="text-red-700 text-xs mt-1">
+                  Firestore'da bu öğrencinin hiç deneme sonucu bulunmuyor.
+                </p>
+                <p className="text-red-700 text-xs mt-1">
+                  🔍 Console.log'ları kontrol edin - farklı arama stratejileri deneniyor.
+                </p>
+              </div>
+            )}
+            
             {examResults.length > 0 && (
               <div className="mt-2">
                 <p className="text-blue-700 font-semibold">İlk 3 Sonuç:</p>
