@@ -6933,6 +6933,12 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
             result.examId === selectedExam || result.id === selectedExam
           );
           
+          // Debug bilgileri
+          console.log('🔍 DEBUG - Seçilen deneme:', selectedExam);
+          console.log('🔍 DEBUG - Mevcut sonuçlar:', examResults);
+          console.log('🔍 DEBUG - Seçilen sonuç:', selectedExamResult);
+          console.log('🔍 DEBUG - Sonuç verisi:', JSON.stringify(selectedExamResult, null, 2));
+          
           if (!selectedExamResult) return null;
           
           // Ders listesi ve kısaltmaları
