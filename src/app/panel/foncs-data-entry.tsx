@@ -6931,6 +6931,10 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           const result = examResults.find((r: any) => r.examId === selectedExam || r.id === selectedExam);
           if (!result) return null;
           
+          // Veri debug bilgileri
+          // console.log('🔍 DEBUG - Seçilen sonuç:', result);
+          // console.log('🔍 DEBUG - Nets:', result.nets);
+          
           const subjects = [
             { key: 'turkce', name: 'Türkçe', icon: '📖' },
             { key: 'matematik', name: 'Matematik', icon: '🔢' },
@@ -6941,12 +6945,24 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           ];
           
           const getScore = (subject: string) => {
-            const net = result.nets?.[subject] || 0;
+            // Student dashboard'daki gibi number'a çevir
+            const netValue = result.nets?.[subject];
+            const net = typeof netValue === 'string' ? parseFloat(netValue) : (netValue || 0);
+            
+            // Debug: console.log(`🔍 DEBUG - ${subject} raw:`, netValue, `parsed:`, net);
+            
+            // Doğru/Yanlış/Boş hesaplaması - Student dashboard'a göre basit tahmin
+            // Net = Doğru - (Yanlış/4) formülünden tahmin yapalım
+            // 20 soruluk denemede yaklaşık hesap
+            const dogru = Math.round(Math.max(0, net * 4));
+            const yanlis = Math.max(0, dogru - Math.round(net * 5));
+            const bos = Math.max(0, 20 - dogru - yanlis);
+            
             return { 
               net: parseFloat(net.toFixed(1)), 
-              D: Math.round(Math.max(0, net * 3)),
-              Y: Math.max(0, Math.round(net * 3) - Math.round(net * 4)),
-              B: Math.max(0, 20 - Math.round(net * 3))
+              D: dogru,
+              Y: yanlis,
+              B: bos
             };
           };
           
@@ -6954,7 +6970,7 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
             const score = getScore(s.key);
             return {
               totalNet: acc.totalNet + score.net,
-              totalPuan: acc.totalPuan + Math.round(score.net * 100)
+              totalPuan: acc.totalPuan + Math.round(score.net * 10) // Daha gerçekçi puan hesabı
             };
           }, { totalNet: 0, totalPuan: 0 });
           
