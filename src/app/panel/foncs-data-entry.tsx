@@ -6745,20 +6745,7 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
       const { getDocs, collection, query, where, orderBy } = await import('firebase/firestore');
       const { db } = await import('../../firebase');
 
-      // Öğrencinin denemelerini getir
-      const examsQuery = query(
-        collection(db, 'exams'),
-        where('studentId', '==', selectedStudent),
-        orderBy('examDate', 'desc')
-      );
-      const examsSnapshot = await getDocs(examsQuery);
-      const exams = examsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setStudentExams(exams);
-
-      // Öğrencinin sonuçlarını da getir
+      // Öğrencinin sonuçlarını getir (deneme verileri results koleksiyonunda)
       const resultsQuery = query(
         collection(db, 'results'),
         where('studentId', '==', selectedStudent),
@@ -6769,6 +6756,17 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
         id: doc.id,
         ...doc.data()
       }));
+      
+      // Sonuçlardan deneme bilgilerini çıkar
+      const exams = results.map((result: any, index) => ({
+        id: result.examId || result.id || `exam-${index}`,
+        name: result.examName || result.title || `Deneme ${index + 1}`,
+        examName: result.examName || result.title || `Deneme ${index + 1}`,
+        examDate: result.examDate || result.date || new Date(),
+        title: result.examName || result.title || `Deneme ${index + 1}`
+      }));
+
+      setStudentExams(exams);
       setExamResults(results);
     } catch (error) {
       console.error('Deneme verilerini yükleme hatası:', error);
@@ -6877,34 +6875,43 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
         </div>
 
         {/* Deneme Seçimi */}
-        {selectedStudent && studentExams.length > 0 && (
+        {selectedStudent && (
           <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               📚 Deneme Seçin:
             </label>
-            <select
-              value={selectedExam}
-              onChange={(e) => {
-                setSelectedExam(e.target.value);
-                setEvaluationText('');
-              }}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-            >
-              <option value="">Deneme seçiniz...</option>
-              {studentExams.map((exam) => (
-                <option key={exam.id} value={exam.id}>
-                  {exam.name || exam.examName} - {new Date(exam.examDate).toLocaleDateString('tr-TR')}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {selectedStudent && studentExams.length === 0 && (
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-800 text-sm">
-              <strong>⚠️ Bilgi:</strong> Bu öğrencinin henüz deneme kaydı bulunmuyor.
-            </p>
+            
+            {loading ? (
+              <div className="p-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-3"></div>
+                <span className="text-gray-600">Denemeler yükleniyor...</span>
+              </div>
+            ) : studentExams.length > 0 ? (
+              <select
+                value={selectedExam}
+                onChange={(e) => {
+                  setSelectedExam(e.target.value);
+                  setEvaluationText('');
+                }}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              >
+                <option value="">Deneme seçiniz...</option>
+                {studentExams.map((exam) => (
+                  <option key={exam.id} value={exam.id}>
+                    {exam.name || exam.examName || exam.title} - {new Date(exam.examDate).toLocaleDateString('tr-TR')}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800 text-sm">
+                  <strong>⚠️ Bilgi:</strong> Bu öğrencinin henüz deneme sonucu bulunmuyor.
+                </p>
+                <p className="text-yellow-700 text-xs mt-2">
+                  Toplam {examResults.length} sonuç bulundu, {studentExams.length} deneme listelendi.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
