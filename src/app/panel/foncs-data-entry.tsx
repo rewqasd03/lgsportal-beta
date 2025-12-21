@@ -6948,13 +6948,10 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
             { key: 'ingilizce', name: 'İngilizce', icon: '🗣️' }
           ];
           
-          const getScore = (subject: string) => {
+          const getScore = (subject: string, resultData = result) => {
             // Scores objesi içindeki D/Y/B/N değerleri
-            const scoreFromScores = result.scores?.[subject];
-            const netsFromScores = result.nets?.[subject];
-            
-            // Debug: console.log(`🔍 DEBUG - ${subject} scores:`, scoreFromScores);
-            // console.log(`🔍 DEBUG - ${subject} nets:`, netsFromScores);
+            const scoreFromScores = resultData.scores?.[subject];
+            const netsFromScores = resultData.nets?.[subject];
             
             let D = 0, Y = 0, B = 0, net = 0;
             
@@ -6966,8 +6963,6 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
               
               // Net hesaplama: Net = D - Y/3 (kullanıcıya göre)
               net = parseFloat((D - (Y / 3)).toFixed(1));
-              
-              // Debug: console.log(`🔍 DEBUG - ${subject} hesaplanan net: ${D} - (${Y}/3) = ${net}`);
             }
             // Eğer sadece nets varsa, onu kullan
             else if (netsFromScores !== undefined) {
@@ -6982,13 +6977,38 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
             return { D, Y, B, net };
           };
           
-          const totals = subjects.reduce((acc, s) => {
+          // Toplam net hesaplama (sadece seçili öğrenci için)
+          const totalNet = subjects.reduce((acc, s) => {
             const score = getScore(s.key);
-            return {
-              totalNet: acc.totalNet + score.net,
-              totalPuan: acc.totalPuan + Math.round(score.net * 10) // Daha gerçekçi puan hesabı
-            };
-          }, { totalNet: 0, totalPuan: 0 });
+            return acc + score.net;
+          }, 0);
+          
+          // Öğrencinin toplam puanı (Firestore'dan al)
+          const studentTotalPuan = result.puan || result.totalScore || 0;
+          
+          // Sınıf ortalamaları hesaplama (denemedeki tüm öğrenciler)
+          const sinifPuanOrtalamasi = examResults.length > 0 ? 
+            examResults.reduce((acc, exam) => acc + (exam.puan || exam.totalScore || 0), 0) / examResults.length : 0;
+          
+          const sinifNetOrtalamasi = examResults.length > 0 ? 
+            examResults.reduce((acc, exam) => {
+              const examTotalNet = subjects.reduce((netAcc, s) => {
+                const examScore = getScore(s.key, exam);
+                return netAcc + examScore.net;
+              }, 0);
+              return acc + examTotalNet;
+            }, 0) / examResults.length : 0;
+          
+          // Exam objesinden genel ortalamaları al
+          const selectedExamData = studentExams.find(exam => exam.id === selectedExam);
+          const genelPuanOrtalamasi = selectedExamData?.generalAverages?.generalScore || 0;
+          const genelNetOrtalamasi = selectedExamData?.generalAverages?.nets?.total || 0;
+          
+          // Debug: console.log(`🔍 DEBUG - Student puan: ${studentTotalPuan}`);
+          // console.log(`🔍 DEBUG - Sınıf puan ortalaması: ${sinifPuanOrtalamasi}`);
+          // console.log(`🔍 DEBUG - Sınıf net ortalaması: ${sinifNetOrtalamasi}`);
+          // console.log(`🔍 DEBUG - Genel puan ortalaması: ${genelPuanOrtalamasi}`);
+          // console.log(`🔍 DEBUG - Genel net ortalaması: ${genelNetOrtalamasi}`);
           
           // Debug toplam hesaplamaları
           // console.log(`🔍 DEBUG - Toplam Net: ${totals.totalNet}`);
@@ -7055,20 +7075,41 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
               <div className="p-4 bg-gray-50 border-t">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-blue-600">{totals.totalNet.toFixed(1)}</div>
+                    <div className="text-lg font-bold text-blue-600">{totalNet.toFixed(1)}</div>
                     <div className="text-sm text-gray-600">Toplam Net</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-green-600">{totals.totalPuan}</div>
+                    <div className="text-lg font-bold text-green-600">{Math.round(studentTotalPuan)}</div>
                     <div className="text-sm text-gray-600">Toplam Puan</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-purple-600">{Math.round(totals.totalNet + 20)}</div>
-                    <div className="text-sm text-gray-600">Sınıf Ortalaması</div>
+                    <div className="text-lg font-bold text-purple-600">{Math.round(sinifPuanOrtalamasi)}</div>
+                    <div className="text-sm text-gray-600">Sınıf Puan Ort.</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-orange-600">{Math.round(totals.totalNet + 15)}</div>
-                    <div className="text-sm text-gray-600">Genel Ortalama</div>
+                    <div className="text-lg font-bold text-orange-600">{Math.round(sinifNetOrtalamasi * 10) / 10}</div>
+                    <div className="text-sm text-gray-600">Sınıf Net Ort.</div>
+                  </div>
+                </div>
+                
+                {/* İkinci satır - Genel ortalamalar */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-indigo-600">{Math.round(genelPuanOrtalamasi)}</div>
+                    <div className="text-sm text-gray-600">Genel Puan Ort.</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-pink-600">{Math.round(genelNetOrtalamasi * 10) / 10}</div>
+                    <div className="text-sm text-gray-600">Genel Net Ort.</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-gray-600">{examResults.length}</div>
+                    <div className="text-sm text-gray-600">Deneme Katılımcısı</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-emerald-600">{Math.round(studentTotalPuan) > 0 ? 
+                      Math.round((studentTotalPuan / sinifPuanOrtalamasi) * 100) : 0}%</div>
+                    <div className="text-sm text-gray-600">Sınıf Karşılaştırması</div>
                   </div>
                 </div>
               </div>
