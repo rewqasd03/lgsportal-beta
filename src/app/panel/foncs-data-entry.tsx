@@ -4034,7 +4034,12 @@ export default function FoncsDataEntry() {
       case "toplu": return <BulkTab />;
       case "excel-import": return <ExcelImportTab students={students} exams={exams} onDataUpdate={loadDataFromFirebase} />;
       case "kitap-sinavi": return <KitapSinaviTab students={students} onDataUpdate={loadDataFromFirebase} />;
-
+      case "odev-takibi": return (
+        <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <h2 className="text-xl font-bold text-yellow-800 mb-2">🚧 Ödev Takibi</h2>
+          <p className="text-yellow-700">Yeni ödev takibi sistemi yakında aktif olacak.</p>
+        </div>
+      );
       case "eksik-konu": return <EksikKonuBildirimiTab students={students} onDataUpdate={loadDataFromFirebase} />;
 
       case "hedef": return <TargetTab />;
