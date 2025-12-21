@@ -6932,12 +6932,12 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           if (!result) return null;
           
           // Veri debug bilgileri - gerçek veri yapısını görmek için
-          console.log('🔍 DEBUG - Seçilen sonuç:', result);
-          console.log('🔍 DEBUG - Nets:', result.nets);
-          console.log('🔍 DEBUG - Scores:', result.scores);
-          console.log('🔍 DEBUG - Scores.turkce:', result.scores?.turkce);
-          console.log('🔍 DEBUG - Scores.matematik:', result.scores?.matematik);
-          console.log('🔍 DEBUG - Scores.fen:', result.scores?.fen);
+          // console.log('🔍 DEBUG - Seçilen sonuç:', result);
+          // console.log('🔍 DEBUG - Nets:', result.nets);
+          // console.log('🔍 DEBUG - Scores:', result.scores);
+          // console.log('🔍 DEBUG - Scores.turkce:', result.scores?.turkce);
+          // console.log('🔍 DEBUG - Scores.matematik:', result.scores?.matematik);
+          // console.log('🔍 DEBUG - Scores.fen:', result.scores?.fen);
           
           const subjects = [
             { key: 'turkce', name: 'Türkçe', icon: '📖' },
@@ -6953,32 +6953,33 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
             const scoreFromScores = result.scores?.[subject];
             const netsFromScores = result.nets?.[subject];
             
-            console.log(`🔍 DEBUG - ${subject} scores:`, scoreFromScores);
-            console.log(`🔍 DEBUG - ${subject} nets:`, netsFromScores);
+            // Debug: console.log(`🔍 DEBUG - ${subject} scores:`, scoreFromScores);
+            // console.log(`🔍 DEBUG - ${subject} nets:`, netsFromScores);
             
-            // Eğer scores objesi içinde D/Y/B/N varsa onu kullan
+            let D = 0, Y = 0, B = 0, net = 0;
+            
+            // Eğer scores objesi içinde D/Y/B varsa onu kullan
             if (scoreFromScores && typeof scoreFromScores === 'object') {
-              return {
-                D: scoreFromScores.D || 0,
-                Y: scoreFromScores.Y || 0,
-                B: scoreFromScores.B || 0,
-                net: parseFloat((scoreFromScores.N || scoreFromScores.net || 0).toFixed(1))
-              };
+              D = scoreFromScores.D || 0;
+              Y = scoreFromScores.Y || 0;
+              B = scoreFromScores.B || 0;
+              
+              // Net hesaplama: Net = D - Y/3 (kullanıcıya göre)
+              net = parseFloat((D - (Y / 3)).toFixed(1));
+              
+              // Debug: console.log(`🔍 DEBUG - ${subject} hesaplanan net: ${D} - (${Y}/3) = ${net}`);
             }
-            
             // Eğer sadece nets varsa, onu kullan
-            if (netsFromScores !== undefined) {
-              const net = typeof netsFromScores === 'string' ? parseFloat(netsFromScores) : netsFromScores;
-              return {
-                D: Math.round(Math.max(0, net * 4)),
-                Y: Math.max(0, Math.round(net * 4) - Math.round(net * 5)),
-                B: Math.max(0, 20 - Math.round(net * 4)),
-                net: parseFloat(net.toFixed(1))
-              };
+            else if (netsFromScores !== undefined) {
+              net = typeof netsFromScores === 'string' ? parseFloat(netsFromScores) : netsFromScores;
+              
+              // Nets varsa ama D/Y/B yoksa tahmin et
+              D = Math.round(Math.max(0, net * 4));
+              Y = Math.max(0, Math.round(net * 4) - Math.round(net * 5));
+              B = Math.max(0, 20 - D - Y);
             }
             
-            // Hiçbiri yoksa 0 döndür
-            return { D: 0, Y: 0, B: 0, net: 0 };
+            return { D, Y, B, net };
           };
           
           const totals = subjects.reduce((acc, s) => {
@@ -6988,6 +6989,11 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
               totalPuan: acc.totalPuan + Math.round(score.net * 10) // Daha gerçekçi puan hesabı
             };
           }, { totalNet: 0, totalPuan: 0 });
+          
+          // Debug toplam hesaplamaları
+          // console.log(`🔍 DEBUG - Toplam Net: ${totals.totalNet}`);
+          // console.log(`🔍 DEBUG - Toplam Puan: ${totals.totalPuan}`);
+          // console.log(`🔍 DEBUG - Subjects length: ${subjects.length}`);
           
           return (
             <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200">
