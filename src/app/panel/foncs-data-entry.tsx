@@ -4034,12 +4034,7 @@ export default function FoncsDataEntry() {
       case "toplu": return <BulkTab />;
       case "excel-import": return <ExcelImportTab students={students} exams={exams} onDataUpdate={loadDataFromFirebase} />;
       case "kitap-sinavi": return <KitapSinaviTab students={students} onDataUpdate={loadDataFromFirebase} />;
-      case "odev-takibi": return (
-        <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <h2 className="text-xl font-bold text-yellow-800 mb-2">🚧 Ödev Takibi</h2>
-          <p className="text-yellow-700">Yeni ödev takibi sistemi yakında aktif olacak.</p>
-        </div>
-      );
+      case "odev-takibi": return <OdevTakibiTab students={students} onDataUpdate={loadDataFromFirebase} />;
       case "eksik-konu": return <EksikKonuBildirimiTab students={students} onDataUpdate={loadDataFromFirebase} />;
 
       case "hedef": return <TargetTab />;
@@ -5714,6 +5709,397 @@ const KitapSinaviTab = ({ students, onDataUpdate }: {
                             🗑️
                           </button>
                         </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// 📝 Ödev Takibi Tab Component
+const OdevTakibiTab = ({ students, onDataUpdate }: { 
+  students: any[]; 
+  onDataUpdate: () => void;
+}) => {
+  const [selectedSinif, setSelectedSinif] = useState<string>('');
+  const [selectedDers, setSelectedDers] = useState<string>('');
+  const [odevDurumlar, setOdevDurumlar] = useState<{[key: string]: string}>({});
+  const [tarih, setTarih] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [gecmisKayitlar, setGecmisKayitlar] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [dirtyStates, setDirtyStates] = useState<{[key: string]: boolean}>({});
+
+  // Dersler listesi
+  const dersler = [
+    { key: 'turkce', label: '📖 Türkçe', color: '#10B981' },
+    { key: 'matematik', label: '🔢 Matematik', color: '#F59E0B' },
+    { key: 'fen', label: '🔬 Fen Bilimleri', color: '#3B82F6' },
+    { key: 'sosyal', label: '🌍 Sosyal Bilgiler', color: '#8B5CF6' },
+    { key: 'din', label: '🕌 Din Kültürü', color: '#F97316' },
+    { key: 'ingilizce', label: '🇺🇸 İngilizce', color: '#EF4444' }
+  ];
+
+  // Sınıf listesi
+  const siniflar = Array.from(new Set(students.map(s => s.class))).sort();
+
+  // Seçili sınıfın öğrencileri
+  const seciliSinifOgrencileri = students.filter(s => s.class === selectedSinif);
+
+  // Geçmiş kayıtları yükle
+  useEffect(() => {
+    loadGecmisKayitlar();
+  }, []);
+
+  // Seçilen ders ve sınıfa göre ödev durumlarını yükle
+  useEffect(() => {
+    if (selectedDers && selectedSinif && tarih) {
+      loadOdevDurumlari();
+    }
+  }, [selectedDers, selectedSinif, tarih]);
+
+  const loadGecmisKayitlar = async () => {
+    setLoading(true);
+    try {
+      const { getOdevDurumlariTumKayitlar } = await import('../../firebase');
+      const kayitlar = await getOdevDurumlariTumKayitlar();
+      setGecmisKayitlar(kayitlar);
+    } catch (error) {
+      console.error('Geçmiş kayıtlar yüklenirken hata:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadOdevDurumlari = async () => {
+    try {
+      const { getOdevDurumlari } = await import('../../firebase');
+      const durumlar = await getOdevDurumlari(selectedDers, selectedSinif, tarih);
+      
+      // Tüm öğrenciler için varsayılan durumu 'yapildi' olarak ayarla
+      const yeniDurumlar: {[key: string]: string} = {};
+      seciliSinifOgrencileri.forEach(student => {
+        yeniDurumlar[student.id] = durumlar[student.id] || 'yapildi';
+      });
+      
+      setOdevDurumlar(yeniDurumlar);
+      setDirtyStates({});
+    } catch (error) {
+      console.error('Ödev durumları yüklenirken hata:', error);
+    }
+  };
+
+  // Öğrenci ödev durumunu değiştir
+  const handleOdevDurumu = (studentId: string, durum: string) => {
+    setOdevDurumlar(prev => ({
+      ...prev,
+      [studentId]: durum
+    }));
+
+    // Değişikliği takip et
+    setDirtyStates(prev => ({
+      ...prev,
+      [studentId]: true
+    }));
+  };
+
+  // Tüm değişiklikleri kaydet
+  const handleSaveAllChanges = async () => {
+    if (Object.keys(dirtyStates).length === 0) {
+      alert('Kaydedilecek değişiklik bulunmamaktadır.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { updateOdevDurumu } = await import('../../firebase');
+      
+      // Tüm değişiklikleri kaydet
+      const savePromises = Object.entries(dirtyStates).map(([studentId, isDirty]) => {
+        if (isDirty) {
+          const durum = odevDurumlar[studentId] || 'yapildi';
+          return updateOdevDurumu(selectedDers, selectedSinif, tarih, studentId, durum);
+        }
+      });
+
+      await Promise.all(savePromises);
+      
+      // Durumu temizle
+      setDirtyStates({});
+      
+      // Geçmiş kayıtları yenile
+      await loadGecmisKayitlar();
+      
+      // Öğrenci dashboard'ını güncelle
+      if (onDataUpdate) onDataUpdate();
+      
+      alert('✅ Tüm ödev durumları başarıyla kaydedildi!');
+    } catch (error) {
+      console.error('Ödev durumları kaydedilirken hata:', error);
+      alert('❌ Kaydetme sırasında hata oluştu!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Geçmiş kaydı düzenle
+  const handleEditRecord = (record: any) => {
+    setEditingRecord(record);
+    setSelectedSinif(record.sinif);
+    setSelectedDers(record.ders);
+    setTarih(record.tarih);
+    
+    // O kayıttaki durumları yükle
+    const recordDurumlar: {[key: string]: string} = {};
+    record.ogrenciler.forEach((item: any) => {
+      recordDurumlar[item.ogrenciId] = item.durum;
+    });
+    setOdevDurumlar(recordDurumlar);
+    setDirtyStates({});
+  };
+
+  // İstatistikler
+  const istatistikler = {
+    toplamOgrenci: seciliSinifOgrencileri.length,
+    yapildi: seciliSinifOgrencileri.filter(student => odevDurumlar[student.id] === 'yapildi').length,
+    eksikYapildi: seciliSinifOgrencileri.filter(student => odevDurumlar[student.id] === 'eksikYapildi').length,
+    yapilmadi: seciliSinifOgrencileri.filter(student => odevDurumlar[student.id] === 'yapilmadi').length
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Başlık */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold mb-2">📝 Ödev Takibi</h2>
+        <p className="text-blue-100">Günlük ödev durumlarını takip edin ve yönetin</p>
+      </div>
+
+      {/* Filtreler */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Sınıf Seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              🏫 Sınıf Seçin:
+            </label>
+            <select
+              value={selectedSinif}
+              onChange={(e) => {
+                setSelectedSinif(e.target.value);
+                setSelectedDers('');
+                setOdevDurumlar({});
+              }}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Sınıf seçiniz...</option>
+              {siniflar.map((sinif) => (
+                <option key={sinif} value={sinif}>{sinif}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Ders Seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📚 Ders Seçin:
+            </label>
+            <select
+              value={selectedDers}
+              onChange={(e) => setSelectedDers(e.target.value)}
+              disabled={!selectedSinif}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+            >
+              <option value="">Ders seçiniz...</option>
+              {dersler.map((ders) => (
+                <option key={ders.key} value={ders.key}>{ders.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tarih Seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📅 Tarih Seçin:
+            </label>
+            <input
+              type="date"
+              value={tarih}
+              onChange={(e) => setTarih(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Öğrenci Listesi */}
+      {selectedDers && selectedSinif && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">
+              📋 Öğrenci Listesi - {dersler.find(d => d.key === selectedDers)?.label} ({selectedSinif})
+            </h3>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleSaveAllChanges}
+                disabled={Object.keys(dirtyStates).length === 0 || loading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+              >
+                {loading ? '⏳' : '💾'} {Object.keys(dirtyStates).length > 0 ? `Kaydet (${Object.keys(dirtyStates).length})` : 'Kaydet'}
+              </button>
+            </div>
+          </div>
+
+          {/* İstatistikler */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="bg-green-100 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-green-600">{istatistikler.toplamOgrenci}</div>
+              <div className="text-sm text-green-700">Toplam Öğrenci</div>
+            </div>
+            <div className="bg-blue-100 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-blue-600">{istatistikler.yapildi}</div>
+              <div className="text-sm text-blue-700">✅ Yapıldı</div>
+            </div>
+            <div className="bg-yellow-100 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-yellow-600">{istatistikler.eksikYapildi}</div>
+              <div className="text-sm text-yellow-700">⚠️ Eksik Yapıldı</div>
+            </div>
+            <div className="bg-red-100 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-red-600">{istatistikler.yapilmadi}</div>
+              <div className="text-sm text-red-700">❌ Yapılmadı</div>
+            </div>
+          </div>
+
+          {/* Öğrenci Tablosu */}
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="p-3 text-left">Öğrenci</th>
+                  <th className="p-3 text-center">Durum</th>
+                </tr>
+              </thead>
+              <tbody>
+                {seciliSinifOgrencileri.map((student) => (
+                  <tr key={student.id} className="border-t hover:bg-gray-50">
+                    <td className="p-3 font-medium">{student.name}</td>
+                    <td className="p-3">
+                      <div className="flex justify-center space-x-2">
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`odev-${student.id}`}
+                            value="yapildi"
+                            checked={odevDurumlar[student.id] === 'yapildi'}
+                            onChange={(e) => handleOdevDurumu(student.id, e.target.value)}
+                            className="sr-only"
+                          />
+                          <div className={`px-3 py-2 rounded-lg border-2 transition-all ${
+                            odevDurumlar[student.id] === 'yapildi' 
+                              ? 'bg-green-100 border-green-500 text-green-700' 
+                              : 'bg-gray-50 border-gray-300 text-gray-500 hover:border-green-300'
+                          }`}>
+                            ✅ Yapıldı
+                          </div>
+                        </label>
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`odev-${student.id}`}
+                            value="eksikYapildi"
+                            checked={odevDurumlar[student.id] === 'eksikYapildi'}
+                            onChange={(e) => handleOdevDurumu(student.id, e.target.value)}
+                            className="sr-only"
+                          />
+                          <div className={`px-3 py-2 rounded-lg border-2 transition-all ${
+                            odevDurumlar[student.id] === 'eksikYapildi' 
+                              ? 'bg-yellow-100 border-yellow-500 text-yellow-700' 
+                              : 'bg-gray-50 border-gray-300 text-gray-500 hover:border-yellow-300'
+                          }`}>
+                            ⚠️ Eksik Yapıldı
+                          </div>
+                        </label>
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`odev-${student.id}`}
+                            value="yapilmadi"
+                            checked={odevDurumlar[student.id] === 'yapilmadi'}
+                            onChange={(e) => handleOdevDurumu(student.id, e.target.value)}
+                            className="sr-only"
+                          />
+                          <div className={`px-3 py-2 rounded-lg border-2 transition-all ${
+                            odevDurumlar[student.id] === 'yapilmadi' 
+                              ? 'bg-red-100 border-red-500 text-red-700' 
+                              : 'bg-gray-50 border-gray-300 text-gray-500 hover:border-red-300'
+                          }`}>
+                            ❌ Yapılmadı
+                          </div>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Geçmiş Kayıtlar */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-4">📊 Geçmiş Kontroller</h3>
+        
+        {loading && gecmisKayitlar.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">⏳ Geçmiş kayıtlar yükleniyor...</div>
+        ) : gecmisKayitlar.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">📝 Henüz hiç ödev kontrolü yapılmamış.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="p-3 text-left">Tarih</th>
+                  <th className="p-3 text-left">Sınıf</th>
+                  <th className="p-3 text-left">Ders</th>
+                  <th className="p-3 text-center">Yapıldı</th>
+                  <th className="p-3 text-center">Eksik Yapıldı</th>
+                  <th className="p-3 text-center">Yapılmadı</th>
+                  <th className="p-3 text-center">İşlemler</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gecmisKayitlar.map((kayit) => {
+                  const yapildiCount = kayit.ogrenciler.filter((o: any) => o.durum === 'yapildi').length;
+                  const eksikYapildiCount = kayit.ogrenciler.filter((o: any) => o.durum === 'eksikYapildi').length;
+                  const yapilmadiCount = kayit.ogrenciler.filter((o: any) => o.durum === 'yapilmadi').length;
+                  
+                  return (
+                    <tr key={`${kayit.tarih}-${kayit.ders}-${kayit.sinif}`} className="border-t hover:bg-gray-50">
+                      <td className="p-3 font-medium">{new Date(kayit.tarih).toLocaleDateString('tr-TR')}</td>
+                      <td className="p-3">{kayit.sinif}</td>
+                      <td className="p-3">{dersler.find(d => d.key === kayit.ders)?.label || kayit.ders}</td>
+                      <td className="p-3 text-center">
+                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-sm">{yapildiCount}</span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">{eksikYapildiCount}</span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-sm">{yapilmadiCount}</span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <button
+                          onClick={() => handleEditRecord(kayit)}
+                          className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                        >
+                          ✏️ Düzenle
+                        </button>
                       </td>
                     </tr>
                   );

@@ -1939,7 +1939,7 @@ export const getOdevler = async (): Promise<OdevIstatistik[]> => {
 };
 
 // Belirli bir ders, sınıf ve tarih için öğrenci durumlarını getir
-export const getOdevDurumlari = async (ders: string, sinif: string, tarih: string): Promise<{[studentId: string]: boolean}> => {
+export const getOdevDurumlari = async (ders: string, sinif: string, tarih: string): Promise<{[studentId: string]: string}> => {
   try {
     const odevRef = doc(db, 'odevler', `${ders}_${sinif}_${tarih}`);
     const docSnap = await getDoc(odevRef);
@@ -1963,7 +1963,7 @@ export const updateOdevDurumu = async (
   sinif: string, 
   tarih: string, 
   studentId: string, 
-  yapti: boolean
+  durum: string
 ): Promise<void> => {
   try {
     const odevId = `${ders}_${sinif}_${tarih}`;
@@ -1976,14 +1976,15 @@ export const updateOdevDurumu = async (
     // Yeni durumu ekle/güncelle
     const yeniDurumlar = {
       ...mevcutDurumlar,
-      [studentId]: yapti
+      [studentId]: durum
     };
     
     // İstatistikleri hesapla
     const toplamOgrenci = Object.keys(yeniDurumlar).length;
-    const odevYapan = Object.values(yeniDurumlar).filter(durum => durum === true).length;
-    const odevYapmayan = toplamOgrenci - odevYapan;
-    const yuzde = toplamOgrenci > 0 ? (odevYapan / toplamOgrenci) * 100 : 0;
+    const yapildi = Object.values(yeniDurumlar).filter(durum => durum === 'yapildi').length;
+    const eksikYapildi = Object.values(yeniDurumlar).filter(durum => durum === 'eksikYapildi').length;
+    const yapilmadi = Object.values(yeniDurumlar).filter(durum => durum === 'yapilmadi').length;
+    const yuzde = toplamOgrenci > 0 ? (yapildi / toplamOgrenci) * 100 : 0;
     
     const odevData = {
       ders,
@@ -1991,8 +1992,9 @@ export const updateOdevDurumu = async (
       tarih,
       ogrenciDurumlari: yeniDurumlar,
       toplamOgrenci,
-      odevYapan,
-      odevYapmayan,
+      yapildi,
+      eksikYapildi,
+      yapilmadi,
       yuzde: Math.round(yuzde * 100) / 100,
       updatedAt: new Date().toISOString()
     };
@@ -2003,10 +2005,46 @@ export const updateOdevDurumu = async (
       createdAt: docSnap.exists() ? docSnap.data().createdAt : new Date().toISOString()
     }, { merge: true });
     
-    console.log(`📝 Ödev durumu güncellendi: ${ders} - ${sinif} - ${tarih} - ${studentId} = ${yapti}`);
+    console.log(`📝 Ödev durumu güncellendi: ${ders} - ${sinif} - ${tarih} - ${studentId} = ${durum}`);
   } catch (error) {
     console.error('Ödev durumu güncelleme hatası:', error);
     throw error;
+  }
+};
+
+// Tüm ödev geçmiş kayıtlarını getir
+export const getOdevDurumlariTumKayitlar = async (): Promise<any[]> => {
+  try {
+    const odevlerRef = collection(db, 'odevler');
+    const q = query(odevlerRef, orderBy('tarih', 'desc'));
+    
+    const snapshot = await getDocs(q);
+    const kayitlar: any[] = [];
+    
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const ogrenciler = Object.entries(data.ogrenciDurumlari || {}).map(([ogrenciId, durum]) => ({
+        ogrenciId,
+        durum
+      }));
+      
+      kayitlar.push({
+        ders: data.ders,
+        sinif: data.sinif,
+        tarih: data.tarih,
+        ogrenciler,
+        toplamOgrenci: data.toplamOgrenci || 0,
+        yapildi: data.yapildi || 0,
+        eksikYapildi: data.eksikYapildi || 0,
+        yapilmadi: data.yapilmadi || 0,
+        updatedAt: data.updatedAt
+      });
+    });
+    
+    return kayitlar;
+  } catch (error) {
+    console.error('Ödev geçmiş kayıtları getirme hatası:', error);
+    return [];
   }
 };
 
