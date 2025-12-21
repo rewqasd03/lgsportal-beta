@@ -6738,7 +6738,7 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
     }
   }, [selectedStudent]);
 
-  // Sınıfın katıldığı denemeleri yükle
+  // Sınıfın katıldığı denemeleri yükle (student-dashboard yaklaşımı)
   const loadStudentExams = async () => {
     setLoading(true);
     try {
@@ -6748,7 +6748,7 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
       console.log('🔍 Debug - Seçilen sınıf:', selectedSinif);
       console.log('🔍 Debug - Seçilen öğrenci:', selectedStudent);
 
-      // Sınıfın katıldığı denemeleri getir
+      // Sınıfın katıldığı denemeleri getir (student-dashboard gibi)
       const examsQuery = query(
         collection(db, 'exams'),
         where('classes', 'array-contains', selectedSinif),
@@ -6760,87 +6760,34 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
         ...doc.data()
       }));
       
-      console.log('🔍 Debug - Sınıfın denemeleri (exams):', allExams.length, allExams);
+      console.log('🔍 Debug - Sınıfın denemeleri (exams):', allExams.length);
 
-      // Öğrencinin sonuçlarını getir - Farklı yaklaşımlar dene
-      let allResults: any[] = [];
+      // Tüm sonuçları al (student-dashboard yaklaşımı)
+      const resultsSnapshot = await getDocs(collection(db, 'results'));
+      const allResults = resultsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
       
-      // 1. studentId ile ara
-      try {
-        const resultsQuery = query(
-          collection(db, 'results'),
-          where('studentId', '==', selectedStudent),
-          orderBy('createdAt', 'desc')
-        );
-        const resultsSnapshot = await getDocs(resultsQuery);
-        const results1 = resultsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        console.log('🔍 Debug - studentId ile arama:', results1.length, results1);
-        if (results1.length > 0) allResults = results1;
-      } catch (error) {
-        console.log('🔍 Debug - studentId araması hatası:', error);
-      }
+      console.log('🔍 Debug - Tüm sonuçlar (results):', allResults.length);
+      console.log('🔍 Debug - İlk sonuç örneği:', allResults[0]);
 
-      // 2. studentId ile ara (farklı field adı)
-      if (allResults.length === 0) {
-        try {
-          const resultsQuery2 = query(
-            collection(db, 'results'),
-            where('student_id', '==', selectedStudent),
-            orderBy('createdAt', 'desc')
-          );
-          const resultsSnapshot2 = await getDocs(resultsQuery2);
-          const results2 = resultsSnapshot2.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          console.log('🔍 Debug - student_id ile arama:', results2.length, results2);
-          if (results2.length > 0) allResults = results2;
-        } catch (error) {
-          console.log('🔍 Debug - student_id araması hatası:', error);
-        }
+      // Bu öğrencinin sonuçlarını filtrele (student-dashboard yaklaşımı)
+      const studentResults = allResults.filter((result: any) => result.studentId === selectedStudent);
+      
+      console.log('🔍 Debug - Öğrenci sonuçları filtrelenmiş:', studentResults.length);
+      
+      if (studentResults.length > 0) {
+        console.log('🔍 Debug - İlk 3 öğrenci sonucu:', studentResults.slice(0, 3));
       }
-
-      // 3. Tüm sonuçları getir ve manuel filtrele (debug için)
-      if (allResults.length === 0) {
-        try {
-          const allResultsQuery = query(
-            collection(db, 'results'),
-            orderBy('createdAt', 'desc')
-          );
-          const allResultsSnapshot = await getDocs(allResultsQuery);
-          const allResultsData = allResultsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          console.log('🔍 Debug - Tüm sonuçlar (ilk 10):', allResultsData.length, allResultsData.slice(0, 10));
-          
-          // Öğrencinin sonuçlarını manuel filtrele
-          const filteredResults = allResultsData.filter((result: any) => {
-            return result.studentId === selectedStudent || 
-                   result.student_id === selectedStudent ||
-                   result.student === selectedStudent;
-          });
-          console.log('🔍 Debug - Manuel filtrelenmiş sonuçlar:', filteredResults.length, filteredResults);
-          if (filteredResults.length > 0) allResults = filteredResults;
-        } catch (error) {
-          console.log('🔍 Debug - Tüm sonuçlar araması hatası:', error);
-        }
-      }
-
-      console.log('🔍 Debug - Öğrencinin sonuçları (final):', allResults.length, allResults);
 
       // Sadece öğrencinin katıldığı denemeleri filtrele
-      const studentExamIds = new Set(allResults.map((result: any) => result.examId));
+      const studentExamIds = new Set(studentResults.map((result: any) => result.examId));
       console.log('🔍 Debug - Öğrencinin deneme IDleri:', Array.from(studentExamIds));
       
       const studentExams = allExams.filter(exam => studentExamIds.has(exam.id));
-      const studentResults = allResults.filter((result: any) => studentExamIds.has(result.examId));
-
-      console.log('🔍 Debug - Eşleşen denemeler:', studentExams.length, studentExams);
-      console.log('🔍 Debug - Eşleşen sonuçlar:', studentResults.length, studentResults);
+      
+      console.log('🔍 Debug - Eşleşen denemeler:', studentExams.length);
 
       setStudentExams(studentExams);
       setExamResults(studentResults);
