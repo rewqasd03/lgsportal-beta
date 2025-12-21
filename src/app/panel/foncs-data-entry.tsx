@@ -6010,37 +6010,40 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
             </div>
           </div>
 
-          {/* İstatistikler */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="bg-green-100 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-green-600">{istatistikler.toplamOgrenci}</div>
-              <div className="text-sm text-green-700">Toplam Öğrenci</div>
+          {/* İstatistikler - sadece kayıt varsa göster */}
+          {Object.keys(odevDurumlar).length > 0 && (
+            <div className="grid grid-cols-4 gap-4 mb-6">
+              <div className="bg-green-100 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-green-600">{istatistikler.toplamOgrenci}</div>
+                <div className="text-sm text-green-700">Toplam Öğrenci</div>
+              </div>
+              <div className="bg-blue-100 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-blue-600">{istatistikler.yapildi}</div>
+                <div className="text-sm text-blue-700">✅ Yapıldı</div>
+              </div>
+              <div className="bg-yellow-100 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-yellow-600">{istatistikler.eksikYapildi}</div>
+                <div className="text-sm text-yellow-700">⚠️ Eksik Yapıldı</div>
+              </div>
+              <div className="bg-red-100 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-red-600">{istatistikler.yapilmadi}</div>
+                <div className="text-sm text-red-700">❌ Yapılmadı</div>
+              </div>
             </div>
-            <div className="bg-blue-100 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-blue-600">{istatistikler.yapildi}</div>
-              <div className="text-sm text-blue-700">✅ Yapıldı</div>
-            </div>
-            <div className="bg-yellow-100 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-yellow-600">{istatistikler.eksikYapildi}</div>
-              <div className="text-sm text-yellow-700">⚠️ Eksik Yapıldı</div>
-            </div>
-            <div className="bg-red-100 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-red-600">{istatistikler.yapilmadi}</div>
-              <div className="text-sm text-red-700">❌ Yapılmadı</div>
-            </div>
-          </div>
+          )}
 
-          {/* Öğrenci Tablosu */}
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="p-3 text-left">Öğrenci</th>
-                  <th className="p-3 text-center">Durum</th>
-                </tr>
-              </thead>
-              <tbody>
-                {seciliSinifOgrencileri.map((student) => (
+          {/* Öğrenci Tablosu - sadece kayıt varsa göster */}
+          {Object.keys(odevDurumlar).length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="p-3 text-left">Öğrenci</th>
+                    <th className="p-3 text-center">Durum</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {seciliSinifOgrencileri.map((student) => (
                   <tr key={student.id} className="border-t hover:bg-gray-50">
                     <td className="p-3 font-medium">{student.name}</td>
                     <td className="p-3">
@@ -6098,11 +6101,18 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                         </label>
                       </div>
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <div className="text-6xl mb-4">📝</div>
+              <h4 className="text-lg font-semibold text-gray-600 mb-2">Bu tarihte henüz ödev kontrolü yapılmamış</h4>
+              <p className="text-gray-500">Öğrencileri işaretleyip kaydettiğinizde burada görünecektir.</p>
+            </div>
+          )}
         </div>
       )}
 
