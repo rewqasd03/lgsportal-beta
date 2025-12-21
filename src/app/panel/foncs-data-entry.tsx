@@ -5770,13 +5770,15 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
   // Seçilen ders ve sınıfa göre ödev durumlarını yükle (sadece kayıt varsa)
   useEffect(() => {
     if (selectedDers && selectedSinif && tarih) {
-      loadOdevDurumlari();
+      // seciliSinifOgrencileri'yi yeniden hesapla (race condition önlemek için)
+      const currentSinifOgrencileri = students.filter(s => s.class === selectedSinif);
+      loadOdevDurumlariWithStudents(currentSinifOgrencileri);
     } else {
       // Seçimler temizlenirse durumları da temizle
       setOdevDurumlar({});
       setDirtyStates({});
     }
-  }, [selectedDers, selectedSinif, tarih]);
+  }, [selectedDers, selectedSinif, tarih, students]);
 
   const loadGecmisKayitlar = async () => {
     setLoading(true);
@@ -5791,7 +5793,9 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
     }
   };
 
-  const loadOdevDurumlari = async () => {
+  const loadOdevDurumlariWithStudents = async (currentSinifOgrencileri: any[]) => {
+    console.log('🔄 loadOdevDurumlariWithStudents başladı:', currentSinifOgrencileri.length, 'öğrenci');
+    
     try {
       const { getOdevDurumlari } = await import('../../firebase');
       const durumlar = await getOdevDurumlari(selectedDers, selectedSinif, tarih);
@@ -5800,14 +5804,21 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       if (Object.keys(durumlar).length > 0) {
         setOdevDurumlar(durumlar);
         setDirtyStates({}); // Mevcut kayıt varsa, dirty state'i temizle
+        console.log('📊 Mevcut kayıt bulundu, dirty states temizlendi:', Object.keys(durumlar).length, 'öğrenci');
       } else {
         // Hiç kayıt yoksa tüm öğrenciler için varsayılan "yapıldı" durumları ve YENİ KAYIT için dirty yap
+        console.log('🆕 Yeni ödev kontrolü - varsayılan durumlar oluşturuluyor');
+        
         const varsayilanDurumlar: {[key: string]: string} = {};
         const yeniDirtyStates: {[key: string]: boolean} = {};
-        seciliSinifOgrencileri.forEach(student => {
+        currentSinifOgrencileri.forEach(student => {
           varsayilanDurumlar[student.id] = 'yapildi'; // Varsayılan olarak yapıldı
           yeniDirtyStates[student.id] = true; // Yeni kayıt için tüm öğrencileri dirty yap
         });
+        
+        console.log('📝 varsayilanDurumlar:', Object.keys(varsayilanDurumlar).length, 'öğrenci');
+        console.log('📝 yeniDirtyStates:', Object.keys(yeniDirtyStates).length, 'öğrenci');
+        
         setOdevDurumlar(varsayilanDurumlar);
         setDirtyStates(yeniDirtyStates); // Yeni kayıt için tüm öğrencileri dirty olarak işaretle
         console.log('🆕 Yeni ödev kontrolü - tüm öğrenciler dirty olarak işaretlendi');
@@ -5817,13 +5828,19 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       // Hata durumunda da tüm öğrenciler için varsayılan "yapıldı" durumları
       const hataDurumlar: {[key: string]: string} = {};
       const hataDirtyStates: {[key: string]: boolean} = {};
-      seciliSinifOgrencileri.forEach(student => {
+      currentSinifOgrencileri.forEach(student => {
         hataDurumlar[student.id] = 'yapildi'; // Hata durumunda da varsayılan yapıldı
         hataDirtyStates[student.id] = true; // Hata durumunda da yeni kayıt olarak işaretle
       });
       setOdevDurumlar(hataDurumlar);
       setDirtyStates(hataDirtyStates);
     }
+  };
+
+  const loadOdevDurumlari = async () => {
+    // Mevcut seciliSinifOgrencileri'yi kullan
+    const currentSinifOgrencileri = students.filter(s => s.class === selectedSinif);
+    await loadOdevDurumlariWithStudents(currentSinifOgrencileri);
   };
 
   // Öğrenci ödev durumunu değiştir (sadece işaretlendiğinde)
@@ -5869,13 +5886,21 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
         return;
       }
       
-      // Yeni kayıt için veya değişiklik varsa tüm öğrencileri kaydet
-      const savePromises = seciliSinifOgrencileri.map(student => {
+      // Yeni kayıt için tüm öğrencileri tek seferde kaydet, değişiklik varsa mevcut kaydı güncelle
+      if (Object.keys(dirtyStates).length === 0 && mevcutKayitVar) {
+        // Sadece bilgi ver, kaydetme yapma
+        alert('ℹ️ Bu ödev kontrolü zaten kaydedilmiş. Herhangi bir değişiklik bulunmuyor.');
+        setLoading(false);
+        return;
+      }
+      
+      // Yeni kayıt için veya değişiklik varsa tüm öğrencileri sırayla kaydet
+      // Her öğrenci için güncel tüm durumları koruyarak kaydet
+      for (const student of seciliSinifOgrencileri) {
         const durum = odevDurumlar[student.id] || 'yapildi';
-        return updateOdevDurumu(selectedDers, selectedSinif, tarih, student.id, durum);
-      });
-
-      await Promise.all(savePromises);
+        await updateOdevDurumu(selectedDers, selectedSinif, tarih, student.id, durum);
+        console.log(`📝 Kaydedildi: ${student.name} = ${durum}`);
+      }
       
       console.log(`✅ Ödev durumları kaydedildi. ${seciliSinifOgrencileri.length} öğrenci güncellendi.`);
       
