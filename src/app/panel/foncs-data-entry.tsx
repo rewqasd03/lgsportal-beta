@@ -5920,39 +5920,44 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
     }
   };
 
-  // Sorunlu Din Kültürü verilerini temizle
-  const handleCleanDinKulturuData = async () => {
-    if (!confirm('⚠️ Din Kültürü dersindeki tüm sorunlu verileri silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) {
-      return;
-    }
-
+  // Din Kültürü verilerini Firebase'den doğrudan sil
+  const forceDeleteDinKulturuData = async () => {
     setLoading(true);
     try {
-      const { getFirestore, collection, getDocs, deleteDoc, doc } = await import('firebase/firestore');
+      const { getFirestore, collection, getDocs, deleteDoc, doc, query, where } = await import('firebase/firestore');
       const { db } = await import('../../firebase');
       
-      const odevlerRef = collection(db, 'odevler');
-      const snapshot = await getDocs(odevlerRef);
+      console.log('🔍 Firebase Din Kültürü verileri kontrol ediliyor...');
       
-      let deletedCount = 0;
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data();
-        // Din Kültürü ile ilgili tüm kayıtları sil
-        if (data.ders === 'din-kulturu') {
+      // Önce tüm Din Kültürü kayıtlarını bul
+      const odevlerRef = collection(db, 'odevler');
+      const dinKulturuQuery = query(odevlerRef, where('ders', '==', 'din-kulturu'));
+      const snapshot = await getDocs(dinKulturuQuery);
+      
+      console.log(`📊 Bulunan Din Kültürü kayıt sayısı: ${snapshot.size}`);
+      
+      if (snapshot.size === 0) {
+        console.log('✅ Firebase\'de Din Kültürü kaydı bulunamadı');
+        alert('✅ Firebase\'de Din Kültürü kaydı bulunamadı. Önbelleği temizlemek için sayfayı yenileyin.');
+      } else {
+        let deletedCount = 0;
+        for (const docSnap of snapshot.docs) {
+          console.log('🗑️ Siliniyor:', docSnap.id, docSnap.data());
           await deleteDoc(doc(db, 'odevler', docSnap.id));
           deletedCount++;
-          console.log('🗑️ Silindi:', docSnap.id);
         }
+        
+        console.log(`✅ ${deletedCount} adet Din Kültürü kaydı Firebase'den silindi`);
+        alert(`✅ ${deletedCount} adet Din Kültürü kaydı Firebase'den silindi! Sayfayı yenileyin.`);
       }
       
-      alert(`✅ ${deletedCount} adet Din Kültürü kaydı başarıyla silindi!`);
-      
-      // Geçmiş kayıtları yeniden yükle
+      // Geçmiş kayıtları ve cache'i temizle
+      setGecmisKayitlar([]);
       await loadGecmisKayitlar();
       
     } catch (error) {
-      console.error('Temizleme hatası:', error);
-      alert('❌ Temizleme sırasında bir hata oluştu.');
+      console.error('❌ Firebase silme hatası:', error);
+      alert('❌ Firebase\'den silme sırasında hata oluştu: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -6024,12 +6029,12 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
             <p className="text-xs text-red-600">Din Kültürü dersindeki bozuk kayıtları temizlemek için butonu kullanın</p>
           </div>
           <button
-            onClick={handleCleanDinKulturuData}
+            onClick={forceDeleteDinKulturuData}
             disabled={loading}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm font-medium"
-            title="Din Kültürü dersindeki tüm sorunlu verileri siler"
+            title="Din Kültürü dersindeki tüm sorunlu verileri Firebase'den siler"
           >
-            {loading ? '⏳' : '🗑️'} Din Kültürü Verilerini Temizle
+            {loading ? '⏳' : '🔥'} Firebase'den Din Kültürü Verilerini Sil
           </button>
         </div>
       </div>
@@ -6045,7 +6050,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                 <p className="text-xs text-red-600">Din Kültürü dersindeki bozuk kayıtları temizlemek için aşağıdaki butonu kullanın</p>
               </div>
               <button
-                onClick={handleCleanDinKulturuData}
+                onClick={forceDeleteDinKulturuData}
                 disabled={loading}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm font-medium"
                 title="Din Kültürü dersindeki tüm sorunlu verileri siler"
@@ -6130,7 +6135,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
               
               {/* Din Kültürü veri temizleme butonu */}
               <button
-                onClick={handleCleanDinKulturuData}
+                onClick={forceDeleteDinKulturuData}
                 disabled={loading}
                 className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm"
                 title="Din Kültürü dersindeki sorunlu verileri temizle"
