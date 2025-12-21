@@ -4393,22 +4393,35 @@ function DenemeDegerlendirmeText({ studentId, selectedExamId }: { studentId: str
 function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
   const [odevler, setOdevler] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   const [selectedDers, setSelectedDers] = useState<string>('');
   const [selectedTarih, setSelectedTarih] = useState<string>(new Date().toISOString().split('T')[0]);
 
   // Firebase fonksiyonlarını import et
   useEffect(() => {
-    loadOgrencilOdevGecmisi();
-  }, [reportData.student.id]);
+    if (reportData?.student?.id) {
+      loadOgrencilOdevGecmisi();
+    }
+  }, [reportData?.student?.id]);
 
   const loadOgrencilOdevGecmisi = async () => {
+    if (!reportData?.student?.id) {
+      setError('Öğrenci bilgisi bulunamadı');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
+    setError('');
+    
     try {
       const { getOgrencilOdevGecmisi } = await import('../../firebase');
       const ogrencilOdevGecmisi = await getOgrencilOdevGecmisi(reportData.student.id);
       setOdevler(ogrencilOdevGecmisi);
     } catch (error) {
       console.error('Öğrenci ödev geçmişi yüklenirken hata:', error);
+      setError('Ödev verileri yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+      setOdevler([]);
     } finally {
       setLoading(false);
     }
@@ -4468,6 +4481,24 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
       <div className="flex justify-center items-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
         <span className="ml-3 text-gray-600">Ödev verileriniz yükleniyor...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-center">
+          <div className="text-red-500 text-4xl mb-4">⚠️</div>
+          <h3 className="text-lg font-semibold text-red-800 mb-2">Hata Oluştu</h3>
+          <p className="text-red-700 mb-4">{error}</p>
+          <button
+            onClick={loadOgrencilOdevGecmisi}
+            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+          >
+            Tekrar Dene
+          </button>
+        </div>
       </div>
     );
   }
@@ -4573,15 +4604,23 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
             />
           </div>
         </div>
-        <div className="mt-4">
+        <div className="mt-4 flex gap-3">
           <button
             onClick={() => {
               setSelectedDers('');
               setSelectedTarih('');
             }}
             className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            disabled={loading}
           >
             Filtreleri Temizle
+          </button>
+          <button
+            onClick={loadOgrencilOdevGecmisi}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            disabled={loading}
+          >
+            {loading ? 'Yükleniyor...' : 'Verileri Yenile'}
           </button>
         </div>
       </div>
@@ -4598,10 +4637,23 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
         {filteredOdevler.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 text-4xl mb-4">📝</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Ödev Verisi Bulunamadı</h3>
-            <p className="text-gray-500">
-              Seçilen kriterlere uygun ödev bulunmamaktadır.
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {odevler.length === 0 ? 'Henüz Ödev Verisi Bulunmuyor' : 'Seçilen Kriterlere Uygun Ödev Bulunamadı'}
+            </h3>
+            <p className="text-gray-500 mb-4">
+              {odevler.length === 0 
+                ? 'Öğretmenleriniz henüz ödev eklememiş veya sizin için ödev tanımlanmamış.' 
+                : 'Farklı ders veya tarih seçerek tekrar deneyin.'
+              }
             </p>
+            {odevler.length === 0 && (
+              <button
+                onClick={loadOgrencilOdevGecmisi}
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+              >
+                Verileri Yenile
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
