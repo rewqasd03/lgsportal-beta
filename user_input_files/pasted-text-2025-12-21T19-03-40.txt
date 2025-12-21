@@ -1,0 +1,76 @@
+layout-aa89c90ef2f332ab.js:1 🚫 Service Worker devre dışı - Cache temizlendi
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 🎯 Puan hedefi bulundu (5Zd35EktdEpfwHiuuQGX): 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 🎯 Puan hedefi bulundu (WzXcrN3Y7b14yby8ywU8): 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 🎯 Puan hedefi bulundu (h9F7h0wzvurxEEjU0Rbt): 460
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 🎯 Puan hedefi bulundu (mgJbki81ewecLK1QYfLB): 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+305-e74038553239054e.js:1 📋 Puan hedefi bulunamadı, varsayılan kullanılıyor: 450
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Toplam deneme: 8
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Toplam sonuç: 235
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Öğrenci sonuçları: 8
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Öğrenci sonuç örneği: {id: '4kxqrqLg69mMMfYPnwax', scores: {…}, createdAt: '2025-12-17T09:50:10.269Z', studentId: 'HLIBi2IjqLbayTEXGikm', examId: 'MjoFKU3pcUb20wUgOyTV', …}
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Eşleşen denemeler: 8
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Seçilen sonuç: {id: 'Gjn1RvoRe4vKKw794pIZ', scores: {…}, nets: {…}, studentId: 'HLIBi2IjqLbayTEXGikm', examId: 'POMyQMXvmc1csCtasJp9', …}
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Nets: {din: 8.67, turkce: 10.69, sosyal: 8.67, total: 43.74, fen: 6.359999999999999, …}
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Scores: {turkce: {…}, ingilizce: {…}, din: {…}, matematik: {…}, fen: {…}, …}
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Türkçe: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - Matematik: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce nets: 10.69
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik nets: 4.34
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen nets: 6.359999999999999
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal nets: 8.67
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din nets: 8.67
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce nets: 5.01
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - turkce nets: 10.69
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - matematik nets: 4.34
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - fen nets: 6.359999999999999
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - sosyal nets: 8.67
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - din nets: 8.67
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce direct: undefined
+page-fe9631de02ac0db5.js:1 🔍 DEBUG - ingilizce nets: 5.01
