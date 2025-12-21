@@ -6544,7 +6544,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {seciliSinifOgrencileri.map((student) => {
-                  const odevYapti = odevDurumlar[student.id] || false;
+                  const odevYapti = odevDurumlar[student.id] !== undefined ? odevDurumlar[student.id] : true;
                   
                   return (
                     <tr key={student.id} className="hover:bg-gray-50">
