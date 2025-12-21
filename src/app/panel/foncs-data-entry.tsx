@@ -6696,32 +6696,86 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
         </div>
       ) : null}
 
-      {/* Ödev Geçmişi */}
+      {/* Ödev Geçmişi - Ders Bazında Organizasyon */}
       {odevler.length > 0 && (
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b bg-gray-50">
-            <h3 className="text-lg font-semibold text-gray-800">📊 Ödev Geçmişi</h3>
+            <h3 className="text-lg font-semibold text-gray-800">📊 Ödev Geçmişi - Ders Bazında</h3>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {odevler.slice(0, 6).map((odev) => (
-                <div key={odev.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900">
-                      {dersler.find(d => d.key === odev.ders)?.label}
+            {/* Ders bazında gruplandırma */}
+            {dersler.map((ders) => {
+              // Bu ders için ödevleri al ve tarihlere göre sırala
+              const dersOdevleri = odevler
+                .filter(odev => odev.ders === ders.key)
+                .sort((a, b) => new Date(b.tarih).getTime() - new Date(a.tarih).getTime());
+
+              if (dersOdevleri.length === 0) return null;
+
+              return (
+                <div key={ders.key} className="mb-8 last:mb-0">
+                  {/* Ders Başlığı */}
+                  <div className="flex items-center mb-4 pb-2 border-b">
+                    <span className="text-2xl mr-3">{ders.label.split(' ')[0]}</span>
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      {ders.label.substring(ders.label.indexOf(' ') + 1)}
                     </h4>
-                    <span className="text-xs text-gray-500">
-                      {new Date(odev.tarih).toLocaleDateString('tr-TR')}
+                    <span className="ml-auto text-sm text-gray-500">
+                      {dersOdevleri.length} kayıt
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600">{odev.sinif}</p>
-                  <div className="mt-2 flex justify-between text-xs">
-                    <span className="text-green-600">✅ {odev.yapan}</span>
-                    <span className="text-red-600">❌ {odev.yapmayan}</span>
+
+                  {/* Tarih Listesi */}
+                  <div className="space-y-3">
+                    {dersOdevleri.map((odev) => (
+                      <div 
+                        key={odev.id} 
+                        className="bg-gray-50 border rounded-lg p-4 hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <span className="text-lg mr-3">📅</span>
+                            <div>
+                              <h5 className="font-medium text-gray-900">
+                                {new Date(odev.tarih).toLocaleDateString('tr-TR', {
+                                  weekday: 'long',
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </h5>
+                              <p className="text-sm text-gray-600">{odev.sinif} Sınıfı</p>
+                            </div>
+                          </div>
+                          
+                          {/* İstatistikler */}
+                          <div className="flex items-center space-x-6">
+                            <div className="text-center">
+                              <div className="text-lg font-bold text-green-600">
+                                ✅ {odev.yapan || 0}
+                              </div>
+                              <div className="text-xs text-gray-500">Tamamlandı</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg font-bold text-red-600">
+                                ❌ {odev.yapmayan || 0}
+                              </div>
+                              <div className="text-xs text-gray-500">Yapılmadı</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg font-bold text-blue-600">
+                                📊 {((odev.yapan || 0) / ((odev.yapan || 0) + (odev.yapmayan || 0)) * 100).toFixed(0)}%
+                              </div>
+                              <div className="text-xs text-gray-500">Başarı Oranı</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
       )}
