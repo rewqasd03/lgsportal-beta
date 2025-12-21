@@ -2989,8 +2989,7 @@ export default function FoncsDataEntry() {
 
       // İlk sonucun örnek yapısını göster
       if (studentResults.length > 0) {
-        // İlk sonuç için debug bilgisi
-        console.log('🎯 İlk sonuç yapısı:', studentResults[0]);
+
       }
 
       // Her ders için ortalama hesapla
@@ -5755,12 +5754,8 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
   // Seçili sınıfın öğrencileri
   const seciliSinifOgrencileri = students.filter(s => s.class === selectedSinif);
   
-  // Debug: Seçili sınıf bilgilerini console'a yazdır
-  console.log('🔍 Debug - Seçili Sınıf:', selectedSinif);
-  console.log('🔍 Debug - Toplam Öğrenci Sayısı:', students.length);
-  console.log('🔍 Debug - Seçili Sınıf Öğrenci Sayısı:', seciliSinifOgrencileri.length);
-  console.log('🔍 Debug - Seçili Ders:', selectedDers);
-  console.log('🔍 Debug - Öğrenci Durumları:', Object.keys(odevDurumlar).length);
+
+
 
   // Geçmiş kayıtları yükle
   useEffect(() => {
@@ -5794,7 +5789,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
   };
 
   const loadOdevDurumlariWithStudents = async (currentSinifOgrencileri: any[]) => {
-    console.log('🔄 loadOdevDurumlariWithStudents başladı:', currentSinifOgrencileri.length, 'öğrenci');
+
     
     try {
       const { getOdevDurumlari } = await import('../../firebase');
@@ -5804,10 +5799,10 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       if (Object.keys(durumlar).length > 0) {
         setOdevDurumlar(durumlar);
         setDirtyStates({}); // Mevcut kayıt varsa, dirty state'i temizle
-        console.log('📊 Mevcut kayıt bulundu, dirty states temizlendi:', Object.keys(durumlar).length, 'öğrenci');
+
       } else {
         // Hiç kayıt yoksa tüm öğrenciler için varsayılan "yapıldı" durumları ve YENİ KAYIT için dirty yap
-        console.log('🆕 Yeni ödev kontrolü - varsayılan durumlar oluşturuluyor');
+
         
         const varsayilanDurumlar: {[key: string]: string} = {};
         const yeniDirtyStates: {[key: string]: boolean} = {};
@@ -5816,12 +5811,12 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
           yeniDirtyStates[student.id] = true; // Yeni kayıt için tüm öğrencileri dirty yap
         });
         
-        console.log('📝 varsayilanDurumlar:', Object.keys(varsayilanDurumlar).length, 'öğrenci');
-        console.log('📝 yeniDirtyStates:', Object.keys(yeniDirtyStates).length, 'öğrenci');
+
+
         
         setOdevDurumlar(varsayilanDurumlar);
         setDirtyStates(yeniDirtyStates); // Yeni kayıt için tüm öğrencileri dirty olarak işaretle
-        console.log('🆕 Yeni ödev kontrolü - tüm öğrenciler dirty olarak işaretlendi');
+
       }
     } catch (error) {
       console.error('Ödev durumları yüklenirken hata:', error);
@@ -5899,10 +5894,10 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       for (const student of seciliSinifOgrencileri) {
         const durum = odevDurumlar[student.id] || 'yapildi';
         await updateOdevDurumu(selectedDers, selectedSinif, tarih, student.id, durum);
-        console.log(`📝 Kaydedildi: ${student.name} = ${durum}`);
+  
       }
       
-      console.log(`✅ Ödev durumları kaydedildi. ${seciliSinifOgrencileri.length} öğrenci güncellendi.`);
+
       
       // Optimistic update - yeni kaydı hemen tabloda göster
       const yeniKayit = {
@@ -5973,7 +5968,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       const { getFirestore, collection, getDocs, deleteDoc, doc } = await import('firebase/firestore');
       const { db } = await import('../../firebase');
       
-      console.log('🔥 7. ve 8. sınıfların tüm ödev kayıtları siliniyor...');
+
       
       const odevlerRef = collection(db, 'odevler');
       const snapshot = await getDocs(odevlerRef);
@@ -5986,14 +5981,14 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
         
         // 7. veya 8. sınıf olup olmadığını kontrol et
         if (data.sinif && (data.sinif.startsWith('7-') || data.sinif.startsWith('8-'))) {
-          console.log('🗑️ Siliniyor:', docSnap.id, data);
+
           await deleteDoc(doc(db, 'odevler', docSnap.id));
           deletedCount++;
           deletedRecords.push(`${data.sinif} - ${data.ders} - ${data.tarih}`);
         }
       }
       
-      console.log(`✅ ${deletedCount} adet 7. ve 8. sınıf ödev kaydı silindi`);
+
       
       // Tüm cache'i temizle
       setGecmisKayitlar([]);
@@ -6022,7 +6017,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
 
   // Cache'i ve state'i tamamen temizle
   const clearAllCache = () => {
-    console.log('🧹 Tüm cache ve state temizleniyor...');
+
     
     // React state'leri temizle
     setGecmisKayitlar([]);
@@ -6037,7 +6032,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
         key.includes('odev') || key.includes('odevTakibi') || key.includes('din-kulturu')
       );
       keysToRemove.forEach(key => localStorage.removeItem(key));
-      console.log(`🗑️ ${keysToRemove.length} cache kaydı localStorage'dan silindi`);
+
     }
     
     alert('✅ Tüm cache ve state temizlendi! Sayfayı yenileyin (F5)');
@@ -6050,14 +6045,14 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       const { getFirestore, collection, getDocs, deleteDoc, doc, query, where } = await import('firebase/firestore');
       const { db } = await import('../../firebase');
       
-      console.log('🔥 KAPSAMLI Firebase Din Kültürü temizleme başlatılıyor...');
+
       
       // Yöntem 1: where('ders', '==', 'din-kulturu') ile bul
       const odevlerRef = collection(db, 'odevler');
       const dinKulturuQuery = query(odevlerRef, where('ders', '==', 'din-kulturu'));
       const snapshot = await getDocs(dinKulturuQuery);
       
-      console.log(`📊 Query ile bulunan Din Kültürü kayıt sayısı: ${snapshot.size}`);
+
       
       // Yöntem 2: Tüm kayıtları tara ve Din Kültürü olanları bul
       const allSnapshot = await getDocs(odevlerRef);
@@ -6071,20 +6066,20 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
             (typeof data.ders === 'string' && data.ders.toLowerCase().includes('din'))) {
           allDinKulturuCount++;
           dinKulturuKayitlari.push({ id: docSnap.id, ...data });
-          console.log('🔍 Bulunan Din Kültürü kaydı:', docSnap.id, data);
+
         }
       }
       
-      console.log('📋 TÜM Din Kültürü kayıtları:', dinKulturuKayitlari);
+
       
-      console.log(`🔍 Manuel tarama ile bulunan Din Kültürü kayıt sayısı: ${allDinKulturuCount}`);
+
       
       // TÜM Din Kültürü kayıtlarını sil
       let totalDeleted = 0;
       
       // Query ile sil
       for (const docSnap of snapshot.docs) {
-        console.log('🗑️ Query ile siliniyor:', docSnap.id, docSnap.data());
+
         await deleteDoc(doc(db, 'odevler', docSnap.id));
         totalDeleted++;
       }
@@ -6094,14 +6089,14 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
         const data = docSnap.data();
         if (data.ders === 'din-kulturu' || data.ders === 'din_kulturu' || 
             (typeof data.ders === 'string' && data.ders.toLowerCase().includes('din'))) {
-          console.log('🗑️ Manuel siliniyor:', docSnap.id, data);
+
           await deleteDoc(doc(db, 'odevler', docSnap.id));
           totalDeleted++;
         }
       }
       
-      console.log(`🔥 TOPLAM ${totalDeleted} adet Din Kültürü kaydı Firebase'den silindi`);
-      console.log('🗑️ Silinen kayıtlar detayı:', dinKulturuKayitlari);
+
+
       
       // TÜM cache'i temizle
       setGecmisKayitlar([]);
@@ -6453,18 +6448,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
               </div>
             )}
 
-            {/* Debug bilgisi - Sadece development'ta göster */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-4 p-4 bg-gray-100 border border-gray-300 rounded-lg">
-                <div className="text-xs text-gray-600">
-                  <div>🔍 Debug: Seçili Sınıf: {selectedSinif}</div>
-                  <div>🔍 Debug: Toplam Öğrenci: {students.length}</div>
-                  <div>🔍 Debug: Seçili Sınıf Öğrenci: {seciliSinifOgrencileri.length}</div>
-                  <div>🔍 Debug: Seçili Ders: {selectedDers}</div>
-                  <div>🔍 Debug: Öğrenci Durumları: {Object.keys(odevDurumlar).length}</div>
-                </div>
-              </div>
-            )}
+
         </div>
       )}
 
@@ -6479,31 +6463,13 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
               const dinKulturuKayitlar = gecmisKayitlar.filter(kayit => kayit.ders === 'din-kulturu');
               const bosKayitlar = gecmisKayitlar.filter(kayit => kayit.yapildi + kayit.eksikYapildi + kayit.yapilmadi === 0);
               
-              // Debug bilgisi
-              console.log('📊 Geçmiş Kayıtlar Debug:', {
-                toplam: gecmisKayitlar.length,
-                filtrelenen: filteredKayitlar.length,
-                dinKulturu: dinKulturuKayitlar.length,
-                bosKayitlar: bosKayitlar.length
-              });
+
               
               return filteredKayitlar.length === 0 ? (
                 <div className="space-y-4">
                   <div className="text-center py-8 text-gray-500">📝 Henüz hiç ödev kontrolü yapılmamış.</div>
                   
-                  {/* Debug: Boş kayıtları göster */}
-                  {bosKayitlar.length > 0 && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <h4 className="text-sm font-semibold text-yellow-800 mb-2">⚠️ Boş Kayıtlar (Filtrelendi):</h4>
-                      <div className="text-xs text-yellow-700 space-y-1">
-                        {bosKayitlar.map((kayit, index) => (
-                          <div key={index}>
-                            {kayit.tarih} {kayit.sinif} - {kayit.ders}: {kayit.yapildi}/{kayit.eksikYapildi}/{kayit.yapilmadi}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+
                 </div>
               ) : (
               <div className="overflow-x-auto">
@@ -6628,34 +6594,12 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                     
                     const toplamKontrol = dersKayitlari.length;
                     
-                    // Din Kültürü için debug bilgisi
-                    if (ders.key === 'din-kulturu') {
-                      console.log('🔍 Rapor Tabı - Din Kültürü Debug:', {
-                        raporSinif,
-                        toplamGecmisKayitlar: gecmisKayitlar.length,
-                        dersKayitlari: dersKayitlari.length,
-                        toplamKontrol,
-                        dersKey: ders.key
-                      });
-                    }
+
                     const toplamYapildi = dersKayitlari.reduce((acc, kayit) => acc + kayit.yapildi, 0);
                     const toplamEksik = dersKayitlari.reduce((acc, kayit) => acc + kayit.eksikYapildi, 0);
                     const toplamYapilmadi = dersKayitlari.reduce((acc, kayit) => acc + kayit.yapilmadi, 0);
                     
-                    // Din Kültürü için detaylı debug bilgisi
-                    if (ders.key === 'din-kulturu') {
-                      console.log('🔍 Rapor Tabı - Din Kültürü Detaylı Debug:', {
-                        raporSinif,
-                        toplamGecmisKayitlar: gecmisKayitlar.length,
-                        dersKayitlari: dersKayitlari.length,
-                        toplamKontrol,
-                        dersKey: ders.key,
-                        toplamYapildi: dersKayitlari.reduce((acc, kayit) => acc + kayit.yapildi, 0),
-                        toplamEksik: dersKayitlari.reduce((acc, kayit) => acc + kayit.eksikYapildi, 0),
-                        toplamYapilmadi: dersKayitlari.reduce((acc, kayit) => acc + kayit.yapilmadi, 0),
-                        kayitlar: dersKayitlari.map(k => ({ tarih: k.tarih, yapildi: k.yapildi, eksik: k.eksikYapildi, yapilmadi: k.yapilmadi }))
-                      });
-                    }
+
                     
                     // Eğer hiç kayıt yoksa bu dersi gösterme
                     if (toplamKontrol === 0) return null;
@@ -6663,16 +6607,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                     const basariOrani = toplamKontrol > 0 && (toplamYapildi + toplamEksik + toplamYapilmadi) > 0 ? 
                       Math.round((toplamYapildi / (toplamYapildi + toplamEksik + toplamYapilmadi)) * 100) : 0;
                     
-                    // Din Kültürü için acil debug
-                    if (ders.key === 'din-kulturu') {
-                      console.log('🔥 ACİL - Din Kültürü Veri Analizi:', {
-                        raporSinif,
-                        toplamGecmisKayitlar: gecmisKayitlar.length,
-                        dersKayitlari: dersKayitlari,
-                        toplamKontrol,
-                        kayitlarDetay: dersKayitlari.map(k => `${k.tarih}: ${k.yapildi}/${k.eksikYapildi}/${k.yapilmadi}`)
-                      });
-                    }
+
 
                     return (
                       <div key={ders.key} className="bg-white p-4 rounded-lg border border-gray-200">
@@ -6704,32 +6639,9 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                             </span>
                           </div>
                           
-                          {/* Debug bilgisi - HER ZAMAN GÖRÜNÜR */}
-                          <div className="mt-2 text-xs text-gray-400 border-t pt-1">
-                            <div>Debug: toplamKontrol={toplamKontrol}, yapildi={toplamYapildi}, eksik={toplamEksik}, yapilmadi={toplamYapilmadi}</div>
-                          </div>
+
                           
-                          {/* Din Kültürü için özel debug paneli */}
-                          {ders.key === 'din-kulturu' && (
-                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                              <div className="text-sm font-bold text-red-700 mb-2">🔥 DIN KÜLTÜRÜ DEBUG PANELİ:</div>
-                              <div className="text-xs text-red-600 space-y-1">
-                                <div>📊 Toplam Geçmiş Kayıt: {gecmisKayitlar.length}</div>
-                                <div>📝 Din Kültürü Kayıt Sayısı: {dersKayitlari.length}</div>
-                                <div>🔢 Toplam Kontrol: {toplamKontrol}</div>
-                                {dersKayitlari.length > 0 && (
-                                  <div className="mt-2">
-                                    <div className="font-bold">📋 Bulunan Kayıtlar:</div>
-                                    {dersKayitlari.map((kayit, idx) => (
-                                      <div key={idx} className="ml-2">
-                                        {kayit.tarih} - {kayit.sinif}: {kayit.yapildi}/{kayit.eksikYapildi}/{kayit.yapilmadi}
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
+
                         </div>
                       </div>
                     );
