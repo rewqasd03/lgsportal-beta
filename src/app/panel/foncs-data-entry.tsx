@@ -5920,6 +5920,29 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
     }
   };
 
+  // Cache'i ve state'i tamamen temizle
+  const clearAllCache = () => {
+    console.log('🧹 Tüm cache ve state temizleniyor...');
+    
+    // React state'leri temizle
+    setGecmisKayitlar([]);
+    setOdevDurumlar({});
+    setDirtyStates({});
+    setSelectedSinif('');
+    setSelectedDers('');
+    
+    // Local storage'ı temizle
+    if (typeof window !== 'undefined') {
+      const keysToRemove = Object.keys(localStorage).filter(key => 
+        key.includes('odev') || key.includes('odevTakibi') || key.includes('din-kulturu')
+      );
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      console.log(`🗑️ ${keysToRemove.length} cache kaydı localStorage'dan silindi`);
+    }
+    
+    alert('✅ Tüm cache ve state temizlendi! Sayfayı yenileyin (F5)');
+  };
+
   // Din Kültürü verilerini Firebase'den doğrudan sil
   const forceDeleteDinKulturuData = async () => {
     setLoading(true);
@@ -5951,9 +5974,15 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
         alert(`✅ ${deletedCount} adet Din Kültürü kaydı Firebase'den silindi! Sayfayı yenileyin.`);
       }
       
-      // Geçmiş kayıtları ve cache'i temizle
+      // Tüm cache'i ve state'i temizle
       setGecmisKayitlar([]);
-      await loadGecmisKayitlar();
+      setOdevDurumlar({});
+      setDirtyStates({});
+      setSelectedSinif('');
+      setSelectedDers('');
+      
+      // Sayfayı yenilemeyi öner
+      alert('✅ Din Kültürü verileri Firebase\'den silindi!\n\n💡 Cache sorunu olabileceği için sayfayı yenileyin:\n- F5 tuşuna basın VEYA\n- Ctrl+F5 tuşlarına basın (hard refresh)');
       
     } catch (error) {
       console.error('❌ Firebase silme hatası:', error);
@@ -6028,14 +6057,25 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
             <h3 className="text-sm font-semibold text-red-700">⚠️ Din Kültürü Veri Sorunu</h3>
             <p className="text-xs text-red-600">Din Kültürü dersindeki bozuk kayıtları temizlemek için butonu kullanın</p>
           </div>
-          <button
-            onClick={forceDeleteDinKulturuData}
-            disabled={loading}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm font-medium"
-            title="Din Kültürü dersindeki tüm sorunlu verileri Firebase'den siler"
-          >
-            {loading ? '⏳' : '🔥'} Firebase'den Din Kültürü Verilerini Sil
-          </button>
+          <div className="flex space-x-2">
+            <button
+              onClick={forceDeleteDinKulturuData}
+              disabled={loading}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm font-medium"
+              title="Din Kültürü dersindeki tüm sorunlu verileri Firebase'den siler"
+            >
+              {loading ? '⏳' : '🔥'} Firebase'den Din Kültürü Verilerini Sil
+            </button>
+            
+            <button
+              onClick={clearAllCache}
+              disabled={loading}
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm font-medium"
+              title="Tüm cache ve state'i temizler"
+            >
+              🧹 Cache Temizle
+            </button>
+          </div>
         </div>
       </div>
 
