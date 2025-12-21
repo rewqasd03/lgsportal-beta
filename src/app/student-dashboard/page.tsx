@@ -2017,6 +2017,87 @@ function StudentDashboardContent() {
                   );
                 })()}
 
+                {/* Seçilen Denemenin Detay Tablosu */}
+                {selectedExamId && (() => {
+                  const selectedExamResult = reportData.examResults.find(result => result.exam.id === selectedExamId);
+                  if (!selectedExamResult) return null;
+
+                  const studentResult = selectedExamResult.studentResults[0];
+                  if (!studentResult) return null;
+
+                  // Ders listesi ve emoji'ler
+                  const subjects = [
+                    { key: 'turkce', name: 'Türkçe', emoji: '📖' },
+                    { key: 'matematik', name: 'Matematik', emoji: '🔢' },
+                    { key: 'fen', name: 'Fen', emoji: '🔬' },
+                    { key: 'sosyal', name: 'Sosyal', emoji: '🌍' },
+                    { key: 'din', name: 'Din Kültürü', emoji: '🕌' },
+                    { key: 'ingilizce', name: 'İngilizce', emoji: '🗣️' },
+                  ];
+
+                  // Skorları al (D/Y/B/Net)
+                  const getScore = (subject: string) => {
+                    const scoreFromScores = studentResult.scores?.[subject];
+                    let D = 0, Y = 0, B = 0, net = 0;
+                    if (scoreFromScores && typeof scoreFromScores === 'object') {
+                      D = scoreFromScores.D || 0;
+                      Y = scoreFromScores.Y || 0;
+                      B = scoreFromScores.B || 0;
+                      net = parseFloat((D - (Y / 3)).toFixed(1)); // Net calculation: D - Y/3
+                    }
+                    return { D, Y, B, net };
+                  };
+
+                  return (
+                    <div className="bg-white rounded-lg shadow p-4">
+                      <h3 className="text-sm font-semibold text-gray-800 mb-4">📊 Deneme Sonucu Detayları</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead className="bg-gray-100">
+                            <tr>
+                              <th className="px-2 py-2 text-left">Ders</th>
+                              <th className="px-2 py-2 text-center">Doğru</th>
+                              <th className="px-2 py-2 text-center">Yanlış</th>
+                              <th className="px-2 py-2 text-center">Boş</th>
+                              <th className="px-2 py-2 text-center">Net</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {subjects.map((subject) => {
+                              const scores = getScore(subject.key);
+                              return (
+                                <tr key={subject.key} className="border-b border-gray-100">
+                                  <td className="px-2 py-2 font-medium text-gray-900 flex items-center">
+                                    <span className="mr-2">{subject.emoji}</span>
+                                    {subject.name}
+                                  </td>
+                                  <td className="px-2 py-2 text-center">{scores.D}</td>
+                                  <td className="px-2 py-2 text-center">{scores.Y}</td>
+                                  <td className="px-2 py-2 text-center">{scores.B}</td>
+                                  <td className="px-2 py-2 text-center font-semibold text-blue-600">
+                                    {scores.net > 0 ? scores.net.toFixed(1) : '0.0'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-semibold text-gray-700">Toplam Net</span>
+                            <span className="text-sm font-bold text-blue-600">
+                              {subjects.reduce((sum, subject) => {
+                                const scores = getScore(subject.key);
+                                return sum + (scores.net || 0);
+                              }, 0).toFixed(1)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Seçilen Denemenin Sıralaması */}
                 {selectedExamId && (() => {
                   const selectedExamResult = reportData.examResults.find(result => result.exam.id === selectedExamId);
