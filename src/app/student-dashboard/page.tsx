@@ -2048,52 +2048,55 @@ function StudentDashboardContent() {
                     return { D, Y, B, net };
                   };
 
+                  // Değerlendirme yazısını getir
+                  const [evaluationText, setEvaluationText] = useState<string>('');
+                  
+                  // Firestore'dan değerlendirme yazısını çek
+                  useEffect(() => {
+                    const fetchEvaluationText = async () => {
+                      try {
+                        const { collection, query, where, getDocs } = await import('firebase/firestore');
+                        const { db } = await import('../../firebase');
+                        
+                        const evaluationQuery = query(
+                          collection(db, 'denemeDegerlendirmeleri'),
+                          where('studentId', '==', studentId),
+                          where('examId', '==', selectedExamId)
+                        );
+                        
+                        const evaluationSnapshot = await getDocs(evaluationQuery);
+                        
+                        if (!evaluationSnapshot.empty) {
+                          const evaluationData = evaluationSnapshot.docs[0].data();
+                          setEvaluationText(evaluationData.evaluationText || '');
+                        }
+                      } catch (error) {
+                        console.error('Değerlendirme yazısı yüklenirken hata:', error);
+                      }
+                    };
+
+                    if (selectedExamId && studentId) {
+                      fetchEvaluationText();
+                    }
+                  }, [selectedExamId, studentId]);
+
                   return (
                     <div className="bg-white rounded-lg shadow p-4">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-4">📊 Deneme Sonucu Detayları</h3>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-xs">
-                          <thead className="bg-gray-100">
-                            <tr>
-                              <th className="px-2 py-2 text-left">Ders</th>
-                              <th className="px-2 py-2 text-center">Doğru</th>
-                              <th className="px-2 py-2 text-center">Yanlış</th>
-                              <th className="px-2 py-2 text-center">Boş</th>
-                              <th className="px-2 py-2 text-center">Net</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {subjects.map((subject) => {
-                              const scores = getScore(subject.key);
-                              return (
-                                <tr key={subject.key} className="border-b border-gray-100">
-                                  <td className="px-2 py-2 font-medium text-gray-900 flex items-center">
-                                    <span className="mr-2">{subject.emoji}</span>
-                                    {subject.name}
-                                  </td>
-                                  <td className="px-2 py-2 text-center">{scores.D}</td>
-                                  <td className="px-2 py-2 text-center">{scores.Y}</td>
-                                  <td className="px-2 py-2 text-center">{scores.B}</td>
-                                  <td className="px-2 py-2 text-center font-semibold text-blue-600">
-                                    {scores.net > 0 ? scores.net.toFixed(1) : '0.0'}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-semibold text-gray-700">Toplam Net</span>
-                            <span className="text-sm font-bold text-blue-600">
-                              {subjects.reduce((sum, subject) => {
-                                const scores = getScore(subject.key);
-                                return sum + (scores.net || 0);
-                              }, 0).toFixed(1)}
-                            </span>
+                      <h3 className="text-sm font-semibold text-gray-800 mb-4">📊 Değerlendirme</h3>
+                      
+                      {evaluationText ? (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                            {evaluationText}
                           </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                          <div className="text-sm text-gray-500">
+                            Bu deneme için henüz değerlendirme yazısı bulunmuyor.
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
