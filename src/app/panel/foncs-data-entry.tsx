@@ -6885,26 +6885,6 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           </div>
         </div>
 
-        {/* Debug Bilgisi */}
-        {selectedStudent && !loading && (
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs">
-            <p className="text-blue-800 font-semibold mb-2">🔍 Debug - Basit Yaklaşım:</p>
-            <p className="text-blue-700">Öğrenci: {selectedStudent}</p>
-            <p className="text-blue-700">Sonuç Sayısı: {examResults.length}</p>
-            <p className="text-blue-700">Deneme Sayısı: {studentExams.length}</p>
-            
-            {examResults.length > 0 ? (
-              <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
-                <p className="text-green-800 font-semibold">✅ Veriler Bulundu!</p>
-              </div>
-            ) : (
-              <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
-                <p className="text-red-800 font-semibold">❌ Hala Sorun Var</p>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Deneme Seçimi */}
         {selectedStudent && (
           <div className="mt-6">
@@ -6952,46 +6932,56 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           const examResult = examResults.find(result => result.examId === selectedExam);
           
           return (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
-              <h4 className="text-md font-semibold text-gray-700 mb-3">📊 Deneme Sonucu:</h4>
+            <div className="mt-6 p-6 bg-white rounded-lg border shadow-sm">
+              <h4 className="text-lg font-semibold text-gray-800 mb-4">📊 Deneme Sonucu</h4>
               
               {examData && (
-                <div className="mb-3">
-                  <p className="font-medium text-gray-800">{examData.title}</p>
-                  <p className="text-sm text-gray-500">{new Date(examData.date).toLocaleDateString('tr-TR')}</p>
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                  <p className="font-medium text-gray-800 text-lg">{examData.title}</p>
+                  <p className="text-sm text-gray-600 mt-1">📅 {new Date(examData.date).toLocaleDateString('tr-TR')}</p>
                 </div>
               )}
               
               {examResult && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {examResult.nets?.turkce !== undefined && (
-                    <div className="text-center p-2 bg-green-50 rounded">
-                      <div className="text-sm text-green-600">📖 Türkçe</div>
-                      <div className="font-bold text-green-800">{examResult.nets.turkce} net</div>
+                    <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+                      <div className="text-lg font-bold text-green-600">📖</div>
+                      <div className="text-sm text-green-700 font-medium mt-1">Türkçe</div>
+                      <div className="text-xl font-bold text-green-800 mt-2">{examResult.nets.turkce}</div>
+                      <div className="text-xs text-green-600">net</div>
                     </div>
                   )}
                   {examResult.nets?.matematik !== undefined && (
-                    <div className="text-center p-2 bg-blue-50 rounded">
-                      <div className="text-sm text-blue-600">🔢 Matematik</div>
-                      <div className="font-bold text-blue-800">{examResult.nets.matematik} net</div>
+                    <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                      <div className="text-lg font-bold text-blue-600">🔢</div>
+                      <div className="text-sm text-blue-700 font-medium mt-1">Matematik</div>
+                      <div className="text-xl font-bold text-blue-800 mt-2">{examResult.nets.matematik}</div>
+                      <div className="text-xs text-blue-600">net</div>
                     </div>
                   )}
                   {examResult.nets?.fen !== undefined && (
-                    <div className="text-center p-2 bg-purple-50 rounded">
-                      <div className="text-sm text-purple-600">🔬 Fen</div>
-                      <div className="font-bold text-purple-800">{examResult.nets.fen} net</div>
+                    <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                      <div className="text-lg font-bold text-purple-600">🔬</div>
+                      <div className="text-sm text-purple-700 font-medium mt-1">Fen</div>
+                      <div className="text-xl font-bold text-purple-800 mt-2">{examResult.nets.fen}</div>
+                      <div className="text-xs text-purple-600">net</div>
                     </div>
                   )}
                   {examResult.nets?.sosyal !== undefined && (
-                    <div className="text-center p-2 bg-orange-50 rounded">
-                      <div className="text-sm text-orange-600">🌍 Sosyal</div>
-                      <div className="font-bold text-orange-800">{examResult.nets.sosyal} net</div>
+                    <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200">
+                      <div className="text-lg font-bold text-orange-600">🌍</div>
+                      <div className="text-sm text-orange-700 font-medium mt-1">Sosyal</div>
+                      <div className="text-xl font-bold text-orange-800 mt-2">{examResult.nets.sosyal}</div>
+                      <div className="text-xs text-orange-600">net</div>
                     </div>
                   )}
                   {examResult.puan !== undefined && (
-                    <div className="text-center p-2 bg-yellow-50 rounded col-span-full md:col-span-4">
-                      <div className="text-sm text-yellow-600">🎯 Toplam Puan</div>
-                      <div className="font-bold text-yellow-800">{examResult.puan} puan</div>
+                    <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl border border-yellow-200 col-span-full">
+                      <div className="text-lg font-bold text-yellow-600">🎯</div>
+                      <div className="text-sm text-yellow-700 font-medium mt-1">Toplam Puan</div>
+                      <div className="text-2xl font-bold text-yellow-800 mt-2">{examResult.puan}</div>
+                      <div className="text-xs text-yellow-600">puan</div>
                     </div>
                   )}
                 </div>
