@@ -6064,9 +6064,8 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
             </div>
           )}
 
-          {/* Öğrenci Tablosu - sadece kayıt varsa göster */}
-          {Object.keys(odevDurumlar).length > 0 ? (
-            <div className="overflow-x-auto">
+          {/* Öğrenci Tablosu - daima göster */}
+          <div className="overflow-x-auto">
               <table className="w-full table-auto">
                 <thead>
                   <tr className="bg-gray-50">
@@ -6138,13 +6137,18 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                 </tbody>
               </table>
             </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <div className="text-6xl mb-4">📝</div>
-              <h4 className="text-lg font-semibold text-gray-600 mb-2">Bu tarihte henüz ödev kontrolü yapılmamış</h4>
-              <p className="text-gray-500">Öğrencileri işaretleyip kaydettiğinizde burada görünecektir.</p>
-            </div>
-          )}
+            
+            {/* Eğer hiç durum seçilmemişse bilgilendirici not */}
+            {Object.keys(odevDurumlar).length === 0 && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center text-blue-700">
+                  <span className="text-xl mr-2">ℹ️</span>
+                  <p className="text-sm">
+                    Bu tarihte henüz ödev kontrolü yapılmamış. Yukarıdaki öğrencilerin durumlarını işaretleyip kaydedebilirsiniz.
+                  </p>
+                </div>
+              </div>
+            )}
         </div>
       )}
 
