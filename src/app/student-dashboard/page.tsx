@@ -4453,18 +4453,22 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
 
   // Ödev durumunu belirle
   const getOdevDurumu = (ogrenciDurum: boolean | undefined) => {
-    if (ogrenciDurum === undefined) return { text: 'Belirsiz', color: 'text-gray-500', bgColor: 'bg-gray-100' };
-    return ogrenciDurum 
-      ? { text: '✅ Yapıldı', color: 'text-green-600', bgColor: 'bg-green-100' }
-      : { text: '❌ Yapılmadı', color: 'text-red-600', bgColor: 'bg-red-100' };
+    // null, undefined, false değerlerini "Yapılmadı" olarak kabul et
+    if (ogrenciDurum === true) {
+      return { text: '✅ Yapıldı', color: 'text-green-600', bgColor: 'bg-green-100' };
+    } else {
+      return { text: '❌ Yapılmadı', color: 'text-red-600', bgColor: 'bg-red-100' };
+    }
   };
 
   // Eksik ödev kontrolü
   const getEksikDurumu = (ogrenciDurum: boolean | undefined) => {
-    if (ogrenciDurum === undefined) return { text: 'Eksik Kontrol', color: 'text-orange-600', bgColor: 'bg-orange-100' };
-    return ogrenciDurum 
-      ? { text: 'Tamamlandı', color: 'text-green-600', bgColor: 'bg-green-100' }
-      : { text: 'Eksik Ödev', color: 'text-red-600', bgColor: 'bg-red-100' };
+    // null, undefined, false değerlerini "Eksik Ödev" olarak kabul et
+    if (ogrenciDurum === true) {
+      return { text: 'Tamamlandı', color: 'text-green-600', bgColor: 'bg-green-100' };
+    } else {
+      return { text: 'Eksik Ödev', color: 'text-red-600', bgColor: 'bg-red-100' };
+    }
   };
 
   if (loading) {
@@ -4575,7 +4579,6 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
                       <tr>
                         <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">📅 Kontrol Tarihi</th>
                         <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">👤 Öğrenci Durumu</th>
-                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">📊 Sınıf Başarı</th>
                         <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">📈 Genel Durum</th>
                       </tr>
                     </thead>
@@ -4598,14 +4601,6 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
                               <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${durum.bgColor} ${durum.color}`}>
                                 {durum.text}
                               </span>
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              <div className="text-sm">
-                                <div className="font-semibold text-blue-600">%{odev.yuzde}</div>
-                                <div className="text-xs text-gray-500">
-                                  {odev.odevYapan}/{odev.toplamOgrenci} öğrenci
-                                </div>
-                              </div>
                             </td>
                             <td className="px-4 py-3 text-center">
                               <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${eksikDurum.bgColor} ${eksikDurum.color}`}>
