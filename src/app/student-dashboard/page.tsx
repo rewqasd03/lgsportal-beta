@@ -2049,53 +2049,11 @@ function StudentDashboardContent() {
                     return { D, Y, B, net };
                   };
 
-                  // Firestore'dan değerlendirme yazısını çek
-                  useEffect(() => {
-                    const fetchEvaluationText = async () => {
-                      try {
-                        const { collection, query, where, getDocs } = await import('firebase/firestore');
-                        const { db } = await import('../../firebase');
-                        
-                        const evaluationQuery = query(
-                          collection(db, 'denemeDegerlendirmeleri'),
-                          where('studentId', '==', studentId),
-                          where('examId', '==', selectedExamId)
-                        );
-                        
-                        const evaluationSnapshot = await getDocs(evaluationQuery);
-                        
-                        if (!evaluationSnapshot.empty) {
-                          const evaluationData = evaluationSnapshot.docs[0].data();
-                          setEvaluationText(evaluationData.evaluationText || '');
-                        }
-                      } catch (error) {
-                        console.error('Değerlendirme yazısı yüklenirken hata:', error);
-                      }
-                    };
-
-                    if (selectedExamId && studentId) {
-                      fetchEvaluationText();
-                    }
-                  }, [selectedExamId, studentId]);
-
                   return (
-                    <div className="bg-white rounded-lg shadow p-4">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-4">📊 Değerlendirme</h3>
-                      
-                      {evaluationText ? (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-                            {evaluationText}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                          <div className="text-sm text-gray-500">
-                            Bu deneme için henüz değerlendirme yazısı bulunmuyor.
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    <DenemeDegerlendirmeText 
+                      studentId={studentId} 
+                      selectedExamId={selectedExamId} 
+                    />
                   );
                 })()}
 
@@ -4378,6 +4336,58 @@ const YerelYerlestirmePuanlariPanel = () => {
   );
 };
 
+// 📝 Deneme Değerlendirme Yazısı Component
+function DenemeDegerlendirmeText({ studentId, selectedExamId }: { studentId: string, selectedExamId: string }) {
+  const [evaluationText, setEvaluationText] = useState<string>('');
+  
+  useEffect(() => {
+    const fetchEvaluationText = async () => {
+      try {
+        const { collection, query, where, getDocs } = await import('firebase/firestore');
+        const { db } = await import('../../firebase');
+        
+        const evaluationQuery = query(
+          collection(db, 'denemeDegerlendirmeleri'),
+          where('studentId', '==', studentId),
+          where('examId', '==', selectedExamId)
+        );
+        
+        const evaluationSnapshot = await getDocs(evaluationQuery);
+        
+        if (!evaluationSnapshot.empty) {
+          const evaluationData = evaluationSnapshot.docs[0].data();
+          setEvaluationText(evaluationData.evaluationText || '');
+        }
+      } catch (error) {
+        console.error('Değerlendirme yazısı yüklenirken hata:', error);
+      }
+    };
+
+    if (selectedExamId && studentId) {
+      fetchEvaluationText();
+    }
+  }, [selectedExamId, studentId]);
+
+  return (
+    <div className="bg-white rounded-lg shadow p-4">
+      <h3 className="text-sm font-semibold text-gray-800 mb-4">📊 Değerlendirme</h3>
+      
+      {evaluationText ? (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+            {evaluationText}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+          <div className="text-sm text-gray- deneme için hen500">
+            Buüz değerlendirme yazısı bulunmuyor.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // 📝 Ödev Takibi Tab Komponenti
 function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
