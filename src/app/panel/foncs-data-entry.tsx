@@ -5943,42 +5943,77 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
     alert('✅ Tüm cache ve state temizlendi! Sayfayı yenileyin (F5)');
   };
 
-  // Din Kültürü verilerini Firebase'den doğrudan sil
+  // TÜM Din Kültürü verilerini Firebase'den tamamen sil
   const forceDeleteDinKulturuData = async () => {
     setLoading(true);
     try {
       const { getFirestore, collection, getDocs, deleteDoc, doc, query, where } = await import('firebase/firestore');
       const { db } = await import('../../firebase');
       
-      console.log('🔍 Firebase Din Kültürü verileri kontrol ediliyor...');
+      console.log('🔥 KAPSAMLI Firebase Din Kültürü temizleme başlatılıyor...');
       
-      // Önce tüm Din Kültürü kayıtlarını bul
+      // Yöntem 1: where('ders', '==', 'din-kulturu') ile bul
       const odevlerRef = collection(db, 'odevler');
       const dinKulturuQuery = query(odevlerRef, where('ders', '==', 'din-kulturu'));
       const snapshot = await getDocs(dinKulturuQuery);
       
-      console.log(`📊 Bulunan Din Kültürü kayıt sayısı: ${snapshot.size}`);
+      console.log(`📊 Query ile bulunan Din Kültürü kayıt sayısı: ${snapshot.size}`);
       
-      if (snapshot.size === 0) {
-        console.log('✅ Firebase\'de Din Kültürü kaydı bulunamadı');
-        console.log('🔄 Geçmiş kayıtlar cache\'i temizleniyor...');
-        
-        // Rapor tabındaki cache'i de temizle
-        setGecmisKayitlar([]);
-        await loadGecmisKayitlar();
-        
-        alert('✅ Firebase\'de Din Kültürü kaydı bulunamadı!\n\n🔄 Geçmiş kayıtlar cache\'i temizlendi.\n📋 Sayfayı yenileyin (F5)');
-      } else {
-        let deletedCount = 0;
-        for (const docSnap of snapshot.docs) {
-          console.log('🗑️ Siliniyor:', docSnap.id, docSnap.data());
-          await deleteDoc(doc(db, 'odevler', docSnap.id));
-          deletedCount++;
+      // Yöntem 2: Tüm kayıtları tara ve Din Kültürü olanları bul
+      const allSnapshot = await getDocs(odevlerRef);
+      let allDinKulturuCount = 0;
+      let manualDeleteCount = 0;
+      
+      for (const docSnap of allSnapshot.docs) {
+        const data = docSnap.data();
+        if (data.ders === 'din-kulturu' || data.ders === 'din_kulturu' || 
+            (typeof data.ders === 'string' && data.ders.toLowerCase().includes('din'))) {
+          allDinKulturuCount++;
+          console.log('🔍 Bulunan Din Kültürü kaydı:', docSnap.id, data);
         }
-        
-        console.log(`✅ ${deletedCount} adet Din Kültürü kaydı Firebase'den silindi`);
-        alert(`✅ ${deletedCount} adet Din Kültürü kaydı Firebase'den silindi! Sayfayı yenileyin.`);
       }
+      
+      console.log(`🔍 Manuel tarama ile bulunan Din Kültürü kayıt sayısı: ${allDinKulturuCount}`);
+      
+      // TÜM Din Kültürü kayıtlarını sil
+      let totalDeleted = 0;
+      
+      // Query ile sil
+      for (const docSnap of snapshot.docs) {
+        console.log('🗑️ Query ile siliniyor:', docSnap.id, docSnap.data());
+        await deleteDoc(doc(db, 'odevler', docSnap.id));
+        totalDeleted++;
+      }
+      
+      // Manuel tarama ile sil
+      for (const docSnap of allSnapshot.docs) {
+        const data = docSnap.data();
+        if (data.ders === 'din-kulturu' || data.ders === 'din_kulturu' || 
+            (typeof data.ders === 'string' && data.ders.toLowerCase().includes('din'))) {
+          console.log('🗑️ Manuel siliniyor:', docSnap.id, data);
+          await deleteDoc(doc(db, 'odevler', docSnap.id));
+          totalDeleted++;
+        }
+      }
+      
+      console.log(`🔥 TOPLAM ${totalDeleted} adet Din Kültürü kaydı Firebase'den silindi`);
+      
+      // TÜM cache'i temizle
+      setGecmisKayitlar([]);
+      setOdevDurumlar({});
+      setDirtyStates({});
+      setSelectedSinif('');
+      setSelectedDers('');
+      
+      // Local storage'ı da temizle
+      if (typeof window !== 'undefined') {
+        const keysToRemove = Object.keys(localStorage).filter(key => 
+          key.includes('odev') || key.includes('odevTakibi') || key.includes('din')
+        );
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+      }
+      
+      alert(`🔥 TAMAMEN TEMİZLEDİM!\n\n${totalDeleted} adet Din Kültürü kaydı silindi\n🧹 Tüm cache temizlendi\n🔄 Sayfayı yenileyin (F5)\n\nDin Kültürü artık 0 gösterecek!`);
       
       // Tüm cache'i ve state'i temizle
       setGecmisKayitlar([]);
@@ -6488,6 +6523,22 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                     const toplamEksik = dersKayitlari.reduce((acc, kayit) => acc + kayit.eksikYapildi, 0);
                     const toplamYapilmadi = dersKayitlari.reduce((acc, kayit) => acc + kayit.yapilmadi, 0);
                     
+                    // Din Kültürü için detaylı debug bilgisi
+                    if (ders.key === 'din-kulturu') {
+                      console.log('🔍 Rapor Tabı - Din Kültürü Detaylı Debug:', {
+                        raporSinif,
+                        toplamGecmisKayitlar: gecmisKayitlar.length,
+                        dersKayitlari: dersKayitlari.length,
+                        toplamKontrol,
+                        dersKey: ders.key,
+                        toplamYapildi: dersKayitlari.reduce((acc, kayit) => acc + kayit.yapildi, 0),
+                        toplamEksik: dersKayitlari.reduce((acc, kayit) => acc + kayit.eksikYapildi, 0),
+                        toplamYapilmadi: dersKayitlari.reduce((acc, kayit) => acc + kayit.yapilmadi, 0),
+                        kayitlar: dersKayitlari.map(k => ({ tarih: k.tarih, yapildi: k.yapildi, eksik: k.eksikYapildi, yapilmadi: k.yapilmadi }))
+                      });
+                    }
+                    
+                    // Eğer hiç kayıt yoksa bu dersi gösterme
                     if (toplamKontrol === 0) return null;
                     
                     const basariOrani = toplamKontrol > 0 && (toplamYapildi + toplamEksik + toplamYapilmadi) > 0 ? 
