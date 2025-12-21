@@ -6935,8 +6935,9 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           console.log('🔍 DEBUG - Seçilen sonuç:', result);
           console.log('🔍 DEBUG - Nets:', result.nets);
           console.log('🔍 DEBUG - Scores:', result.scores);
-          console.log('🔍 DEBUG - Türkçe:', result.turkce);
-          console.log('🔍 DEBUG - Matematik:', result.matematik);
+          console.log('🔍 DEBUG - Scores.turkce:', result.scores?.turkce);
+          console.log('🔍 DEBUG - Scores.matematik:', result.scores?.matematik);
+          console.log('🔍 DEBUG - Scores.fen:', result.scores?.fen);
           
           const subjects = [
             { key: 'turkce', name: 'Türkçe', icon: '📖' },
@@ -6948,26 +6949,26 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           ];
           
           const getScore = (subject: string) => {
-            // Firestore'da zaten D/Y/B/N değerleri var mı kontrol et
-            const directScores = result[subject]; // result.turkce, result.matematik vs.
-            const netsScores = result.nets?.[subject]; // result.nets.turkce
+            // Scores objesi içindeki D/Y/B/N değerleri
+            const scoreFromScores = result.scores?.[subject];
+            const netsFromScores = result.nets?.[subject];
             
-            console.log(`🔍 DEBUG - ${subject} direct:`, directScores);
-            console.log(`🔍 DEBUG - ${subject} nets:`, netsScores);
+            console.log(`🔍 DEBUG - ${subject} scores:`, scoreFromScores);
+            console.log(`🔍 DEBUG - ${subject} nets:`, netsFromScores);
             
-            // Eğer doğrudan D/Y/B/N objesi varsa onu kullan
-            if (directScores && typeof directScores === 'object' && ('D' in directScores || 'net' in directScores)) {
+            // Eğer scores objesi içinde D/Y/B/N varsa onu kullan
+            if (scoreFromScores && typeof scoreFromScores === 'object') {
               return {
-                D: directScores.D || 0,
-                Y: directScores.Y || 0,
-                B: directScores.B || 0,
-                net: parseFloat((directScores.N || directScores.net || 0).toFixed(1))
+                D: scoreFromScores.D || 0,
+                Y: scoreFromScores.Y || 0,
+                B: scoreFromScores.B || 0,
+                net: parseFloat((scoreFromScores.N || scoreFromScores.net || 0).toFixed(1))
               };
             }
             
-            // Eğer sadece net varsa, onu kullan
-            if (netsScores !== undefined) {
-              const net = typeof netsScores === 'string' ? parseFloat(netsScores) : netsScores;
+            // Eğer sadece nets varsa, onu kullan
+            if (netsFromScores !== undefined) {
+              const net = typeof netsFromScores === 'string' ? parseFloat(netsFromScores) : netsFromScores;
               return {
                 D: Math.round(Math.max(0, net * 4)),
                 Y: Math.max(0, Math.round(net * 4) - Math.round(net * 5)),
