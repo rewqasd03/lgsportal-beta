@@ -4435,6 +4435,15 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
     { key: 'fen', label: '🔬 Fen Bilimleri', color: '#3B82F6', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
   ];
 
+  // Türkçe gün ismi fonksiyonu
+  const getTurkishDayName = (dateString: string) => {
+    const date = new Date(dateString);
+    const dayNames = [
+      'Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'
+    ];
+    return dayNames[date.getDay()];
+  };
+
   // Durum kontrollü odevleri filtrele
   const getFilteredOdevler = (dersKey: string) => {
     return odevler
@@ -4582,7 +4591,7 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
                                 {new Date(odev.tarih).toLocaleDateString('tr-TR')}
                               </div>
                               <div className="text-xs text-gray-500">
-                                {new Date(odev.tarih).toLocaleDateString('en-US', { weekday: 'long' })}
+                                {getTurkishDayName(odev.tarih)}
                               </div>
                             </td>
                             <td className="px-4 py-3 text-center">
@@ -4615,28 +4624,7 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
         );
       })}
 
-      {/* Genel Özet */}
-      {odevler.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">📊 Genel Özet</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {dersler.map((ders) => {
-              const dersOdevleri = getFilteredOdevler(ders.key);
-              const yapilanSayisi = dersOdevleri.filter(odev => odev.ogrenciDurum === true).length;
-              const toplamSayisi = dersOdevleri.length;
-              const basariYuzdesi = toplamSayisi > 0 ? Math.round((yapilanSayisi / toplamSayisi) * 100) : 0;
-              
-              return (
-                <div key={ders.key} className={`p-3 ${ders.bgColor} border ${ders.borderColor} rounded-lg text-center`}>
-                  <div className="text-sm font-medium text-gray-700 mb-1">{ders.label.split(' ')[1]}</div>
-                  <div className="text-lg font-bold" style={{ color: ders.color }}>%{basariYuzdesi}</div>
-                  <div className="text-xs text-gray-500">{yapilanSayisi}/{toplamSayisi}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+
 
       {/* Boş Durum */}
       {odevler.length === 0 && (
