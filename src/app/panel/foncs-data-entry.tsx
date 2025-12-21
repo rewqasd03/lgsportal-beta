@@ -6745,6 +6745,9 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
       const { getDocs, collection, query, where, orderBy } = await import('firebase/firestore');
       const { db } = await import('../../firebase');
 
+      console.log('🔍 Debug - Seçilen sınıf:', selectedSinif);
+      console.log('🔍 Debug - Seçilen öğrenci:', selectedStudent);
+
       // Sınıfın katıldığı denemeleri getir
       const examsQuery = query(
         collection(db, 'exams'),
@@ -6757,6 +6760,8 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
         ...doc.data()
       }));
       
+      console.log('🔍 Debug - Sınıfın denemeleri (exams):', allExams.length, allExams);
+
       // Öğrencinin sonuçlarını getir
       const resultsQuery = query(
         collection(db, 'results'),
@@ -6769,10 +6774,17 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
         ...doc.data()
       }));
 
+      console.log('🔍 Debug - Öğrencinin sonuçları (results):', allResults.length, allResults);
+
       // Sadece öğrencinin katıldığı denemeleri filtrele
       const studentExamIds = new Set(allResults.map((result: any) => result.examId));
+      console.log('🔍 Debug - Öğrencinin deneme IDleri:', Array.from(studentExamIds));
+      
       const studentExams = allExams.filter(exam => studentExamIds.has(exam.id));
       const studentResults = allResults.filter((result: any) => studentExamIds.has(result.examId));
+
+      console.log('🔍 Debug - Eşleşen denemeler:', studentExams.length, studentExams);
+      console.log('🔍 Debug - Eşleşen sonuçlar:', studentResults.length, studentResults);
 
       setStudentExams(studentExams);
       setExamResults(studentResults);
@@ -6882,6 +6894,27 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           </div>
         </div>
 
+        {/* Debug Bilgisi */}
+        {selectedStudent && !loading && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs">
+            <p className="text-blue-800 font-semibold mb-2">🔍 Debug Bilgileri:</p>
+            <p className="text-blue-700">Seçilen Öğrenci ID: {selectedStudent}</p>
+            <p className="text-blue-700">Sınıf: {selectedSinif}</p>
+            <p className="text-blue-700">Toplam Sonuç: {examResults.length}</p>
+            <p className="text-blue-700">Listelenen Deneme: {studentExams.length}</p>
+            {examResults.length > 0 && (
+              <div className="mt-2">
+                <p className="text-blue-700 font-semibold">İlk 3 Sonuç:</p>
+                {examResults.slice(0, 3).map((result, index) => (
+                  <p key={index} className="text-blue-600 text-xs ml-2">
+                    {index + 1}. examId: {result.examId} | Puan: {result.puan}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Deneme Seçimi */}
         {selectedStudent && (
           <div className="mt-6">
@@ -6906,7 +6939,7 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
                 <option value="">Deneme seçiniz...</option>
                 {studentExams.map((exam) => (
                   <option key={exam.id} value={exam.id}>
-                    {exam.name || exam.examName || exam.title} - {new Date(exam.examDate).toLocaleDateString('tr-TR')}
+                    {exam.title} - {new Date(exam.date).toLocaleDateString('tr-TR')}
                   </option>
                 ))}
               </select>
