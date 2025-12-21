@@ -5799,24 +5799,30 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       // Eğer kayıt varsa durumları yükle, yoksa tüm öğrenciler için varsayılan "yapıldı" durumları oluştur
       if (Object.keys(durumlar).length > 0) {
         setOdevDurumlar(durumlar);
+        setDirtyStates({}); // Mevcut kayıt varsa, dirty state'i temizle
       } else {
-        // Hiç kayıt yoksa tüm öğrenciler için varsayılan "yapıldı" durumları
+        // Hiç kayıt yoksa tüm öğrenciler için varsayılan "yapıldı" durumları ve YENİ KAYIT için dirty yap
         const varsayilanDurumlar: {[key: string]: string} = {};
+        const yeniDirtyStates: {[key: string]: boolean} = {};
         seciliSinifOgrencileri.forEach(student => {
           varsayilanDurumlar[student.id] = 'yapildi'; // Varsayılan olarak yapıldı
+          yeniDirtyStates[student.id] = true; // Yeni kayıt için tüm öğrencileri dirty yap
         });
         setOdevDurumlar(varsayilanDurumlar);
+        setDirtyStates(yeniDirtyStates); // Yeni kayıt için tüm öğrencileri dirty olarak işaretle
+        console.log('🆕 Yeni ödev kontrolü - tüm öğrenciler dirty olarak işaretlendi');
       }
-      setDirtyStates({});
     } catch (error) {
       console.error('Ödev durumları yüklenirken hata:', error);
       // Hata durumunda da tüm öğrenciler için varsayılan "yapıldı" durumları
       const hataDurumlar: {[key: string]: string} = {};
+      const hataDirtyStates: {[key: string]: boolean} = {};
       seciliSinifOgrencileri.forEach(student => {
         hataDurumlar[student.id] = 'yapildi'; // Hata durumunda da varsayılan yapıldı
+        hataDirtyStates[student.id] = true; // Hata durumunda da yeni kayıt olarak işaretle
       });
       setOdevDurumlar(hataDurumlar);
-      setDirtyStates({});
+      setDirtyStates(hataDirtyStates);
     }
   };
 
