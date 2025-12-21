@@ -6347,6 +6347,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
   const [bugun, setBugun] = useState<string>(new Date().toISOString().split('T')[0]);
   const [odevler, setOdevler] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dirtyStates, setDirtyStates] = useState<{[key: string]: boolean}>({});
 
   // Firebase fonksiyonlarını import et
   const loadOdevler = async () => {
@@ -6399,22 +6400,53 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
     }
   };
 
-  // Öğrenci ödev durumunu güncelle
-  const handleOdevDurumu = async (studentId: string, yapti: boolean) => {
+  // Öğrenci ödev durumunu değiştir (otomatik kaydetme kaldırıldı)
+  const handleOdevDurumu = (studentId: string, yapti: boolean) => {
+    setOdevDurumlar(prev => ({
+      ...prev,
+      [studentId]: yapti
+    }));
+
+    // Değişikliği takip et
+    setDirtyStates(prev => ({
+      ...prev,
+      [studentId]: true
+    }));
+  };
+
+  // Tüm değişiklikleri kaydet
+  const handleSaveAllChanges = async () => {
+    if (Object.keys(dirtyStates).length === 0) {
+      alert('Kaydedilecek değişiklik bulunmamaktadır.');
+      return;
+    }
+
+    setLoading(true);
     try {
       const { updateOdevDurumu } = await import('../../firebase');
-      await updateOdevDurumu(selectedDers, selectedSinif, bugun, studentId, yapti);
       
-      setOdevDurumlar(prev => ({
-        ...prev,
-        [studentId]: yapti
-      }));
+      // Tüm değişiklikleri kaydet
+      const savePromises = Object.entries(dirtyStates).map(([studentId, isDirty]) => {
+        if (isDirty) {
+          const yapti = odevDurumlar[studentId] !== undefined ? odevDurumlar[studentId] : true;
+          return updateOdevDurumu(selectedDers, selectedSinif, bugun, studentId, yapti);
+        }
+      });
 
+      await Promise.all(savePromises);
+      
+      // Durumu temizle
+      setDirtyStates({});
+      
       // Öğrenci dashboard'ını güncelle
       if (onDataUpdate) onDataUpdate();
+      
+      alert('✅ Tüm ödev durumları başarıyla kaydedildi!');
     } catch (error) {
-      console.error('Ödev durumu güncellenirken hata:', error);
-      alert('Ödev durumu güncellenirken hata oluştu!');
+      console.error('Ödev durumları kaydedilirken hata:', error);
+      alert('❌ Kaydetme sırasında hata oluştu!');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -6453,6 +6485,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                 setSelectedDers(e.target.value);
                 setSelectedSinif('');
                 setOdevDurumlar({});
+                setDirtyStates({});
               }}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
@@ -6475,6 +6508,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
               onChange={(e) => {
                 setSelectedSinif(e.target.value);
                 setOdevDurumlar({});
+                setDirtyStates({});
               }}
               disabled={!selectedDers}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100"
@@ -6496,7 +6530,11 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
             <input
               type="date"
               value={bugun}
-              onChange={(e) => setBugun(e.target.value)}
+              onChange={(e) => {
+                setBugun(e.target.value);
+                setOdevDurumlar({});
+                setDirtyStates({});
+              }}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
@@ -6505,7 +6543,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
 
       {/* İstatistikler */}
       {selectedDers && selectedSinif && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <h4 className="text-sm font-medium text-blue-800 mb-1">Toplam Öğrenci</h4>
             <p className="text-2xl font-bold text-blue-600">{istatistikler.toplamOgrenci}</p>
@@ -6517,6 +6555,27 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
           <div className="bg-red-50 p-4 rounded-lg border border-red-200">
             <h4 className="text-sm font-medium text-red-800 mb-1">Ödev Yapmayan</h4>
             <p className="text-2xl font-bold text-red-600">{istatistikler.odevYapmayan}</p>
+          </div>
+          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+            <h4 className="text-sm font-medium text-yellow-800 mb-1">Kaydet</h4>
+            <button
+              onClick={handleSaveAllChanges}
+              disabled={loading || Object.keys(dirtyStates).length === 0}
+              className={`w-full px-3 py-2 rounded-lg font-medium transition-all text-sm ${
+                loading || Object.keys(dirtyStates).length === 0
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Kaydediliyor...
+                </div>
+              ) : (
+                `💾 Kaydet (${Object.keys(dirtyStates).length})`
+              )}
+            </button>
           </div>
         </div>
       )}
