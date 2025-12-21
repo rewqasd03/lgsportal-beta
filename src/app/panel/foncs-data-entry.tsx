@@ -6736,20 +6736,141 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                   })}
                 </div>
                 
-                {/* Eğer hiç veri yoksa */}
-                {dersler.every(ders => {
-                  const dersKayitlari = gecmisKayitlar.filter(kayit => 
-                    kayit.ders === ders.key && 
+              {/* Öğrenci Bazında Detaylı Özet */}
+              {(() => {
+                const raporOgrencileri = raporSinif ? students.filter(s => s.class === raporSinif) : [];
+                
+                if (raporOgrencileri.length === 0) return null;
+                
+                // Her öğrenci için ödev istatistikleri hesapla
+                const ogrenciIstatistikleri = raporOgrencileri.map(student => {
+                  const ogrenciKayitlari = gecmisKayitlar.filter(kayit => 
                     kayit.sinif === raporSinif &&
-                    (raporOgrenci ? kayit.ogrenciler.some((o: any) => o.ogrenciId === raporOgrenci) : true)
+                    kayit.ogrenciler.some((o: any) => o.ogrenciId === student.id)
                   );
-                  return dersKayitlari.length === 0;
-                }) && (
-                  <div className="text-center py-8 text-gray-500">
-                    <div className="text-4xl mb-4">📊</div>
-                    <p>Bu sınıf için henüz ödev kontrolü verisi bulunmamaktadır.</p>
+                  
+                  // Ders bazında istatistikler
+                  const dersIstatistikleri = dersler.map(ders => {
+                    const dersKayitlari = ogrenciKayitlari.filter(kayit => 
+                      kayit.ders === ders.key
+                    );
+                    
+                    const toplamYapildi = dersKayitlari.reduce((acc, kayit) => {
+                      const ogrenciKayit = kayit.ogrenciler.find((o: any) => o.ogrenciId === student.id);
+                      return acc + (ogrenciKayit?.durum === 'yapildi' ? 1 : 0);
+                    }, 0);
+                    
+                    const toplamEksik = dersKayitlari.reduce((acc, kayit) => {
+                      const ogrenciKayit = kayit.ogrenciler.find((o: any) => o.ogrenciId === student.id);
+                      return acc + (ogrenciKayit?.durum === 'eksikYapildi' ? 1 : 0);
+                    }, 0);
+                    
+                    const toplamYapilmadi = dersKayitlari.reduce((acc, kayit) => {
+                      const ogrenciKayit = kayit.ogrenciler.find((o: any) => o.ogrenciId === student.id);
+                      return acc + (ogrenciKayit?.durum === 'yapilmadi' ? 1 : 0);
+                    }, 0);
+                    
+                    const toplamKontrol = toplamYapildi + toplamEksik + toplamYapilmadi;
+                    const basariOrani = toplamKontrol > 0 ? Math.round((toplamYapildi / toplamKontrol) * 100) : 0;
+                    
+                    return {
+                      ders: ders.label,
+                      dersKey: ders.key,
+                      toplamYapildi,
+                      toplamEksik,
+                      toplamYapilmadi,
+                      toplamKontrol,
+                      basariOrani
+                    };
+                  }).filter(ders => ders.toplamKontrol > 0); // Sadece veri olan dersleri göster
+                  
+                  // Genel istatistikler
+                  const genelYapildi = dersIstatistikleri.reduce((acc, ders) => acc + ders.toplamYapildi, 0);
+                  const genelEksik = dersIstatistikleri.reduce((acc, ders) => acc + ders.toplamEksik, 0);
+                  const genelYapilmadi = dersIstatistikleri.reduce((acc, ders) => acc + ders.toplamYapilmadi, 0);
+                  const genelToplam = genelYapildi + genelEksik + genelYapilmadi;
+                  const genelBasariOrani = genelToplam > 0 ? Math.round((genelYapildi / genelToplam) * 100) : 0;
+                  
+                  return {
+                    student,
+                    dersIstatistikleri,
+                    genelYapildi,
+                    genelEksik,
+                    genelYapilmadi,
+                    genelToplam,
+                    genelBasariOrani
+                  };
+                }).filter(ogrenci => ogrenci.genelToplam > 0); // Sadece veri olan öğrencileri göster
+                
+                if (ogrenciIstatistikleri.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-gray-500">
+                      <div className="text-4xl mb-4">👥</div>
+                      <p>Seçili sınıf için henüz ödev kontrolü verisi bulunmamaktadır.</p>
+                    </div>
+                  );
+                }
+                
+                return (
+                  <div className="bg-white p-6 rounded-lg shadow border">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                      👥 Öğrenci Bazında Detaylı Performans Özeti
+                    </h4>
+                    
+                    <div className="space-y-4">
+                      {ogrenciIstatistikleri.map(({ student, dersIstatistikleri, genelYapildi, genelEksik, genelYapilmadi, genelToplam, genelBasariOrani }) => (
+                        <div key={student.id} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex justify-between items-center mb-3">
+                            <h5 className="font-semibold text-gray-800">{student.name}</h5>
+                            <div className="flex items-center space-x-4 text-sm">
+                              <span className="bg-green-100 text-green-800 px-2 py-1 rounded">{genelYapildi} ✅</span>
+                              <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">{genelEksik} ⚠️</span>
+                              <span className="bg-red-100 text-red-800 px-2 py-1 rounded">{genelYapilmadi} ❌</span>
+                              <span className={`font-bold px-2 py-1 rounded ${
+                                genelBasariOrani >= 80 ? 'bg-green-100 text-green-800' :
+                                genelBasariOrani >= 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                %{genelBasariOrani}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {dersIstatistikleri.map(ders => (
+                              <div key={ders.dersKey} className="bg-gray-50 p-3 rounded border">
+                                <div className="font-medium text-sm text-gray-700 mb-2">{ders.ders}</div>
+                                <div className="space-y-1 text-xs">
+                                  <div className="flex justify-between">
+                                    <span>✅ Yapıldı:</span>
+                                    <span className="font-medium text-green-600">{ders.toplamYapildi}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>⚠️ Eksik:</span>
+                                    <span className="font-medium text-yellow-600">{ders.toplamEksik}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>❌ Yapılmadı:</span>
+                                    <span className="font-medium text-red-600">{ders.toplamYapilmadi}</span>
+                                  </div>
+                                  <div className="flex justify-between border-t pt-1 mt-2">
+                                    <span className="font-medium">Başarı:</span>
+                                    <span className={`font-bold ${
+                                      ders.basariOrani >= 80 ? 'text-green-600' :
+                                      ders.basariOrani >= 60 ? 'text-yellow-600' : 'text-red-600'
+                                    }`}>
+                                      %{ders.basariOrani}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                )}
+                );
+              })()}
               </div>
             </div>
           ) : (
