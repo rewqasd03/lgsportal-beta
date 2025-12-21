@@ -6233,9 +6233,38 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
             
             {loading && gecmisKayitlar.length === 0 ? (
               <div className="text-center py-8 text-gray-500">⏳ Geçmiş kayıtlar yükleniyor...</div>
-            ) : gecmisKayitlar.filter(kayit => kayit.yapildi + kayit.eksikYapildi + kayit.yapilmadi > 0).length === 0 ? (
-              <div className="text-center py-8 text-gray-500">📝 Henüz hiç ödev kontrolü yapılmamış.</div>
-            ) : (
+            ) : (() => {
+              const filteredKayitlar = gecmisKayitlar.filter(kayit => kayit.yapildi + kayit.eksikYapildi + kayit.yapilmadi > 0);
+              const dinKulturuKayitlar = gecmisKayitlar.filter(kayit => kayit.ders === 'din-kulturu');
+              const bosKayitlar = gecmisKayitlar.filter(kayit => kayit.yapildi + kayit.eksikYapildi + kayit.yapilmadi === 0);
+              
+              // Debug bilgisi
+              console.log('📊 Geçmiş Kayıtlar Debug:', {
+                toplam: gecmisKayitlar.length,
+                filtrelenen: filteredKayitlar.length,
+                dinKulturu: dinKulturuKayitlar.length,
+                bosKayitlar: bosKayitlar.length
+              });
+              
+              return filteredKayitlar.length === 0 ? (
+                <div className="space-y-4">
+                  <div className="text-center py-8 text-gray-500">📝 Henüz hiç ödev kontrolü yapılmamış.</div>
+                  
+                  {/* Debug: Boş kayıtları göster */}
+                  {bosKayitlar.length > 0 && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-yellow-800 mb-2">⚠️ Boş Kayıtlar (Filtrelendi):</h4>
+                      <div className="text-xs text-yellow-700 space-y-1">
+                        {bosKayitlar.map((kayit, index) => (
+                          <div key={index}>
+                            {kayit.tarih} {kayit.sinif} - {kayit.ders}: {kayit.yapildi}/{kayit.eksikYapildi}/{kayit.yapilmadi}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
               <div className="overflow-x-auto">
                 <table className="w-full table-auto">
                   <thead>
@@ -6285,7 +6314,8 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                   </tbody>
                 </table>
               </div>
-            )}
+              );
+            })()}
           </div>
         </>
       )}
@@ -6362,7 +6392,8 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                     
                     if (toplamKontrol === 0) return null;
                     
-                    const basariOrani = toplamKontrol > 0 ? Math.round((toplamYapildi / (toplamYapildi + toplamEksik + toplamYapilmadi)) * 100) : 0;
+                    const basariOrani = toplamKontrol > 0 && (toplamYapildi + toplamEksik + toplamYapilmadi) > 0 ? 
+                      Math.round((toplamYapildi / (toplamYapildi + toplamEksik + toplamYapilmadi)) * 100) : 0;
                     
                     return (
                       <div key={ders.key} className="bg-white p-4 rounded-lg border border-gray-200">
@@ -6390,9 +6421,16 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                           <div className="flex justify-between border-t pt-2">
                             <span className="font-medium">Başarı Oranı:</span>
                             <span className={`font-bold ${basariOrani >= 80 ? 'text-green-600' : basariOrani >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
-                              %{basariOrani}
+                              %{isNaN(basariOrani) ? 0 : basariOrani}
                             </span>
                           </div>
+                          
+                          {/* Debug bilgisi - sadece development'ta */}
+                          {process.env.NODE_ENV === 'development' && (
+                            <div className="mt-2 text-xs text-gray-400 border-t pt-1">
+                              Debug: toplamKontrol={toplamKontrol}, yapildi={toplamYapildi}, eksik={toplamEksik}, yapilmadi={toplamYapilmadi}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
