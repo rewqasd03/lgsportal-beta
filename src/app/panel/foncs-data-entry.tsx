@@ -6348,6 +6348,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
   const [odevler, setOdevler] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [dirtyStates, setDirtyStates] = useState<{[key: string]: boolean}>({});
+  const [kayitMevcut, setKayitMevcut] = useState<boolean>(false);
 
   // Firebase fonksiyonlarını import et
   const loadOdevler = async () => {
@@ -6392,12 +6393,24 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
 
   const loadOdevDurumlari = async () => {
     try {
-      const { getOdevDurumlari, updateOdevDurumu } = await import('../../firebase');
+      const { getOdevDurumlari } = await import('../../firebase');
       const durumlar = await getOdevDurumlari(selectedDers, selectedSinif, bugun);
+      
+      // Kayıt mevcut mu kontrol et
+      const kayitVar = Object.keys(durumlar).length > 0;
+      setKayitMevcut(kayitVar);
+      
       setOdevDurumlar(durumlar);
     } catch (error) {
       console.error('Ödev durumları yüklenirken hata:', error);
     }
+  };
+
+  // Yeni ödev kontrolü başlat
+  const startNewHomeworkCheck = () => {
+    setKayitMevcut(false);
+    setOdevDurumlar({});
+    setDirtyStates({});
   };
 
   // Öğrenci ödev durumunu değiştir (otomatik kaydetme kaldırıldı)
@@ -6534,6 +6547,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                 setBugun(e.target.value);
                 setOdevDurumlar({});
                 setDirtyStates({});
+                setKayitMevcut(false); // Tarih değişince kayıt kontrolünü sıfırla
               }}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
@@ -6589,27 +6603,50 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
             </h3>
             <p className="text-sm text-gray-600 mt-1">
               Tarih: {new Date(bugun).toLocaleDateString('tr-TR')}
+              {kayitMevcut && <span className="ml-2 text-green-600">✅ Kayıt mevcut</span>}
+              {!kayitMevcut && <span className="ml-2 text-orange-600">⚠️ Kayıt yok</span>}
             </p>
           </div>
+
+          {/* Kayıt kontrol mesajı */}
+          {!kayitMevcut && (
+            <div className="p-6 text-center bg-orange-50 border-b">
+              <div className="text-4xl mb-4">📝</div>
+              <h4 className="text-lg font-semibold text-orange-800 mb-2">
+                Bu tarihte henüz ödev kontrolü yapılmamış
+              </h4>
+              <p className="text-orange-700 mb-4">
+                {new Date(bugun).toLocaleDateString('tr-TR')} tarihinde {selectedSinif} sınıfı için {dersler.find(d => d.key === selectedDers)?.label} dersine ait ödev kontrolü henüz yapılmamış.
+              </p>
+              <button
+                onClick={startNewHomeworkCheck}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                🆕 Yeni Ödev Kontrolü Başlat
+              </button>
+            </div>
+          )}
           
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Öğrenci
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ödev Durumu
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    İşlem
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {seciliSinifOgrencileri.map((student) => {
-                  const odevYapti = odevDurumlar[student.id] !== undefined ? odevDurumlar[student.id] : true;
+          {/* Öğrenci Listesi - Sadece kayıt mevcutsa göster */}
+          {kayitMevcut && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Öğrenci
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ödev Durumu
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      İşlem
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {seciliSinifOgrencileri.map((student) => {
+                    const odevYapti = odevDurumlar[student.id] !== undefined ? odevDurumlar[student.id] : true;
                   
                   return (
                     <tr key={student.id} className="hover:bg-gray-50">
@@ -6670,11 +6707,12 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                         </div>
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
           
           {seciliSinifOgrencileri.length === 0 && (
             <div className="text-center py-12">
