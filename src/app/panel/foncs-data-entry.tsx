@@ -6948,10 +6948,10 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
             { key: 'ingilizce', name: 'İngilizce', icon: '🗣️' }
           ];
           
-          const getScore = (subject: string, resultData = result) => {
+          const getScore = (subject: string) => {
             // Scores objesi içindeki D/Y/B/N değerleri
-            const scoreFromScores = resultData.scores?.[subject];
-            const netsFromScores = resultData.nets?.[subject];
+            const scoreFromScores = result.scores?.[subject];
+            const netsFromScores = result.nets?.[subject];
             
             let D = 0, Y = 0, B = 0, net = 0;
             
@@ -6977,44 +6977,7 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
             return { D, Y, B, net };
           };
           
-          // Debug bilgileri - gerçek veriyi görmek için
-          console.log('🔍 DEBUG - Seçili sonuç:', result);
-          console.log('🔍 DEBUG - Result keys:', Object.keys(result));
-          console.log('🔍 DEBUG - Result.puan:', result.puan);
-          console.log('🔍 DEBUG - Result.totalScore:', result.totalScore);
-          console.log('🔍 DEBUG - Exam results length:', examResults.length);
-          console.log('🔍 DEBUG - Student exams:', studentExams);
-          
-          // Toplam net hesaplama (sadece seçili öğrenci için)
-          const totalNet = subjects.reduce((acc, s) => {
-            const score = getScore(s.key);
-            console.log(`🔍 DEBUG - ${s.name} net:`, score.net);
-            return acc + score.net;
-          }, 0);
-          
-          // Öğrencinin toplam puanı (Firestore'dan al)
-          const studentTotalPuan = result.puan || result.totalScore || result.scores?.puan || 0;
-          
-          // Sınıf ortalamaları hesaplama (denemedeki tüm öğrenciler)
-          const sinifPuanOrtalamasi = examResults.length > 0 ? 
-            examResults.reduce((acc, exam) => acc + (exam.puan || exam.totalScore || 0), 0) / examResults.length : 0;
-          
-          const sinifNetOrtalamasi = examResults.length > 0 ? 
-            examResults.reduce((acc, exam) => {
-              const examTotalNet = subjects.reduce((netAcc, s) => {
-                const examScore = getScore(s.key, exam);
-                return netAcc + examScore.net;
-              }, 0);
-              return acc + examTotalNet;
-            }, 0) / examResults.length : 0;
-          
-          // Exam objesinden genel ortalamaları al
-          const selectedExamData = studentExams.find(exam => exam.id === selectedExam);
-          console.log('🔍 DEBUG - Selected exam data:', selectedExamData);
-          console.log('🔍 DEBUG - General averages:', selectedExamData?.generalAverages);
-          
-          const genelPuanOrtalamasi = selectedExamData?.generalAverages?.generalScore || 0;
-          const genelNetOrtalamasi = selectedExamData?.generalAverages?.nets?.total || 0;
+          // Basit D/Y/B/N tablosu
           
           // Debug: console.log(`🔍 DEBUG - Student puan: ${studentTotalPuan}`);
           // console.log(`🔍 DEBUG - Sınıf puan ortalaması: ${sinifPuanOrtalamasi}`);
@@ -7084,45 +7047,16 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
                 </table>
               </div>
               
+              {/* Sadece basit toplam net gösterimi */}
               <div className="p-4 bg-gray-50 border-t">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-blue-600">{totalNet.toFixed(1)}</div>
-                    <div className="text-sm text-gray-600">Toplam Net</div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {subjects.reduce((acc, s) => {
+                      const score = getScore(s.key);
+                      return acc + score.net;
+                    }, 0).toFixed(1)}
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-green-600">{Math.round(studentTotalPuan)}</div>
-                    <div className="text-sm text-gray-600">Toplam Puan</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-purple-600">{Math.round(sinifPuanOrtalamasi)}</div>
-                    <div className="text-sm text-gray-600">Sınıf Puan Ort.</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-orange-600">{Math.round(sinifNetOrtalamasi * 10) / 10}</div>
-                    <div className="text-sm text-gray-600">Sınıf Net Ort.</div>
-                  </div>
-                </div>
-                
-                {/* İkinci satır - Genel ortalamalar */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-indigo-600">{Math.round(genelPuanOrtalamasi)}</div>
-                    <div className="text-sm text-gray-600">Genel Puan Ort.</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-pink-600">{Math.round(genelNetOrtalamasi * 10) / 10}</div>
-                    <div className="text-sm text-gray-600">Genel Net Ort.</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-gray-600">{examResults.length}</div>
-                    <div className="text-sm text-gray-600">Deneme Katılımcısı</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-emerald-600">{Math.round(studentTotalPuan) > 0 ? 
-                      Math.round((studentTotalPuan / sinifPuanOrtalamasi) * 100) : 0}%</div>
-                    <div className="text-sm text-gray-600">Sınıf Karşılaştırması</div>
-                  </div>
+                  <div className="text-sm text-gray-600">Toplam Net</div>
                 </div>
               </div>
             </div>
