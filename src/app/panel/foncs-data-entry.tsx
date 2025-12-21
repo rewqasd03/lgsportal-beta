@@ -5830,16 +5830,51 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
 
       await Promise.all(savePromises);
       
+      // Optimistic update - yeni kaydı hemen tabloda göster
+      const yeniKayit = {
+        ders: selectedDers,
+        sinif: selectedSinif,
+        tarih: tarih,
+        ogrenciler: Object.entries(odevDurumlar).map(([ogrenciId, durum]) => ({
+          ogrenciId,
+          durum
+        })),
+        toplamOgrenci: seciliSinifOgrencileri.length,
+        yapildi: seciliSinifOgrencileri.filter(s => odevDurumlar[s.id] === 'yapildi').length,
+        eksikYapildi: seciliSinifOgrencileri.filter(s => odevDurumlar[s.id] === 'eksikYapildi').length,
+        yapilmadi: seciliSinifOgrencileri.filter(s => odevDurumlar[s.id] === 'yapilmadi').length,
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Mevcut kayıt var mı kontrol et, varsa güncelle, yoksa ekle
+      setGecmisKayitlar(prev => {
+        const existingIndex = prev.findIndex(kayit => 
+          kayit.ders === selectedDers && 
+          kayit.sinif === selectedSinif && 
+          kayit.tarih === tarih
+        );
+        
+        if (existingIndex >= 0) {
+          // Mevcut kaydı güncelle
+          const yeniKayitlar = [...prev];
+          yeniKayitlar[existingIndex] = yeniKayit;
+          return yeniKayitlar;
+        } else {
+          // Yeni kayıt ekle (en başa)
+          return [yeniKayit, ...prev];
+        }
+      });
+      
       // Durumu temizle
       setDirtyStates({});
-      
-      // Geçmiş kayıtları yenile
-      await loadGecmisKayitlar();
       
       // Öğrenci dashboard'ını güncelle
       if (onDataUpdate) onDataUpdate();
       
       alert('✅ Tüm ödev durumları başarıyla kaydedildi!');
+      
+      // Background'da da geçmiş kayıtları güncelle (eşzamanlılık için)
+      loadGecmisKayitlar();
     } catch (error) {
       console.error('Ödev durumları kaydedilirken hata:', error);
       alert('❌ Kaydetme sırasında hata oluştu!');
