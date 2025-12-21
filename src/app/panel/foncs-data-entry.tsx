@@ -5967,8 +5967,8 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       {/* Tab İçeriği */}
       {activeOdevTab === 'yeni' && (
         <>
-          {/* Filtreler - Sadece yeni kontrol için */}
-      <div className="bg-white p-6 rounded-lg shadow">
+          {/* Filtreler - Yeni ödev kontrolü için */}
+          <div className="bg-white p-6 rounded-lg shadow">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Sınıf Seçimi */}
           <div>
