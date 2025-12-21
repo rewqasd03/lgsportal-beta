@@ -5848,24 +5848,30 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
 
   // Tüm değişiklikleri kaydet
   const handleSaveAllChanges = async () => {
-    if (Object.keys(dirtyStates).length === 0) {
-      alert('Kaydedilecek değişiklik bulunmamaktadır.');
-      return;
-    }
-
     setLoading(true);
     try {
-      const { updateOdevDurumu } = await import('../../firebase');
+      const { updateOdevDurumu, getOdevDurumlari } = await import('../../firebase');
       
-      // Tüm değişiklikleri kaydet
-      const savePromises = Object.entries(dirtyStates).map(([studentId, isDirty]) => {
-        if (isDirty) {
-          const durum = odevDurumlar[studentId] || 'yapildi';
-          return updateOdevDurumu(selectedDers, selectedSinif, tarih, studentId, durum);
-        }
+      // Mevcut durumu kontrol et
+      const mevcutDurumlar = await getOdevDurumlari(selectedDers, selectedSinif, tarih);
+      const mevcutKayitVar = Object.keys(mevcutDurumlar).length > 0;
+      
+      // Eğer hiç değişiklik yoksa ve mevcut kayıt varsa, sadece bilgi ver
+      if (Object.keys(dirtyStates).length === 0 && mevcutKayitVar) {
+        alert('ℹ️ Bu ödev kontrolü zaten kaydedilmiş. Herhangi bir değişiklik bulunmuyor.');
+        setLoading(false);
+        return;
+      }
+      
+      // Yeni kayıt için veya değişiklik varsa tüm öğrencileri kaydet
+      const savePromises = seciliSinifOgrencileri.map(student => {
+        const durum = odevDurumlar[student.id] || 'yapildi';
+        return updateOdevDurumu(selectedDers, selectedSinif, tarih, student.id, durum);
       });
 
       await Promise.all(savePromises);
+      
+      console.log(`✅ Ödev durumları kaydedildi. ${seciliSinifOgrencileri.length} öğrenci güncellendi.`);
       
       // Optimistic update - yeni kaydı hemen tabloda göster
       const yeniKayit = {
@@ -5908,7 +5914,12 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       // Öğrenci dashboard'ını güncelle
       if (onDataUpdate) onDataUpdate();
       
-      alert('✅ Tüm ödev durumları başarıyla kaydedildi!');
+      // Başarı mesajı - detaylı bilgi ile
+      const yapildiSayisi = seciliSinifOgrencileri.filter(s => odevDurumlar[s.id] === 'yapildi').length;
+      const eksikSayisi = seciliSinifOgrencileri.filter(s => odevDurumlar[s.id] === 'eksikYapildi').length;
+      const yapilmadiSayisi = seciliSinifOgrencileri.filter(s => odevDurumlar[s.id] === 'yapilmadi').length;
+      
+      alert(`✅ Ödev kontrolü başarıyla kaydedildi!\n\n📊 İstatistikler:\n• ✅ Yapıldı: ${yapildiSayisi} öğrenci\n• ⚠️ Eksik Yapıldı: ${eksikSayisi} öğrenci\n• ❌ Yapılmadı: ${yapilmadiSayisi} öğrenci\n• 📝 Toplam: ${seciliSinifOgrencileri.length} öğrenci\n\n📅 ${selectedDers} - ${selectedSinif} - ${tarih}`);
       
       // Background'da da geçmiş kayıtları güncelle (eşzamanlılık için)
       loadGecmisKayitlar();
