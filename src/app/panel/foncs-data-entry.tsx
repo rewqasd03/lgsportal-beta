@@ -5735,6 +5735,9 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
   const [loading, setLoading] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [dirtyStates, setDirtyStates] = useState<{[key: string]: boolean}>({});
+  const [activeOdevTab, setActiveOdevTab] = useState<'yeni' | 'rapor'>('yeni');
+  const [raporSinif, setRaporSinif] = useState<string>('');
+  const [raporOgrenci, setRaporOgrenci] = useState<string>('');
 
   // Dersler listesi
   const dersler = [
@@ -5935,7 +5938,36 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
         <p className="text-blue-100">Günlük ödev durumlarını takip edin ve yönetin</p>
       </div>
 
-      {/* Filtreler */}
+      {/* Tab Seçenekleri */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <div className="flex space-x-4 border-b">
+          <button
+            onClick={() => setActiveOdevTab('yeni')}
+            className={`px-6 py-3 font-medium rounded-t-lg transition-colors ${
+              activeOdevTab === 'yeni'
+                ? 'bg-blue-600 text-white border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+            }`}
+          >
+            ✏️ Yeni Ödev Kontrolü
+          </button>
+          <button
+            onClick={() => setActiveOdevTab('rapor')}
+            className={`px-6 py-3 font-medium rounded-t-lg transition-colors ${
+              activeOdevTab === 'rapor'
+                ? 'bg-blue-600 text-white border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+            }`}
+          >
+            📊 Ödev Raporu
+          </button>
+        </div>
+      </div>
+
+      {/* Tab İçeriği */}
+      {activeOdevTab === 'yeni' && (
+        <>
+          {/* Filtreler - Sadece yeni kontrol için */}
       <div className="bg-white p-6 rounded-lg shadow">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Sınıf Seçimi */}
@@ -6116,64 +6148,203 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
         </div>
       )}
 
-      {/* Geçmiş Kayıtlar */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4">📊 Geçmiş Kontroller</h3>
-        
-        {loading && gecmisKayitlar.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">⏳ Geçmiş kayıtlar yükleniyor...</div>
-        ) : gecmisKayitlar.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">📝 Henüz hiç ödev kontrolü yapılmamış.</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="p-3 text-left">Tarih</th>
-                  <th className="p-3 text-left">Sınıf</th>
-                  <th className="p-3 text-left">Ders</th>
-                  <th className="p-3 text-center">Yapıldı</th>
-                  <th className="p-3 text-center">Eksik Yapıldı</th>
-                  <th className="p-3 text-center">Yapılmadı</th>
-                  <th className="p-3 text-center">İşlemler</th>
-                </tr>
-              </thead>
-              <tbody>
-                {gecmisKayitlar.map((kayit) => {
-                  const yapildiCount = kayit.ogrenciler.filter((o: any) => o.durum === 'yapildi').length;
-                  const eksikYapildiCount = kayit.ogrenciler.filter((o: any) => o.durum === 'eksikYapildi').length;
-                  const yapilmadiCount = kayit.ogrenciler.filter((o: any) => o.durum === 'yapilmadi').length;
-                  
-                  return (
-                    <tr key={`${kayit.tarih}-${kayit.ders}-${kayit.sinif}`} className="border-t hover:bg-gray-50">
-                      <td className="p-3 font-medium">{new Date(kayit.tarih).toLocaleDateString('tr-TR')}</td>
-                      <td className="p-3">{kayit.sinif}</td>
-                      <td className="p-3">{dersler.find(d => d.key === kayit.ders)?.label || kayit.ders}</td>
-                      <td className="p-3 text-center">
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-sm">{yapildiCount}</span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">{eksikYapildiCount}</span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-sm">{yapilmadiCount}</span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <button
-                          onClick={() => handleEditRecord(kayit)}
-                          className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-                        >
-                          ✏️ Düzenle
-                        </button>
-                      </td>
+          {/* Geçmiş Kontroller - Sadece yeni kontrol tabında */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold mb-4">📊 Geçmiş Kontroller</h3>
+            
+            {loading && gecmisKayitlar.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">⏳ Geçmiş kayıtlar yükleniyor...</div>
+            ) : gecmisKayitlar.filter(kayit => kayit.yapildi + kayit.eksikYapildi + kayit.yapilmadi > 0).length === 0 ? (
+              <div className="text-center py-8 text-gray-500">📝 Henüz hiç ödev kontrolü yapılmamış.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="p-3 text-left">Tarih</th>
+                      <th className="p-3 text-left">Sınıf</th>
+                      <th className="p-3 text-left">Ders</th>
+                      <th className="p-3 text-center">Yapıldı</th>
+                      <th className="p-3 text-center">Eksik Yapıldı</th>
+                      <th className="p-3 text-center">Yapılmadı</th>
+                      <th className="p-3 text-center">İşlemler</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {gecmisKayitlar
+                      .filter(kayit => kayit.yapildi + kayit.eksikYapildi + kayit.yapilmadi > 0)
+                      .map((kayit) => {
+                        const yapildiCount = kayit.ogrenciler.filter((o: any) => o.durum === 'yapildi').length;
+                        const eksikYapildiCount = kayit.ogrenciler.filter((o: any) => o.durum === 'eksikYapildi').length;
+                        const yapilmadiCount = kayit.ogrenciler.filter((o: any) => o.durum === 'yapilmadi').length;
+                        
+                        return (
+                          <tr key={`${kayit.tarih}-${kayit.ders}-${kayit.sinif}`} className="border-t hover:bg-gray-50">
+                            <td className="p-3 font-medium">{new Date(kayit.tarih).toLocaleDateString('tr-TR')}</td>
+                            <td className="p-3">{kayit.sinif}</td>
+                            <td className="p-3">{dersler.find(d => d.key === kayit.ders)?.label || kayit.ders}</td>
+                            <td className="p-3 text-center">
+                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-sm">{yapildiCount}</span>
+                            </td>
+                            <td className="p-3 text-center">
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">{eksikYapildiCount}</span>
+                            </td>
+                            <td className="p-3 text-center">
+                              <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-sm">{yapilmadiCount}</span>
+                            </td>
+                            <td className="p-3 text-center">
+                              <button
+                                onClick={() => handleEditRecord(kayit)}
+                                className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                              >
+                                ✏️ Düzenle
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
+
+      {/* Ödev Raporu Tab */}
+      {activeOdevTab === 'rapor' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-6">📊 Ödev Raporu</h3>
+          
+          {/* Rapor Filtreleri */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Sınıf Seçimi */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                🏫 Sınıf Seçin:
+              </label>
+              <select
+                value={raporSinif}
+                onChange={(e) => {
+                  setRaporSinif(e.target.value);
+                  setRaporOgrenci('');
+                }}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Sınıf seçiniz...</option>
+                {siniflar.map((sinif) => (
+                  <option key={sinif} value={sinif}>{sinif}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Öğrenci Seçimi - Sadece sınıf seçildiyse */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                👤 Öğrenci Seçin (Opsiyonel):
+              </label>
+              <select
+                value={raporOgrenci}
+                onChange={(e) => setRaporOgrenci(e.target.value)}
+                disabled={!raporSinif}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+              >
+                <option value="">Tüm öğrenciler</option>
+                {raporSinif && students.filter(s => s.class === raporSinif).map((student) => (
+                  <option key={student.id} value={student.id}>{student.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Rapor İçeriği */}
+          {raporSinif ? (
+            <div className="space-y-6">
+              {/* Genel Özet */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+                <h4 className="text-lg font-semibold text-blue-800 mb-4">
+                  📈 {raporSinif} Sınıfı Ödev Özeti
+                  {raporOgrenci && ` - ${students.find(s => s.id === raporOgrenci)?.name}`}
+                </h4>
+                
+                {/* Ders Bazında İstatistikler */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {dersler.map((ders) => {
+                    const dersKayitlari = gecmisKayitlar.filter(kayit => 
+                      kayit.ders === ders.key && 
+                      kayit.sinif === raporSinif &&
+                      (raporOgrenci ? kayit.ogrenciler.some((o: any) => o.ogrenciId === raporOgrenci) : true)
+                    );
+                    
+                    const toplamKontrol = dersKayitlari.length;
+                    const toplamYapildi = dersKayitlari.reduce((acc, kayit) => acc + kayit.yapildi, 0);
+                    const toplamEksik = dersKayitlari.reduce((acc, kayit) => acc + kayit.eksikYapildi, 0);
+                    const toplamYapilmadi = dersKayitlari.reduce((acc, kayit) => acc + kayit.yapilmadi, 0);
+                    
+                    if (toplamKontrol === 0) return null;
+                    
+                    const basariOrani = toplamKontrol > 0 ? Math.round((toplamYapildi / (toplamYapildi + toplamEksik + toplamYapilmadi)) * 100) : 0;
+                    
+                    return (
+                      <div key={ders.key} className="bg-white p-4 rounded-lg border border-gray-200">
+                        <div className="flex items-center mb-3">
+                          <span className="text-2xl mr-2">{ders.label.split(' ')[0]}</span>
+                          <h5 className="font-semibold text-gray-800">{ders.label.split(' ').slice(1).join(' ')}</h5>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span>Toplam Kontrol:</span>
+                            <span className="font-medium">{toplamKontrol}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>✅ Başarılı:</span>
+                            <span className="font-medium text-green-600">{toplamYapildi}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>⚠️ Eksik:</span>
+                            <span className="font-medium text-yellow-600">{toplamEksik}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>❌ Başarısız:</span>
+                            <span className="font-medium text-red-600">{toplamYapilmadi}</span>
+                          </div>
+                          <div className="flex justify-between border-t pt-2">
+                            <span className="font-medium">Başarı Oranı:</span>
+                            <span className={`font-bold ${basariOrani >= 80 ? 'text-green-600' : basariOrani >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                              %{basariOrani}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Eğer hiç veri yoksa */}
+                {dersler.every(ders => {
+                  const dersKayitlari = gecmisKayitlar.filter(kayit => 
+                    kayit.ders === ders.key && 
+                    kayit.sinif === raporSinif &&
+                    (raporOgrenci ? kayit.ogrenciler.some((o: any) => o.ogrenciId === raporOgrenci) : true)
+                  );
+                  return dersKayitlari.length === 0;
+                }) && (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="text-4xl mb-4">📊</div>
+                    <p>Bu sınıf için henüz ödev kontrolü verisi bulunmamaktadır.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-6xl mb-4">📊</div>
+              <h4 className="text-lg font-semibold text-gray-600 mb-2">Ödev Raporu Görüntüleme</h4>
+              <p className="text-gray-500">Sınıf seçerek başlayın. Öğrenci seçerseniz sadece o öğrencinin özeti gösterilir.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
