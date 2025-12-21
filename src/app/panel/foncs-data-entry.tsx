@@ -6738,36 +6738,44 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
     }
   }, [selectedStudent]);
 
-  // Öğrencinin denemelerini yükle
+  // Sınıfın katıldığı denemeleri yükle
   const loadStudentExams = async () => {
     setLoading(true);
     try {
       const { getDocs, collection, query, where, orderBy } = await import('firebase/firestore');
       const { db } = await import('../../firebase');
 
-      // Öğrencinin sonuçlarını getir (deneme verileri results koleksiyonunda)
-      const resultsQuery = query(
-        collection(db, 'results'),
-        where('studentId', '==', selectedStudent),
-        orderBy('examDate', 'desc')
+      // Sınıfın katıldığı denemeleri getir
+      const examsQuery = query(
+        collection(db, 'exams'),
+        where('classes', 'array-contains', selectedSinif),
+        orderBy('date', 'desc')
       );
-      const resultsSnapshot = await getDocs(resultsQuery);
-      const results = resultsSnapshot.docs.map(doc => ({
+      const examsSnapshot = await getDocs(examsQuery);
+      const allExams = examsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       
-      // Sonuçlardan deneme bilgilerini çıkar
-      const exams = results.map((result: any, index) => ({
-        id: result.examId || result.id || `exam-${index}`,
-        name: result.examName || result.title || `Deneme ${index + 1}`,
-        examName: result.examName || result.title || `Deneme ${index + 1}`,
-        examDate: result.examDate || result.date || new Date(),
-        title: result.examName || result.title || `Deneme ${index + 1}`
+      // Öğrencinin sonuçlarını getir
+      const resultsQuery = query(
+        collection(db, 'results'),
+        where('studentId', '==', selectedStudent),
+        orderBy('createdAt', 'desc')
+      );
+      const resultsSnapshot = await getDocs(resultsQuery);
+      const allResults = resultsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
       }));
 
-      setStudentExams(exams);
-      setExamResults(results);
+      // Sadece öğrencinin katıldığı denemeleri filtrele
+      const studentExamIds = new Set(allResults.map((result: any) => result.examId));
+      const studentExams = allExams.filter(exam => studentExamIds.has(exam.id));
+      const studentResults = allResults.filter((result: any) => studentExamIds.has(result.examId));
+
+      setStudentExams(studentExams);
+      setExamResults(studentResults);
     } catch (error) {
       console.error('Deneme verilerini yükleme hatası:', error);
     } finally {
@@ -6926,41 +6934,41 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
               
               {examData && (
                 <div className="mb-3">
-                  <p className="font-medium text-gray-800">{examData.name || examData.examName}</p>
-                  <p className="text-sm text-gray-500">{new Date(examData.examDate).toLocaleDateString('tr-TR')}</p>
+                  <p className="font-medium text-gray-800">{examData.title}</p>
+                  <p className="text-sm text-gray-500">{new Date(examData.date).toLocaleDateString('tr-TR')}</p>
                 </div>
               )}
               
               {examResult && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {examResult.turkceNet !== undefined && (
+                  {examResult.nets?.turkce !== undefined && (
                     <div className="text-center p-2 bg-green-50 rounded">
                       <div className="text-sm text-green-600">📖 Türkçe</div>
-                      <div className="font-bold text-green-800">{examResult.turkceNet} net</div>
+                      <div className="font-bold text-green-800">{examResult.nets.turkce} net</div>
                     </div>
                   )}
-                  {examResult.matematikNet !== undefined && (
+                  {examResult.nets?.matematik !== undefined && (
                     <div className="text-center p-2 bg-blue-50 rounded">
                       <div className="text-sm text-blue-600">🔢 Matematik</div>
-                      <div className="font-bold text-blue-800">{examResult.matematikNet} net</div>
+                      <div className="font-bold text-blue-800">{examResult.nets.matematik} net</div>
                     </div>
                   )}
-                  {examResult.fenNet !== undefined && (
+                  {examResult.nets?.fen !== undefined && (
                     <div className="text-center p-2 bg-purple-50 rounded">
                       <div className="text-sm text-purple-600">🔬 Fen</div>
-                      <div className="font-bold text-purple-800">{examResult.fenNet} net</div>
+                      <div className="font-bold text-purple-800">{examResult.nets.fen} net</div>
                     </div>
                   )}
-                  {examResult.sosyalNet !== undefined && (
+                  {examResult.nets?.sosyal !== undefined && (
                     <div className="text-center p-2 bg-orange-50 rounded">
                       <div className="text-sm text-orange-600">🌍 Sosyal</div>
-                      <div className="font-bold text-orange-800">{examResult.sosyalNet} net</div>
+                      <div className="font-bold text-orange-800">{examResult.nets.sosyal} net</div>
                     </div>
                   )}
-                  {examResult.totalScore !== undefined && (
+                  {examResult.puan !== undefined && (
                     <div className="text-center p-2 bg-yellow-50 rounded col-span-full md:col-span-4">
                       <div className="text-sm text-yellow-600">🎯 Toplam Puan</div>
-                      <div className="font-bold text-yellow-800">{examResult.totalScore} puan</div>
+                      <div className="font-bold text-yellow-800">{examResult.puan} puan</div>
                     </div>
                   )}
                 </div>
