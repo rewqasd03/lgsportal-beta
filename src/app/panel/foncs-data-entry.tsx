@@ -6544,7 +6544,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                         tarih: kayit.tarih,
                         durum: ogrenciKayit?.durum || 'yapilmadi'
                       };
-                    }).filter(detay => detay.durum !== 'yapilmadi'); // Sadece yapılan ve eksik olanları göster
+                    }); // Tüm durumları göster (yapıldı, eksik, yapılmadı)
                     
                     const toplamYapildi = dersKayitlari.reduce((acc, kayit) => {
                       const ogrenciKayit = kayit.ogrenciler.find((o: any) => o.ogrenciId === student.id);
@@ -6668,9 +6668,12 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                                             <span className={`px-1 py-0.5 rounded text-xs ${
                                               detay.durum === 'yapildi' 
                                                 ? 'bg-green-100 text-green-700' 
-                                                : 'bg-yellow-100 text-yellow-700'
+                                                : detay.durum === 'eksikYapildi'
+                                                ? 'bg-yellow-100 text-yellow-700'
+                                                : 'bg-red-100 text-red-700'
                                             }`}>
-                                              {detay.durum === 'yapildi' ? '✅' : '⚠️'}
+                                              {detay.durum === 'yapildi' ? '✅' : 
+                                               detay.durum === 'eksikYapildi' ? '⚠️' : '❌'}
                                             </span>
                                           </div>
                                         ))}
