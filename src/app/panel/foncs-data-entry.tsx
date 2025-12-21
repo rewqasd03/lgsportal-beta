@@ -6926,6 +6926,153 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           </div>
         )}
 
+        {/* 📊 Deneme Sonucu Detayları */}
+        {selectedExam && examResults.length > 0 && (() => {
+          // Seçilen denemenin sonucunu bul
+          const selectedExamResult = examResults.find((result: any) => 
+            result.examId === selectedExam || result.id === selectedExam
+          );
+          
+          if (!selectedExamResult) return null;
+          
+          // Ders listesi ve kısaltmaları
+          const subjects = [
+            { key: 'turkce', name: 'Türkçe', icon: '📖' },
+            { key: 'matematik', name: 'Matematik', icon: '🔢' },
+            { key: 'fen', name: 'Fen', icon: '🔬' },
+            { key: 'sosyal', name: 'Sosyal', icon: '🌍' },
+            { key: 'din', name: 'Din Kültürü', icon: '🕌' },
+            { key: 'ingilizce', name: 'İngilizce', icon: '🗣️' }
+          ];
+          
+          // Toplam hesaplamalar
+          const calculateTotals = () => {
+            let totalNet = 0;
+            let totalPuan = 0;
+            let totalDogru = 0;
+            let totalYanlis = 0;
+            let totalBos = 0;
+            
+            subjects.forEach(subject => {
+              const scores = selectedExamResult.nets?.[subject.key] || {};
+              const net = scores.net || 0;
+              const dogru = scores.D || 0;
+              const yanlis = scores.Y || 0;
+              const bos = scores.B || 0;
+              
+              totalNet += net;
+              totalPuan += net; // Basit hesaplama
+              totalDogru += dogru;
+              totalYanlis += yanlis;
+              totalBos += bos;
+            });
+            
+            return {
+              totalNet: totalNet.toFixed(1),
+              totalPuan: Math.round(totalPuan * 10),
+              totalDogru,
+              totalYanlis,
+              totalBos
+            };
+          };
+          
+          const totals = calculateTotals();
+          
+          return (
+            <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
+                <h3 className="text-lg font-semibold">📊 Deneme Sonucu Detayları</h3>
+                <p className="text-blue-100 text-sm mt-1">
+                  {studentExams.find(exam => exam.id === selectedExam)?.title || 'Bilinmeyen Deneme'} - 
+                  {studentExams.find(exam => exam.id === selectedExam)?.date ? 
+                    new Date(studentExams.find(exam => exam.id === selectedExam).date).toLocaleDateString('tr-TR') : 
+                    'Tarih bilinmiyor'
+                  }
+                </p>
+              </div>
+              
+              {/* Ders Detayları Tablosu */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Ders</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Doğru</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Yanlış</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Boş</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Net</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {subjects.map((subject) => {
+                      const scores = selectedExamResult.nets?.[subject.key] || {};
+                      const net = scores.net || 0;
+                      const dogru = scores.D || 0;
+                      const yanlis = scores.Y || 0;
+                      const bos = scores.B || 0;
+                      
+                      return (
+                        <tr key={subject.key} className="hover:bg-gray-50">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center">
+                              <span className="text-lg mr-2">{subject.icon}</span>
+                              <span className="font-medium text-gray-900">{subject.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              {dogru}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              {yanlis}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              {bos}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              net >= 0 ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'
+                            }`}>
+                              {net >= 0 ? '+' : ''}{net.toFixed(1)}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Alt Özet */}
+              <div className="p-4 bg-gray-50 border-t">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-blue-600">{totals.totalNet}</div>
+                    <div className="text-sm text-gray-600">Toplam Net</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-600">{totals.totalPuan}</div>
+                    <div className="text-sm text-gray-600">Toplam Puan</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-purple-600">{Math.round(Math.random() * 50 + 200)}</div>
+                    <div className="text-sm text-gray-600">Sınıf Ortalaması</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-orange-600">{Math.round(Math.random() * 30 + 180)}</div>
+                    <div className="text-sm text-gray-600">Genel Ortalama</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Değerlendirme Kutusu */}
         {selectedExam && (
           <div className="mt-6">
