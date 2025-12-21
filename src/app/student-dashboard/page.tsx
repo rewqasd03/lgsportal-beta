@@ -4415,6 +4415,20 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
     try {
       const { getOgrencilOdevGecmisi } = await import('../../firebase');
       const ogrencilOdevGecmisi = await getOgrencilOdevGecmisi(reportData.student.id);
+      
+      // DEBUG: Firestore'dan gelen veriyi logla
+      console.log('🔍 DEBUG - Firestore\'dan gelen ödev verileri:', ogrencilOdevGecmisi);
+      ogrencilOdevGecmisi.forEach((odev, index) => {
+        console.log(`🔍 DEBUG - Ödev ${index + 1}:`, {
+          id: odev.id,
+          ders: odev.ders,
+          tarih: odev.tarih,
+          ogrenciDurum: odev.ogrenciDurum,
+          ogrenciDurumType: typeof odev.ogrenciDurum,
+          ogrenciDurumValue: odev.ogrenciDurum === true ? 'TRUE' : odev.ogrenciDurum === false ? 'FALSE' : 'UNDEFINED/NULL'
+        });
+      });
+      
       setOdevler(ogrencilOdevGecmisi);
     } catch (error) {
       console.error('Öğrenci ödev geçmişi yüklenirken hata:', error);
@@ -4453,6 +4467,18 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
 
   // Ödev durumunu belirle
   const getOdevDurumu = (ogrenciDurum: boolean | undefined) => {
+    // DEBUG: Durum kontrolünü logla
+    console.log('🔍 DEBUG - Durum kontrolü:', {
+      ogrenciDurum: ogrenciDurum,
+      type: typeof ogrenciDurum,
+      isTrue: ogrenciDurum === true,
+      isFalse: ogrenciDurum === false,
+      isUndefined: ogrenciDurum === undefined,
+      isNull: ogrenciDurum === null,
+      isTruthy: !!ogrenciDurum,
+      result: ogrenciDurum === true ? 'Yapıldı' : 'Yapılmadı'
+    });
+    
     // null, undefined, false değerlerini "Yapılmadı" olarak kabul et
     if (ogrenciDurum === true) {
       return { text: '✅ Yapıldı', color: 'text-green-600', bgColor: 'bg-green-100' };
