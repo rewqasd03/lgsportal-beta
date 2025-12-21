@@ -5957,86 +5957,9 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
     }
   };
 
-  // 7. ve 8. sınıflardaki TÜM ödev kontrollerini sil
-  const deleteAllOdevRecords = async () => {
-    if (!confirm('⚠️ UYARI: 7. ve 8. sınıflardaki TÜM ödev kontrollerini silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz!\n\nSilinecek sınıflar:\n- 7-A, 7-B, 7-C, 7-D, 7-E, 7-F\n- 8-A, 8-B, 8-C, 8-D, 8-E, 8-F\n\nDevam etmek için OK tıklayın.')) {
-      return;
-    }
 
-    setLoading(true);
-    try {
-      const { getFirestore, collection, getDocs, deleteDoc, doc } = await import('firebase/firestore');
-      const { db } = await import('../../firebase');
-      
 
-      
-      const odevlerRef = collection(db, 'odevler');
-      const snapshot = await getDocs(odevlerRef);
-      
-      let deletedCount = 0;
-      const deletedRecords: string[] = [];
-      
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data();
-        
-        // 7. veya 8. sınıf olup olmadığını kontrol et
-        if (data.sinif && (data.sinif.startsWith('7-') || data.sinif.startsWith('8-'))) {
 
-          await deleteDoc(doc(db, 'odevler', docSnap.id));
-          deletedCount++;
-          deletedRecords.push(`${data.sinif} - ${data.ders} - ${data.tarih}`);
-        }
-      }
-      
-
-      
-      // Tüm cache'i temizle
-      setGecmisKayitlar([]);
-      setOdevDurumlar({});
-      setDirtyStates({});
-      setSelectedSinif('');
-      setSelectedDers('');
-      
-      // Local storage'ı temizle
-      if (typeof window !== 'undefined') {
-        const keysToRemove = Object.keys(localStorage).filter(key => 
-          key.includes('odev') || key.includes('odevTakibi')
-        );
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-      }
-      
-      alert(`🔥 TAMAMEN TEMİZLEDİM!\n\n${deletedCount} adet 7. ve 8. sınıf ödev kaydı silindi\n\n🧹 Tüm cache temizlendi\n🔄 Sayfayı yenileyin (F5)\n\n7. ve 8. sınıf ödev kontrolleri artık temiz!`);
-      
-    } catch (error) {
-      console.error('❌ Silme hatası:', error);
-      alert('❌ Silme sırasında hata oluştu: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Cache'i ve state'i tamamen temizle
-  const clearAllCache = () => {
-
-    
-    // React state'leri temizle
-    setGecmisKayitlar([]);
-    setOdevDurumlar({});
-    setDirtyStates({});
-    setSelectedSinif('');
-    setSelectedDers('');
-    
-    // Local storage'ı temizle
-    if (typeof window !== 'undefined') {
-      const keysToRemove = Object.keys(localStorage).filter(key => 
-        key.includes('odev') || key.includes('odevTakibi') || key.includes('din-kulturu')
-      );
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-
-    }
-    
-    alert('✅ Tüm cache ve state temizlendi! Sayfayı yenileyin (F5)');
-  };
 
   // TÜM Din Kültürü verilerini Firebase'den tamamen sil
   const forceDeleteDinKulturuData = async () => {
@@ -6192,68 +6115,12 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
         </div>
       </div>
 
-      {/* Din Kültürü Veri Temizleme - HER ZAMAN GÖRÜNÜR */}
-      <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-red-700">⚠️ Din Kültürü Veri Sorunu</h3>
-            <p className="text-xs text-red-600">Din Kültürü dersindeki bozuk kayıtları temizlemek için butonu kullanın</p>
-          </div>
-          <div className="space-y-2">
-            <div className="flex space-x-2">
-              <button
-                onClick={forceDeleteDinKulturuData}
-                disabled={loading}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm font-medium"
-                title="Din Kültürü dersindeki tüm sorunlu verileri Firebase'den siler"
-              >
-                {loading ? '⏳' : '🔥'} Firebase'den Din Kültürü Verilerini Sil
-              </button>
-              
-              <button
-                onClick={clearAllCache}
-                disabled={loading}
-                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm font-medium"
-                title="Tüm cache ve state'i temizler"
-              >
-                🧹 Cache Temizle
-              </button>
-            </div>
-            
-            <div className="border-t pt-2">
-              <button
-                onClick={deleteAllOdevRecords}
-                disabled={loading}
-                className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm font-medium w-full"
-                title="7. ve 8. sınıflardaki TÜM ödev kontrollerini siler"
-              >
-                {loading ? '⏳' : '🗑️'} 7. ve 8. Sınıflardaki TÜM Ödev Kontrollerini Sil
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+
 
       {/* Tab İçeriği */}
       {activeOdevTab === 'yeni' && (
         <>
-          {/* Din Kültürü Veri Temizleme - Her zaman görünür */}
-          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-red-700">⚠️ Din Kültürü Veri Sorunu</h3>
-                <p className="text-xs text-red-600">Din Kültürü dersindeki bozuk kayıtları temizlemek için aşağıdaki butonu kullanın</p>
-              </div>
-              <button
-                onClick={forceDeleteDinKulturuData}
-                disabled={loading}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm font-medium"
-                title="Din Kültürü dersindeki tüm sorunlu verileri siler"
-              >
-                {loading ? '⏳' : '🗑️'} Din Kültürü Verilerini Temizle
-              </button>
-            </div>
-          </div>
+
 
           {/* Filtreler - Yeni ödev kontrolü için */}
           <div className="bg-white p-6 rounded-lg shadow">
@@ -6328,15 +6195,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                 {loading ? '⏳' : '💾'} {Object.keys(dirtyStates).length > 0 ? `Kaydet (${Object.keys(dirtyStates).length})` : 'Kaydet'}
               </button>
               
-              {/* Din Kültürü veri temizleme butonu */}
-              <button
-                onClick={forceDeleteDinKulturuData}
-                disabled={loading}
-                className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm"
-                title="Din Kültürü dersindeki sorunlu verileri temizle"
-              >
-                🗑️ Din Kültürü Temizle
-              </button>
+
             </div>
           </div>
 
