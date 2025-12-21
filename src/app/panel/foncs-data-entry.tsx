@@ -6738,57 +6738,45 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
     }
   }, [selectedStudent]);
 
-  // Sınıfın katıldığı denemeleri yükle (student-dashboard yaklaşımı)
+  // Sınıfın katıldığı denemeleri yükle - BASİT YAKLAŞIM
   const loadStudentExams = async () => {
     setLoading(true);
     try {
-      const { getDocs, collection, query, where, orderBy } = await import('firebase/firestore');
+      const { getDocs, collection } = await import('firebase/firestore');
       const { db } = await import('../../firebase');
 
-      console.log('🔍 Debug - Seçilen sınıf:', selectedSinif);
-      console.log('🔍 Debug - Seçilen öğrenci:', selectedStudent);
-
-      // Sınıfın katıldığı denemeleri getir (student-dashboard gibi)
-      const examsQuery = query(
-        collection(db, 'exams'),
-        where('classes', 'array-contains', selectedSinif),
-        orderBy('date', 'desc')
-      );
-      const examsSnapshot = await getDocs(examsQuery);
+      // TÜM denemeleri al
+      const examsSnapshot = await getDocs(collection(db, 'exams'));
       const allExams = examsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       
-      console.log('🔍 Debug - Sınıfın denemeleri (exams):', allExams.length);
-
-      // Tüm sonuçları al (student-dashboard yaklaşımı)
+      // TÜM sonuçları al  
       const resultsSnapshot = await getDocs(collection(db, 'results'));
       const allResults = resultsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       
-      console.log('🔍 Debug - Tüm sonuçlar (results):', allResults.length);
-      console.log('🔍 Debug - İlk sonuç örneği:', allResults[0]);
-
-      // Bu öğrencinin sonuçlarını filtrele (student-dashboard yaklaşımı)
-      const studentResults = allResults.filter((result: any) => result.studentId === selectedStudent);
+      console.log('🔍 DEBUG - Toplam deneme:', allExams.length);
+      console.log('🔍 DEBUG - Toplam sonuç:', allResults.length);
       
-      console.log('🔍 Debug - Öğrenci sonuçları filtrelenmiş:', studentResults.length);
+      // Bu öğrencinin sonuçlarını bul
+      const studentResults = allResults.filter((result: any) => 
+        result.studentId === selectedStudent || 
+        result.student_id === selectedStudent
+      );
       
-      if (studentResults.length > 0) {
-        console.log('🔍 Debug - İlk 3 öğrenci sonucu:', studentResults.slice(0, 3));
-      }
-
-      // Sadece öğrencinin katıldığı denemeleri filtrele
+      console.log('🔍 DEBUG - Öğrenci sonuçları:', studentResults.length);
+      console.log('🔍 DEBUG - Öğrenci sonuç örneği:', studentResults[0]);
+      
+      // Bu öğrencinin girdiği denemeleri bul
       const studentExamIds = new Set(studentResults.map((result: any) => result.examId));
-      console.log('🔍 Debug - Öğrencinin deneme IDleri:', Array.from(studentExamIds));
-      
       const studentExams = allExams.filter(exam => studentExamIds.has(exam.id));
       
-      console.log('🔍 Debug - Eşleşen denemeler:', studentExams.length);
-
+      console.log('🔍 DEBUG - Eşleşen denemeler:', studentExams.length);
+      
       setStudentExams(studentExams);
       setExamResults(studentResults);
     } catch (error) {
@@ -6900,32 +6888,18 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
         {/* Debug Bilgisi */}
         {selectedStudent && !loading && (
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs">
-            <p className="text-blue-800 font-semibold mb-2">🔍 Debug Bilgileri:</p>
-            <p className="text-blue-700">Seçilen Öğrenci ID: {selectedStudent}</p>
-            <p className="text-blue-700">Sınıf: {selectedSinif}</p>
-            <p className="text-blue-700">Toplam Sonuç: {examResults.length}</p>
-            <p className="text-blue-700">Listelenen Deneme: {studentExams.length}</p>
+            <p className="text-blue-800 font-semibold mb-2">🔍 Debug - Basit Yaklaşım:</p>
+            <p className="text-blue-700">Öğrenci: {selectedStudent}</p>
+            <p className="text-blue-700">Sonuç Sayısı: {examResults.length}</p>
+            <p className="text-blue-700">Deneme Sayısı: {studentExams.length}</p>
             
-            {examResults.length === 0 && (
-              <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded">
-                <p className="text-red-800 font-semibold">❌ Sorun Tespit Edildi!</p>
-                <p className="text-red-700 text-xs mt-1">
-                  Firestore'da bu öğrencinin hiç deneme sonucu bulunmuyor.
-                </p>
-                <p className="text-red-700 text-xs mt-1">
-                  🔍 Console.log'ları kontrol edin - farklı arama stratejileri deneniyor.
-                </p>
+            {examResults.length > 0 ? (
+              <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                <p className="text-green-800 font-semibold">✅ Veriler Bulundu!</p>
               </div>
-            )}
-            
-            {examResults.length > 0 && (
-              <div className="mt-2">
-                <p className="text-blue-700 font-semibold">İlk 3 Sonuç:</p>
-                {examResults.slice(0, 3).map((result, index) => (
-                  <p key={index} className="text-blue-600 text-xs ml-2">
-                    {index + 1}. examId: {result.examId} | Puan: {result.puan}
-                  </p>
-                ))}
+            ) : (
+              <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                <p className="text-red-800 font-semibold">❌ Hala Sorun Var</p>
               </div>
             )}
           </div>
