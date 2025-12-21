@@ -6977,14 +6977,23 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
             return { D, Y, B, net };
           };
           
+          // Debug bilgileri - gerçek veriyi görmek için
+          console.log('🔍 DEBUG - Seçili sonuç:', result);
+          console.log('🔍 DEBUG - Result keys:', Object.keys(result));
+          console.log('🔍 DEBUG - Result.puan:', result.puan);
+          console.log('🔍 DEBUG - Result.totalScore:', result.totalScore);
+          console.log('🔍 DEBUG - Exam results length:', examResults.length);
+          console.log('🔍 DEBUG - Student exams:', studentExams);
+          
           // Toplam net hesaplama (sadece seçili öğrenci için)
           const totalNet = subjects.reduce((acc, s) => {
             const score = getScore(s.key);
+            console.log(`🔍 DEBUG - ${s.name} net:`, score.net);
             return acc + score.net;
           }, 0);
           
           // Öğrencinin toplam puanı (Firestore'dan al)
-          const studentTotalPuan = result.puan || result.totalScore || 0;
+          const studentTotalPuan = result.puan || result.totalScore || result.scores?.puan || 0;
           
           // Sınıf ortalamaları hesaplama (denemedeki tüm öğrenciler)
           const sinifPuanOrtalamasi = examResults.length > 0 ? 
@@ -7001,6 +7010,9 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           
           // Exam objesinden genel ortalamaları al
           const selectedExamData = studentExams.find(exam => exam.id === selectedExam);
+          console.log('🔍 DEBUG - Selected exam data:', selectedExamData);
+          console.log('🔍 DEBUG - General averages:', selectedExamData?.generalAverages);
+          
           const genelPuanOrtalamasi = selectedExamData?.generalAverages?.generalScore || 0;
           const genelNetOrtalamasi = selectedExamData?.generalAverages?.nets?.total || 0;
           
