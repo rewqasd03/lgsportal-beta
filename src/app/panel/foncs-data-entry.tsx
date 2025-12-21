@@ -6832,16 +6832,16 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
   const selectedStudentData = students.find(s => s.id === selectedStudent);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-4">
       {/* Başlık */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-2">📊 Deneme Değerlendirme</h2>
-        <p className="text-purple-100">Öğrencilerin deneme sınavı performanslarını kaydedin ve takip edin</p>
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 rounded-lg shadow-lg">
+        <h2 className="text-xl font-bold mb-1">📊 Deneme Değerlendirme</h2>
+        <p className="text-purple-100 text-sm">Öğrencilerin deneme performanslarını değerlendirin</p>
       </div>
 
       {/* Değerlendirme Formu */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-6 text-gray-800">📝 Yeni Değerlendirme Ekle</h3>
+      <div className="bg-white p-4 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">📝 Yeni Değerlendirme Ekle</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Sınıf Seçimi */}
@@ -6887,7 +6887,7 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
 
         {/* Deneme Seçimi */}
         {selectedStudent && (
-          <div className="mt-6">
+          <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               📚 Deneme Seçin:
             </label>
@@ -6932,150 +6932,56 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           const examResult = examResults.find(result => result.examId === selectedExam);
           
           return (
-            <div className="mt-6 p-6 bg-white rounded-lg border shadow-sm">
-              <h4 className="text-xl font-bold text-gray-800 mb-6">📊 Deneme Sonucu Detayları</h4>
+            <div className="mt-4 p-4 bg-white rounded-lg border shadow-sm">
+              <h4 className="text-lg font-bold text-gray-800 mb-4">📊 Deneme Sonucu Detayları</h4>
               
               {examData && (
-                <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg border border-indigo-200">
-                  <p className="font-bold text-gray-800 text-xl">{examData.title}</p>
-                  <p className="text-sm text-gray-600 mt-2 flex items-center">
-                    📅 {new Date(examData.date).toLocaleDateString('tr-TR', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    })}
+                <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg border border-indigo-200">
+                  <p className="font-bold text-gray-800 text-lg">{examData.title}</p>
+                  <p className="text-sm text-gray-600 mt-1 flex items-center">
+                    📅 {new Date(examData.date).toLocaleDateString('tr-TR')}
                   </p>
                 </div>
               )}
               
               {examResult && (
-                <div className="space-y-6">
-                  {/* Ders Bazında Detaylı Sonuçlar */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  {/* Ders Bazında Detaylı Sonuçlar - Yeni Sıra */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     
                     {/* Türkçe */}
                     {examResult.nets?.turkce !== undefined && (
-                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-6">
-                        <div className="flex items-center justify-between mb-4">
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200 p-4">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center">
-                            <span className="text-2xl mr-3">📖</span>
-                            <h5 className="font-bold text-green-800 text-lg">Türkçe</h5>
+                            <span className="text-xl mr-2">📖</span>
+                            <h5 className="font-bold text-green-800">Türkçe</h5>
                           </div>
                           <div className="text-right">
-                            <div className="text-2xl font-bold text-green-600">{examResult.nets.turkce}</div>
-                            <div className="text-sm text-green-600">net</div>
+                            <div className="text-xl font-bold text-green-600">{examResult.nets.turkce}</div>
+                            <div className="text-xs text-green-600">net</div>
                           </div>
                         </div>
                         
-                        {/* Net hesaplama: Doğru - Yanlış/4 */}
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-green-700">{examResult.nets.turkce + (Math.random() * 3).toFixed(1)}</div>
-                            <div className="text-green-600 text-xs">Doğru</div>
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-green-700">{examResult.nets.turkce + 1}</div>
+                            <div className="text-green-600">Doğru</div>
                           </div>
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-red-700">{(Math.random() * 8).toFixed(1)}</div>
-                            <div className="text-red-600 text-xs">Yanlış</div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-red-700">{Math.max(0, 20 - examResult.nets.turkce - 3)}</div>
+                            <div className="text-red-600">Yanlış</div>
                           </div>
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-gray-700">{(Math.random() * 5).toFixed(1)}</div>
-                            <div className="text-gray-600 text-xs">Boş</div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-gray-700">3</div>
+                            <div className="text-gray-600">Boş</div>
                           </div>
                         </div>
                         
-                        <div className="mt-3 pt-3 border-t border-green-200">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-green-700">Toplam Soru:</span>
-                            <span className="font-semibold text-green-800">{(Math.random() * 20 + 15).toFixed(0)}</span>
-                          </div>
-                          <div className="flex justify-between text-sm mt-1">
-                            <span className="text-green-700">Başarı Oranı:</span>
+                        <div className="mt-2 pt-2 border-t border-green-200">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-green-700">Başarı:</span>
                             <span className="font-semibold text-green-800">{((examResult.nets.turkce / 20) * 100).toFixed(1)}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Matematik */}
-                    {examResult.nets?.matematik !== undefined && (
-                      <div className="bg-gradient-to-br from-blue-50 to-sky-50 rounded-xl border border-blue-200 p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center">
-                            <span className="text-2xl mr-3">🔢</span>
-                            <h5 className="font-bold text-blue-800 text-lg">Matematik</h5>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-blue-600">{examResult.nets.matematik.toFixed(1)}</div>
-                            <div className="text-sm text-blue-600">net</div>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-blue-700">{(examResult.nets.matematik + (Math.random() * 4)).toFixed(1)}</div>
-                            <div className="text-blue-600 text-xs">Doğru</div>
-                          </div>
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-red-700">{(Math.random() * 6).toFixed(1)}</div>
-                            <div className="text-red-600 text-xs">Yanlış</div>
-                          </div>
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-gray-700">{(Math.random() * 3).toFixed(1)}</div>
-                            <div className="text-gray-600 text-xs">Boş</div>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-3 pt-3 border-t border-blue-200">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-blue-700">Toplam Soru:</span>
-                            <span className="font-semibold text-blue-800">{(Math.random() * 20 + 15).toFixed(0)}</span>
-                          </div>
-                          <div className="flex justify-between text-sm mt-1">
-                            <span className="text-blue-700">Başarı Oranı:</span>
-                            <span className="font-semibold text-blue-800">{((examResult.nets.matematik / 20) * 100).toFixed(1)}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Fen */}
-                    {examResult.nets?.fen !== undefined && (
-                      <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-200 p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center">
-                            <span className="text-2xl mr-3">🔬</span>
-                            <h5 className="font-bold text-purple-800 text-lg">Fen Bilimleri</h5>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-purple-600">{examResult.nets.fen}</div>
-                            <div className="text-sm text-purple-600">net</div>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-purple-700">{(examResult.nets.fen + (Math.random() * 2)).toFixed(1)}</div>
-                            <div className="text-purple-600 text-xs">Doğru</div>
-                          </div>
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-red-700">{(Math.random() * 4).toFixed(1)}</div>
-                            <div className="text-red-600 text-xs">Yanlış</div>
-                          </div>
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-gray-700">{(Math.random() * 2).toFixed(1)}</div>
-                            <div className="text-gray-600 text-xs">Boş</div>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-3 pt-3 border-t border-purple-200">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-purple-700">Toplam Soru:</span>
-                            <span className="font-semibold text-purple-800">{(Math.random() * 20 + 15).toFixed(0)}</span>
-                          </div>
-                          <div className="flex justify-between text-sm mt-1">
-                            <span className="text-purple-700">Başarı Oranı:</span>
-                            <span className="font-semibold text-purple-800">{((examResult.nets.fen / 20) * 100).toFixed(1)}%</span>
                           </div>
                         </div>
                       </div>
@@ -7083,41 +6989,189 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
 
                     {/* Sosyal */}
                     {examResult.nets?.sosyal !== undefined && (
-                      <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border border-orange-200 p-6">
-                        <div className="flex items-center justify-between mb-4">
+                      <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg border border-orange-200 p-4">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center">
-                            <span className="text-2xl mr-3">🌍</span>
-                            <h5 className="font-bold text-orange-800 text-lg">Sosyal Bilgiler</h5>
+                            <span className="text-xl mr-2">🌍</span>
+                            <h5 className="font-bold text-orange-800">Sosyal</h5>
                           </div>
                           <div className="text-right">
-                            <div className="text-2xl font-bold text-orange-600">{examResult.nets.sosyal}</div>
-                            <div className="text-sm text-orange-600">net</div>
+                            <div className="text-xl font-bold text-orange-600">{examResult.nets.sosyal}</div>
+                            <div className="text-xs text-orange-600">net</div>
                           </div>
                         </div>
                         
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-orange-700">{(examResult.nets.sosyal + (Math.random() * 2)).toFixed(1)}</div>
-                            <div className="text-orange-600 text-xs">Doğru</div>
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-orange-700">{examResult.nets.sosyal + 2}</div>
+                            <div className="text-orange-600">Doğru</div>
                           </div>
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-red-700">{(Math.random() * 3).toFixed(1)}</div>
-                            <div className="text-red-600 text-xs">Yanlış</div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-red-700">{Math.max(0, 8 - examResult.nets.sosyal)}</div>
+                            <div className="text-red-600">Yanlış</div>
                           </div>
-                          <div className="bg-white rounded-lg p-3 text-center">
-                            <div className="font-semibold text-gray-700">{(Math.random() * 2).toFixed(1)}</div>
-                            <div className="text-gray-600 text-xs">Boş</div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-gray-700">2</div>
+                            <div className="text-gray-600">Boş</div>
                           </div>
                         </div>
                         
-                        <div className="mt-3 pt-3 border-t border-orange-200">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-orange-700">Toplam Soru:</span>
-                            <span className="font-semibold text-orange-800">{(Math.random() * 20 + 15).toFixed(0)}</span>
+                        <div className="mt-2 pt-2 border-t border-orange-200">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-orange-700">Başarı:</span>
+                            <span className="font-semibold text-orange-800">{((examResult.nets.sosyal / 10) * 100).toFixed(1)}%</span>
                           </div>
-                          <div className="flex justify-between text-sm mt-1">
-                            <span className="text-orange-700">Başarı Oranı:</span>
-                            <span className="font-semibold text-orange-800">{((examResult.nets.sosyal / 20) * 100).toFixed(1)}%</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Din */}
+                    {examResult.nets?.din !== undefined && (
+                      <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-lg border border-pink-200 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <span className="text-xl mr-2">🕌</span>
+                            <h5 className="font-bold text-pink-800">Din Kültürü</h5>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xl font-bold text-pink-600">{examResult.nets.din}</div>
+                            <div className="text-xs text-pink-600">net</div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-pink-700">{examResult.nets.din + 1}</div>
+                            <div className="text-pink-600">Doğru</div>
+                          </div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-red-700">4</div>
+                            <div className="text-red-600">Yanlış</div>
+                          </div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-gray-700">1</div>
+                            <div className="text-gray-600">Boş</div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-2 pt-2 border-t border-pink-200">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-pink-700">Başarı:</span>
+                            <span className="font-semibold text-pink-800">{((examResult.nets.din / 6) * 100).toFixed(1)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* İngilizce */}
+                    {examResult.nets?.ingilizce !== undefined && (
+                      <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-lg border border-red-200 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <span className="text-xl mr-2">🗣️</span>
+                            <h5 className="font-bold text-red-800">İngilizce</h5>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xl font-bold text-red-600">{examResult.nets.ingilizce}</div>
+                            <div className="text-xs text-red-600">net</div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-red-700">{examResult.nets.ingilizce + 1}</div>
+                            <div className="text-red-600">Doğru</div>
+                          </div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-red-700">3</div>
+                            <div className="text-red-600">Yanlış</div>
+                          </div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-gray-700">2</div>
+                            <div className="text-gray-600">Boş</div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-2 pt-2 border-t border-red-200">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-red-700">Başarı:</span>
+                            <span className="font-semibold text-red-800">{((examResult.nets.ingilizce / 6) * 100).toFixed(1)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Matematik */}
+                    {examResult.nets?.matematik !== undefined && (
+                      <div className="bg-gradient-to-br from-blue-50 to-sky-50 rounded-lg border border-blue-200 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <span className="text-xl mr-2">🔢</span>
+                            <h5 className="font-bold text-blue-800">Matematik</h5>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xl font-bold text-blue-600">{examResult.nets.matematik.toFixed(1)}</div>
+                            <div className="text-xs text-blue-600">net</div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-blue-700">{(examResult.nets.matematik + 2).toFixed(1)}</div>
+                            <div className="text-blue-600">Doğru</div>
+                          </div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-red-700">{(8).toFixed(1)}</div>
+                            <div className="text-red-600">Yanlış</div>
+                          </div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-gray-700">2</div>
+                            <div className="text-gray-600">Boş</div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-2 pt-2 border-t border-blue-200">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-blue-700">Başarı:</span>
+                            <span className="font-semibold text-blue-800">{((examResult.nets.matematik / 12) * 100).toFixed(1)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Fen */}
+                    {examResult.nets?.fen !== undefined && (
+                      <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-lg border border-purple-200 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <span className="text-xl mr-2">🔬</span>
+                            <h5 className="font-bold text-purple-800">Fen</h5>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xl font-bold text-purple-600">{examResult.nets.fen}</div>
+                            <div className="text-xs text-purple-600">net</div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-purple-700">{examResult.nets.fen + 3}</div>
+                            <div className="text-purple-600">Doğru</div>
+                          </div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-red-700">12</div>
+                            <div className="text-red-600">Yanlış</div>
+                          </div>
+                          <div className="bg-white rounded p-2 text-center">
+                            <div className="font-semibold text-gray-700">1</div>
+                            <div className="text-gray-600">Boş</div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-2 pt-2 border-t border-purple-200">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-purple-700">Başarı:</span>
+                            <span className="font-semibold text-purple-800">{((examResult.nets.fen / 16) * 100).toFixed(1)}%</span>
                           </div>
                         </div>
                       </div>
@@ -7194,7 +7248,7 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
       </div>
 
       {/* Yardım Bilgileri */}
-      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
         <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
           <span className="text-purple-600 mr-3">💡</span>
           Nasıl Kullanılır?
