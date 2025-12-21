@@ -5757,10 +5757,14 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
     loadGecmisKayitlar();
   }, []);
 
-  // Seçilen ders ve sınıfa göre ödev durumlarını yükle
+  // Seçilen ders ve sınıfa göre ödev durumlarını yükle (sadece kayıt varsa)
   useEffect(() => {
     if (selectedDers && selectedSinif && tarih) {
       loadOdevDurumlari();
+    } else {
+      // Seçimler temizlenirse durumları da temizle
+      setOdevDurumlar({});
+      setDirtyStates({});
     }
   }, [selectedDers, selectedSinif, tarih]);
 
@@ -5782,27 +5786,43 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       const { getOdevDurumlari } = await import('../../firebase');
       const durumlar = await getOdevDurumlari(selectedDers, selectedSinif, tarih);
       
-      // Tüm öğrenciler için varsayılan durumu 'yapildi' olarak ayarla
-      const yeniDurumlar: {[key: string]: string} = {};
-      seciliSinifOgrencileri.forEach(student => {
-        yeniDurumlar[student.id] = durumlar[student.id] || 'yapildi';
-      });
-      
-      setOdevDurumlar(yeniDurumlar);
-      setDirtyStates({});
+      // Sadece kayıt varsa durumları yükle, yoksa boş bırak
+      if (Object.keys(durumlar).length > 0) {
+        setOdevDurumlar(durumlar);
+        setDirtyStates({});
+      } else {
+        // Hiç kayıt yoksa boş durumlar - hiçbir şey yapma, sadece boş
+        setOdevDurumlar({});
+        setDirtyStates({});
+      }
     } catch (error) {
       console.error('Ödev durumları yüklenirken hata:', error);
+      // Hata durumunda da boş bırak
+      setOdevDurumlar({});
+      setDirtyStates({});
     }
   };
 
-  // Öğrenci ödev durumunu değiştir
+  // Öğrenci ödev durumunu değiştir (sadece işaretlendiğinde)
   const handleOdevDurumu = (studentId: string, durum: string) => {
-    setOdevDurumlar(prev => ({
-      ...prev,
-      [studentId]: durum
-    }));
+    // Eğer durum 'yapildi' ise ve daha önce hiç işaretlenmemişse, sadece varsayılan
+    // Sadece gerçekten değişiklik varsa işle
+    setOdevDurumlar(prev => {
+      const mevcutDurum = prev[studentId];
+      
+      // Eğer durum değişmediyse hiçbir şey yapma
+      if (mevcutDurum === durum) {
+        return prev;
+      }
+      
+      // Sadece değişen öğrenciyi güncelle
+      return {
+        ...prev,
+        [studentId]: durum
+      };
+    });
 
-    // Değişikliği takip et
+    // Değişikliği takip et (sadece gerçekten değişiklik varsa)
     setDirtyStates(prev => ({
       ...prev,
       [studentId]: true
