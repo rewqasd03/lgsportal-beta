@@ -2103,9 +2103,15 @@ function StudentDashboardContent() {
                   const selectedExamResult = reportData.examResults.find(result => result.exam.id === selectedExamId);
                   if (!selectedExamResult) return null;
 
-                  // Bu denemeye ait tüm öğrencilerin sonuçlarını al ve sırala
-                  // NOT: Sadece gerçek denemeye katılan öğrencileri dahil et (0 puanlı denemeler hariç)
-                  const examResults = allResultsData.filter(result => result.examId === selectedExamId);
+                  // Bu denemeye ait ve aynı sınıfta olan öğrencilerin sonuçlarını al ve sırala
+                  // NOT: Sadece gerçek denemeye katılan ve aynı sınıftaki öğrencileri dahil et (0 puanlı denemeler hariç)
+                  const examResults = allResultsData.filter(result => {
+                    if (result.examId !== selectedExamId) return false;
+                    
+                    // Öğrencinin sınıfını kontrol et
+                    const student = allStudentsData.find(s => s.id === result.studentId);
+                    return student && student.class === reportData.student.class;
+                  });
                   const validExamResults = examResults.filter(result => {
                     const nets: Record<string, number> = result.nets || {};
                     const totalNet = (nets.turkce || 0) + (nets.sosyal || 0) + (nets.din || 0) + 
@@ -2145,7 +2151,7 @@ function StudentDashboardContent() {
                         🏆 {selectedExamResult.exam.title} - Puan Sıralaması
                       </h3>
                       <p className="text-xs text-gray-600 mb-3">
-                        Bu denemeye katılan öğrencilerin puan sıralaması (Toplam {studentsWithScores.length} öğrenci)
+                        {reportData.student.class} sınıfındaki öğrencilerin puan sıralaması (Toplam {studentsWithScores.length} öğrenci)
                       </p>
                       
                       <div className="overflow-x-auto">
@@ -2213,7 +2219,7 @@ function StudentDashboardContent() {
                       {studentRank && (
                         <div className="mt-3 p-2 bg-blue-50 rounded-lg">
                           <p className="text-sm font-medium text-blue-800">
-                            📍 {reportData.student.name} bu denemede {studentRank}. sırada yer alıyorsunuz
+                            📍 {reportData.student.name} bu sınıfta {studentRank}. sırada yer alıyorsunuz
                           </p>
                         </div>
                       )}
