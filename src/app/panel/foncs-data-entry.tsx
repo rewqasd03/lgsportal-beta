@@ -6738,7 +6738,18 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                 
               {/* Öğrenci Bazında Detaylı Özet */}
               {(() => {
-                const raporOgrencileri = raporSinif ? students.filter(s => s.class === raporSinif) : [];
+                // Öğrenci filtresi - raporOgrenci seçildiyse sadece o öğrenci
+                let raporOgrencileri: any[] = [];
+                if (raporSinif) {
+                  if (raporOgrenci) {
+                    // Belirli öğrenci seçildi
+                    const student = students.find(s => s.id === raporOgrenci && s.class === raporSinif);
+                    if (student) raporOgrencileri = [student];
+                  } else {
+                    // Tüm öğrenciler
+                    raporOgrencileri = students.filter(s => s.class === raporSinif);
+                  }
+                }
                 
                 if (raporOgrencileri.length === 0) return null;
                 
@@ -6754,6 +6765,15 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                     const dersKayitlari = ogrenciKayitlari.filter(kayit => 
                       kayit.ders === ders.key
                     );
+                    
+                    // Ders bazında tarih detayları
+                    const tarihDetaylari = dersKayitlari.map(kayit => {
+                      const ogrenciKayit = kayit.ogrenciler.find((o: any) => o.ogrenciId === student.id);
+                      return {
+                        tarih: kayit.tarih,
+                        durum: ogrenciKayit?.durum || 'yapilmadi'
+                      };
+                    }).filter(detay => detay.durum !== 'yapilmadi'); // Sadece yapılan ve eksik olanları göster
                     
                     const toplamYapildi = dersKayitlari.reduce((acc, kayit) => {
                       const ogrenciKayit = kayit.ogrenciler.find((o: any) => o.ogrenciId === student.id);
@@ -6780,7 +6800,8 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                       toplamEksik,
                       toplamYapilmadi,
                       toplamKontrol,
-                      basariOrani
+                      basariOrani,
+                      tarihDetaylari
                     };
                   }).filter(ders => ders.toplamKontrol > 0); // Sadece veri olan dersleri göster
                   
@@ -6814,7 +6835,10 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                 return (
                   <div className="bg-white p-6 rounded-lg shadow border">
                     <h4 className="text-lg font-semibold text-gray-800 mb-4">
-                      👥 Öğrenci Bazında Detaylı Performans Özeti
+                      {raporOgrenci 
+                        ? `👤 ${students.find(s => s.id === raporOgrenci)?.name} - Detaylı Performans Özeti`
+                        : `👥 ${raporSinif} Sınıfı - Öğrenci Bazında Detaylı Performans Özeti`
+                      }
                     </h4>
                     
                     <div className="space-y-4">
@@ -6861,6 +6885,27 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                                       %{ders.basariOrani}
                                     </span>
                                   </div>
+                                  
+                                  {/* Tarih Detayları - Sadece veri varsa göster */}
+                                  {ders.tarihDetaylari && ders.tarihDetaylari.length > 0 && (
+                                    <div className="border-t pt-2 mt-2">
+                                      <div className="font-medium text-xs text-gray-600 mb-1">📅 Kontrol Tarihleri:</div>
+                                      <div className="space-y-1 max-h-20 overflow-y-auto">
+                                        {ders.tarihDetaylari.map((detay, index) => (
+                                          <div key={index} className="flex justify-between items-center text-xs">
+                                            <span className="text-gray-500">{detay.tarih}</span>
+                                            <span className={`px-1 py-0.5 rounded text-xs ${
+                                              detay.durum === 'yapildi' 
+                                                ? 'bg-green-100 text-green-700' 
+                                                : 'bg-yellow-100 text-yellow-700'
+                                            }`}>
+                                              {detay.durum === 'yapildi' ? '✅' : '⚠️'}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             ))}
