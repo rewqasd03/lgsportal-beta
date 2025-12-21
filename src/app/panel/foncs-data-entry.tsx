@@ -1103,7 +1103,7 @@ const TABS: Tab[] = [
   { key: "excel-import", label: "📊 Excel İçe Aktar" },
   { key: "kitap-sinavi", label: "📚 Kitap Sınavı" },
   { key: "odev-takibi", label: "📝 Ödev Takibi" },
-  { key: "eksik-konu", label: "🎯 Eksik Konu Bildirimi" },
+  { key: "eksik-konu", label: "📊 Deneme Değerlendirme" },
 
   { key: "hedef", label: "🎯 Hedef Belirleme" },
   { key: "lgs-hesaplama", label: "🧮 LGS Puan Hesaplama" },
@@ -6706,561 +6706,295 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
 };
 
 
-// 📝 Eksik Konu Bildirimi Tab Component
+// 📊 Deneme Değerlendirme Tab Component
+// 📊 Deneme Değerlendirme Tab Component
 const EksikKonuBildirimiTab = ({ students, onDataUpdate }: { 
   students: any[]; 
   onDataUpdate: () => void;
 }) => {
-  const [selectedSinif, setSelectedSinif] = useState<string>('');
   const [selectedStudent, setSelectedStudent] = useState<string>('');
-  const [selectedDers, setSelectedDers] = useState<string>('');
-  const [selectedGrade, setSelectedGrade] = useState<string>('');
-  const [freeComments, setFreeComments] = useState<string>('');
+  const [selectedDeneme, setSelectedDeneme] = useState<string>('');
+  const [turkceNet, setTurkceNet] = useState<string>('');
+  const [matematikNet, setMatematikNet] = useState<string>('');
+  const [fenNet, setFenNet] = useState<string>('');
+  const [sosyalNet, setSosyalNet] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [missingTopics, setMissingTopics] = useState<any[]>([]);
+  const [denemeDegerlendirmeler, setDenemeDegerlendirmeler] = useState<any[]>([]);
 
-  // TYMM Müfredatı - Konular veritabanı (Türkiye Yüzyılı Maarif Modeli)
-  const topicsDatabase = {
-    turkce: {
-      '5': [
-        'Oyun Dünyası',
-        'Atatürk\'ü Tanımak',
-        'Duygularımı Tanıyorum',
-        'Geleneklerimiz',
-        'İletişim ve Sosyal İlişkiler',
-        'Sağlıklı Yaşıyorum'
-      ],
-      '6': [
-        'Dilimizin Zenginliği',
-        'Bağımsızlık Yolu',
-        'Farklı Dünyalar',
-        'İletişim ve Sosyal İlişkiler',
-        'Bilim ve Teknoloji',
-        'Lider Ruhlar'
-      ],
-      '7': [
-        'Hayat Boyu Gelişim',
-        'Bir Hilal Uğruna',
-        'İletişim ve Sosyal İlişkiler',
-        'Türk Sanatı',
-        'Okuma Kültürü',
-        'Hak ve Sorumluluklar'
-      ],
-      '8': [
-        'İletişim ve Sosyal İlişkiler',
-        'Vatan Sevgisi',
-        'Doğa ve İnsan',
-        'Türk Hikâye Geleneği ve Destanları',
-        'Sanat ve Estetik',
-        'Akademik Düşünme Dünyası'
-      ]
-    },
-    matematik: {
-      '5': [
-        'Sayılar ve Nicelikler (1)',
-        'Sayılar ve Nicelikler (2)',
-        'İşlemlerle Cebirsel Düşünme',
-        'Geometrik Şekiller',
-        'Geometrik Nicelikler',
-        'İstatistiksel Araştırma Süreci',
-        'Veriden Olasılığa'
-      ],
-      '6': [
-        'Sayılar ve Nicelikler (1)',
-        'Sayılar ve Nicelikler (2)',
-        'İşlemlerle Cebirsel Düşünme ve Değişimler',
-        'Geometrik Şekiller',
-        'Geometrik Nicelikler',
-        'İstatistiksel Araştırma Süreci',
-        'Veriden Olasılığa'
-      ],
-      '7': [
-        'Sayılar ve Nicelikler (1)',
-        'Sayılar ve Nicelikler (2)',
-        'İşlemlerle Cebirsel Düşünme ve Değişimler',
-        'Dönüşüm',
-        'Geometrik Nicelikler (1)',
-        'Geometrik Nicelikler (2)',
-        'Geometrik Şekiller',
-        'İstatistiksel Araştırma Süreci',
-        'Veriden Olasılığa'
-      ],
-      '8': [
-        'Sayılar ve Nicelikler',
-        'Cebirsel Düşünme ve Değişimler',
-        'Geometrik Şekiller',
-        'Geometrik Nicelikler',
-        'Dönüşüm',
-        'İstatistiksel Araştırma Süreci',
-        'Veriden Olasılığa'
-      ],
-    },
-    fen: {
-      '5': [
-        'Güneş, Dünya ve Ay',
-        'Canlılar Dünyası',
-        'Kuvvet ve Hareket',
-        'Madde ve Değişim',
-        'Işık ve Ses',
-        'Canlılar ve Çevre',
-        'Elektrik ve Manyetizma'
-      ],
-      '6': [
-        'Güneş Sistemi ve Tutulmalar',
-        'Vücudumuzdaki Sistemler',
-        'Kuvvet ve Hareket',
-        'Madde ve Isı',
-        'Ses ve Özellikleri',
-        'Vücudumuzdaki Sistemler ve Sağlık',
-        'Elektriğin İletimi'
-      ],
-      '7': [
-        'Güneş Sistemi ve Ötesi',
-        'Hücre ve Bölünmeler',
-        'Kuvvet ve Enerji',
-        'Saf Madde ve Karışımlar',
-        'Işığın Madde ile Etkileşimi',
-        'Canlılarda Üreme, Büyüme ve Gelişme',
-        'Elektrik Devreleri'
-      ],
-      '8': [
-        'Mevsimler ve İklim',
-        'DNA ve Genetik Kod',
-        'Basınç',
-        'Madde ve Endüstri',
-        'Basit Makineler',
-        'Enerji Dönüşümleri ve Çevre Bilimi',
-        'Elektrik Yükleri ve Elektrik Enerjisi'
-      ]
-    },
-    sosyal: {
-      '5': [
-        'Birey ve Toplum',
-        'Kültür ve Miras',
-        'İnsanlar, Yerler ve Çevreler',
-        'Bilim, Teknoloji ve Toplum',
-        'Üretim, Dağıtım ve Tüketim',
-        'Etkin Vatandaşlık',
-        'Küresel Bağlantılar'
-      ],
-      '6': [
-        'Birey ve Toplum',
-        'Kültür ve Miras',
-        'İnsanlar, Yerler ve Çevreler',
-        'Bilim, Teknoloji ve Toplum',
-        'Üretim, Dağıtım ve Tüketim',
-        'Etkin Vatandaşlık',
-        'Küresel Bağlantılar'
-      ],
-      '7': [
-        'Birey ve Toplum',
-        'Kültür ve Miras',
-        'İnsanlar, Yerler ve Çevreler',
-        'Bilim, Teknoloji ve Toplum',
-        'Üretim, Dağıtım ve Tüketim',
-        'Etkin Vatandaşlık',
-        'Küresel Bağlantılar'
-      ],
-      '8': [
-        'Bir Kahraman Doğuyor',
-        'Milli Uyanış: Bağımsızlık Yolunda Türkler',
-        'Ya İstiklal Ya Ölüm',
-        'Çağdaş Türkiye Yolunda Adımlar',
-        'Atatürk\'çülük ve Atatürk İlkeleri',
-        'Demokratikleşme Çalışmaları',
-        'Atatürk\'ten Sonra Türkiye: 1946\'dan Günümüze'
-      ]
-    },
-    din: {
-      '5': [
-        'Bilgi ve İnanç',
-        'Güzel Ahlak',
-        'Hz. Muhammed (S.A.V.)',
-        'Din ve Hayat',
-        'Hz. İbrahim (A.S.)',
-        'Kur\'an-ı Kerim\'in Metinleşmesi'
-      ],
-      '6': [
-        'Bilgi ve İnanç',
-        'Güzel Ahlak',
-        'Hz. Muhammed (S.A.V.)',
-        'Din ve Hayat',
-        'İslam\'da Değerler',
-        'Tevhid ve Risalet'
-      ],
-      '7': [
-        'Bilgi ve İnanç',
-        'Güzel Ahlak',
-        'Hz. Muhammed (S.A.V.)',
-        'Din ve Hayat',
-        'Kur\'an-ı Kerim\'in Yüce Amacı',
-        'İslam\'ın Temel Kavramları'
-      ],
-      '8': [
-        'Bilgi ve İnanç',
-        'Güzel Ahlak',
-        'Hz. Muhammed (S.A.V.)',
-        'Din ve Hayat',
-        'Kur\'an-ı Kerim\'de Bazı Kavramlar',
-        'İslam\'da Yardımlaşma ve Dayanışma'
-      ]
-    },
-    ingilizce: {
-      '5': [
-        'Personal Information',
-        'Family, Friends and People',
-        'Appearance and Personality',
-        'Hobbies and Interests',
-        'Food and Drinks',
-        'Free Time Activities',
-        'The Weather and Seasons',
-        'Countries and Nationalities',
-        'School and Daily Routines',
-        'Shopping'
-      ],
-      '6': [
-        'Personal Information',
-        'Family, Friends and People',
-        'Appearance and Personality',
-        'Hobbies and Interests',
-        'Food and Drinks',
-        'Free Time Activities',
-        'The Weather and Seasons',
-        'Countries and Nationalities',
-        'School and Daily Routines',
-        'At the Shops',
-        'Travelling and Places'
-      ],
-      '7': [
-        'Personal Information',
-        'Family, Friends and People',
-        'Appearance and Personality',
-        'Hobbies and Interests',
-        'Food and Drinks',
-        'Free Time Activities',
-        'The Weather and Seasons',
-        'Countries and Nationalities',
-        'School and Daily Routines',
-        'At the Shops',
-        'Travelling and Places',
-        'People and Places',
-        'Entertainment and Media'
-      ],
-      '8': [
-        'Personal Information',
-        'Family, Friends and People',
-        'Appearance and Personality',
-        'Hobbies and Interests',
-        'Food and Drinks',
-        'Free Time Activities',
-        'The Weather and Seasons',
-        'Countries and Nationalities',
-        'School and Daily Routines',
-        'At the Shops',
-        'Travelling and Places',
-        'People and Places',
-        'Entertainment and Media',
-        'Education and Jobs',
-        'Health'
-      ]
-    }
-  };
-
-  // Dersler listesi
-  const dersler = [
-    { key: 'turkce', label: '📖 Türkçe', color: '#10B981' },
-    { key: 'matematik', label: '🔢 Matematik', color: '#F59E0B' },
-    { key: 'fen', label: '🔬 Fen Bilimleri', color: '#3B82F6' },
-    { key: 'sosyal', label: '🌍 Sosyal Bilgiler', color: '#8B5CF6' },
-    { key: 'din', label: '🕌 Din Kültürü', color: '#F97316' },
-    { key: 'ingilizce', label: '🇺🇸 İngilizce', color: '#EF4444' }
+  // Deneme türleri
+  const denemeTipleri = [
+    'LGS Deneme Sınavı',
+    'Matematik Denemesi',
+    'Türkçe Denemesi',
+    'Fen Bilimleri Denemesi',
+    'Sosyal Bilgiler Denemesi',
+    'Genel Tekrar Denemesi',
+    'Konu Bazlı Deneme',
+    'Diğer'
   ];
 
-  // Sınıf listesi
-  const siniflar = Array.from(new Set(students.map(s => s.class))).sort();
-
-  // Seçili sınıfın öğrencileri
-  const seciliSinifOgrencileri = students.filter(s => s.class === selectedSinif);
-  
-  // Sınıf seçimine göre grade ayarla
+  // Öğrenci seçimi değiştiğinde denemeleri temizle
   useEffect(() => {
-    if (selectedSinif) {
-      const grade = selectedSinif.split('-')[0];
-      setSelectedGrade(grade);
-      setSelectedStudent(''); // Sınıf değişince öğrenci seçimini sıfırla
-    }
-  }, [selectedSinif]);
+    setSelectedDeneme('');
+    setTurkceNet('');
+    setMatematikNet('');
+    setFenNet('');
+    setSosyalNet('');
+  }, [selectedStudent]);
 
-  // Mevcut eksik konu bildirimlerini yükle
-  useEffect(() => {
-    loadMissingTopics();
-  }, []);
-
-  const loadMissingTopics = async () => {
-    try {
-      // Tüm sınıflar için eksik konu bildirimlerini getir
-      const allTopics: any[] = [];
-      for (const sinif of siniflar) {
-        try {
-          const topics = await getMissingTopicsByClass(sinif);
-          allTopics.push(...topics);
-        } catch (error) {
-          console.error(`${sinif} sınıfı için eksik konu bildirimleri yüklenirken hata:`, error);
-        }
-      }
-      setMissingTopics(allTopics);
-    } catch (error) {
-      console.error('Eksik konu bildirimleri yüklenirken hata:', error);
-    }
-  };
-
-
-
-  // Eksik konu bildirimi kaydet
-  const handleSaveMissingTopics = async () => {
-    if (!selectedStudent || !selectedDers || !freeComments.trim()) {
-      alert('Lütfen öğrenci, ders ve yorum alanını doldurunuz!');
+  // Deneme değerlendirme kaydetme
+  const saveDenemeDegerlendirme = async () => {
+    if (!selectedStudent || !selectedDeneme) {
+      alert('Lütfen öğrenci ve deneme türü seçin.');
       return;
     }
 
     setLoading(true);
     try {
-      const student = students.find(s => s.id === selectedStudent);
-      if (!student) {
-        throw new Error('Öğrenci bulunamadı');
-      }
+      const { addDoc, collection } = await import('firebase/firestore');
+      const { db } = await import('../../firebase');
 
-      await createMissingTopic({
+      await addDoc(collection(db, 'denemeDegerlendirmeleri'), {
         studentId: selectedStudent,
-        teacherId: 'current_teacher', // Gerçek uygulamada oturum açan öğretmen
-        subject: selectedDers,
-        class: student.class,
-        selectedTopics: [], // Artık konu seçmiyoruz
-        teacherComments: freeComments.trim(),
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 1 hafta sonra
+        studentName: students.find(s => s.id === selectedStudent)?.name || '',
+        denemeTuru: selectedDeneme,
+        turkceNet: turkceNet ? parseFloat(turkceNet) : null,
+        matematikNet: matematikNet ? parseFloat(matematikNet) : null,
+        fenNet: fenNet ? parseFloat(fenNet) : null,
+        sosyalNet: sosyalNet ? parseFloat(sosyalNet) : null,
+        createdAt: new Date()
       });
 
-      // Form'u sıfırla
+      // Form'u temizle
       setSelectedStudent('');
-      setSelectedSinif('');
-      setSelectedDers('');
-      setSelectedGrade('');
-      setFreeComments('');
+      setSelectedDeneme('');
+      setTurkceNet('');
+      setMatematikNet('');
+      setFenNet('');
+      setSosyalNet('');
+      onDataUpdate();
 
-      // Listeyi yenile
-      await loadMissingTopics();
-
-      alert('✅ Eksik konu bildirimi başarıyla kaydedildi!');
-      onDataUpdate(); // Dashboard güncellemesi için
+      alert('Deneme değerlendirmesi başarıyla kaydedildi!');
     } catch (error) {
-      console.error('Eksik konu bildirimi kaydedilirken hata:', error);
-      alert('Kayıt sırasında hata oluştu!');
+      console.error('Deneme değerlendirme kaydetme hatası:', error);
+      alert('Kaydetme sırasında bir hata oluştu: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Öğrenci seçimine göre sınıf bilgisini güncelle
+  // Deneme değerlendirmelerini yükle
   useEffect(() => {
-    if (selectedStudent) {
-      const student = students.find(s => s.id === selectedStudent);
-      if (student && student.class !== selectedSinif) {
-        setSelectedSinif(student.class);
-      }
-    }
-  }, [selectedStudent]);
+    const loadDenemeDegerlendirmeler = async () => {
+      setLoading(true);
+      try {
+        const { getDocs, collection, orderBy, query } = await import('firebase/firestore');
+        const { db } = await import('../../firebase');
 
-  // Ders seçimi değiştiğinde form'u temizle
-  useEffect(() => {
-    if (selectedDers) {
-      setSelectedStudent('');
-    }
-  }, [selectedDers]);
+        const q = query(collection(db, 'denemeDegerlendirmeleri'), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        const evaluations = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setDenemeDegerlendirmeler(evaluations);
+      } catch (error) {
+        console.error('Deneme değerlendirmeleri yükleme hatası:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDenemeDegerlendirmeler();
+  }, []);
+
+  // Seçili öğrenci
+  const selectedStudentData = students.find(s => s.id === selectedStudent);
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {/* Başlık */}
-      <div className="bg-gradient-to-r from-red-600 to-pink-600 rounded-2xl p-8 text-white">
-        <h2 className="text-3xl font-bold mb-2">🎯 Eksik Konu Bildirimi</h2>
-        <p className="text-red-100">
-          Öğrencilere çalışmaları gereken konuları bildirin ve takip edin
-        </p>
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold mb-2">📊 Deneme Değerlendirme</h2>
+        <p className="text-purple-100">Öğrencilerin deneme sınavı performanslarını kaydedin ve takip edin</p>
       </div>
 
-      {/* Bildirim Formu */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-          <span className="text-red-600 mr-3">📝</span>
-          Yeni Eksik Konu Bildirimi
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Sınıf Seçimi */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              🏛️ Sınıf Seçin
-            </label>
-            <select
-              value={selectedSinif}
-              onChange={(e) => setSelectedSinif(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            >
-              <option value="">Sınıf seçiniz...</option>
-              {siniflar.map(sinif => (
-                <option key={sinif} value={sinif}>
-                  {sinif}
-                </option>
-              ))}
-            </select>
-          </div>
-
+      {/* Değerlendirme Formu */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-6 text-gray-800">📝 Yeni Değerlendirme Ekle</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Öğrenci Seçimi */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              👨‍🎓 Öğrenci Seçin
+              👤 Öğrenci Seçin:
             </label>
             <select
               value={selectedStudent}
               onChange={(e) => setSelectedStudent(e.target.value)}
-              disabled={!selectedSinif}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-100"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             >
               <option value="">Öğrenci seçiniz...</option>
-              {seciliSinifOgrencileri.map(student => (
-                <option key={student.id} value={student.id}>
-                  {student.name}
-                </option>
+              {students.map((student) => (
+                <option key={student.id} value={student.id}>{student.name} ({student.class})</option>
               ))}
             </select>
           </div>
 
-          {/* Ders Seçimi */}
+          {/* Deneme Türü Seçimi */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              📚 Ders Seçin
+              📚 Deneme Türü:
             </label>
             <select
-              value={selectedDers}
-              onChange={(e) => setSelectedDers(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              value={selectedDeneme}
+              onChange={(e) => setSelectedDeneme(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             >
-              <option value="">Ders seçiniz...</option>
-              {dersler.map(ders => (
-                <option key={ders.key} value={ders.key}>
-                  {ders.label}
-                </option>
+              <option value="">Deneme türü seçiniz...</option>
+              {denemeTipleri.map((deneme) => (
+                <option key={deneme} value={deneme}>{deneme}</option>
               ))}
             </select>
-          </div>
-
-          {/* Sınıf Seviyesi (Sadece görüntüleme) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📊 Sınıf Seviyesi
-            </label>
-            <input
-              type="text"
-              value={selectedGrade ? `${selectedGrade}. Sınıf` : 'Sınıf seçiniz...'}
-              disabled
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-            />
           </div>
         </div>
 
-        {/* Serbest Yorum Alanı */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            📝 Eksik Konu Bildirimi ve Öneriler
-          </label>
-          <textarea
-            value={freeComments}
-            onChange={(e) => setFreeComments(e.target.value)}
-            placeholder="Öğrencinin hangi konularda eksik kaldığını, çalışması gereken alanları, motivasyon mesajlarınızı ve özel tavsiyelerinizi buraya detaylıca yazabilirsiniz..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 h-32 resize-none"
-          />
-          <p className="text-xs text-gray-500 mt-2">
-            Bu alan öğrencinin çalışması gereken konuları ve size özel önerilerinizi yazmak için tasarlanmıştır.
-          </p>
+        {/* Net Puanları */}
+        <div className="mt-6">
+          <h4 className="text-md font-semibold text-gray-700 mb-4">🎯 Net Puanları (İsteğe bağlı):</h4>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                📖 Türkçe Net:
+              </label>
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                value={turkceNet}
+                onChange={(e) => setTurkceNet(e.target.value)}
+                placeholder="örn: 12.5"
+                className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                🔢 Matematik Net:
+              </label>
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                value={matematikNet}
+                onChange={(e) => setMatematikNet(e.target.value)}
+                placeholder="örn: 8.0"
+                className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                🔬 Fen Bilimleri Net:
+              </label>
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                value={fenNet}
+                onChange={(e) => setFenNet(e.target.value)}
+                placeholder="örn: 9.5"
+                className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                🌍 Sosyal Bilgiler Net:
+              </label>
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                value={sosyalNet}
+                onChange={(e) => setSosyalNet(e.target.value)}
+                placeholder="örn: 11.0"
+                className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Kaydet Butonu */}
-        <div className="flex justify-end">
+        <div className="mt-6 flex justify-end">
           <button
-            onClick={handleSaveMissingTopics}
-            disabled={loading || !selectedStudent || !selectedDers || !freeComments.trim()}
-            className="bg-red-500 text-white px-8 py-3 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center"
+            onClick={saveDenemeDegerlendirme}
+            disabled={loading || !selectedStudent || !selectedDeneme}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center font-medium"
           >
-            {loading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Kaydediliyor...
-              </>
-            ) : (
-              <>
-                <span className="mr-2">💾</span>
-                Eksik Konu Bildirimi Kaydet
-              </>
-            )}
+            {loading ? '⏳ Kaydediliyor...' : '💾 Değerlendirmeyi Kaydet'}
           </button>
         </div>
       </div>
 
-      {/* Mevcut Bildirimler */}
-      {missingTopics.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-            <span className="text-blue-600 mr-3">📊</span>
-            Mevcut Eksik Konu Bildirimleri ({missingTopics.length})
-          </h3>
+      {/* Mevcut Değerlendirmeler */}
+      {denemeDegerlendirmeler.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-6 text-gray-800">📋 Mevcut Değerlendirmeler</h3>
           
           <div className="space-y-4">
-            {missingTopics.slice(0, 10).map((topic) => {
-              const student = students.find(s => s.id === topic.studentId);
-              const ders = dersler.find(d => d.key === topic.subject);
+            {denemeDegerlendirmeler.slice(0, 15).map((evaluation) => {
+              const student = students.find(s => s.id === evaluation.studentId);
               
               return (
-                <div key={topic.id} className="border border-gray-200 rounded-lg p-4">
+                <div key={evaluation.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <h4 className="font-semibold text-gray-900">
-                        {student?.name || 'Bilinmeyen Öğrenci'} - {ders?.label || topic.subject}
+                        {student?.name || 'Bilinmeyen Öğrenci'}
                       </h4>
                       <p className="text-sm text-gray-500">
-                        {new Date(topic.createdAt).toLocaleDateString('tr-TR')}
+                        {evaluation.denemeTuru} - {new Date(evaluation.createdAt).toLocaleDateString('tr-TR')}
                       </p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      topic.isCompleted ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {topic.isCompleted ? 'Tamamlandı' : 'Beklemede'}
-                    </span>
                   </div>
                   
-                  <div className="mb-3">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Çalışılması Gereken Konular:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {topic.selectedTopics.map((t, index) => (
-                        <span key={index} className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+                    {evaluation.turkceNet !== null && (
+                      <div className="text-center p-2 bg-green-50 rounded">
+                        <div className="text-sm text-green-600">📖 Türkçe</div>
+                        <div className="font-bold text-green-800">{evaluation.turkceNet} net</div>
+                      </div>
+                    )}
+                    {evaluation.matematikNet !== null && (
+                      <div className="text-center p-2 bg-blue-50 rounded">
+                        <div className="text-sm text-blue-600">🔢 Matematik</div>
+                        <div className="font-bold text-blue-800">{evaluation.matematikNet} net</div>
+                      </div>
+                    )}
+                    {evaluation.fenNet !== null && (
+                      <div className="text-center p-2 bg-purple-50 rounded">
+                        <div className="text-sm text-purple-600">🔬 Fen</div>
+                        <div className="font-bold text-purple-800">{evaluation.fenNet} net</div>
+                      </div>
+                    )}
+                    {evaluation.sosyalNet !== null && (
+                      <div className="text-center p-2 bg-orange-50 rounded">
+                        <div className="text-sm text-orange-600">🌍 Sosyal</div>
+                        <div className="font-bold text-orange-800">{evaluation.sosyalNet} net</div>
+                      </div>
+                    )}
                   </div>
-                  
-                  {topic.teacherComments && (
-                    <div className="bg-gray-50 rounded p-3">
-                      <p className="text-sm text-gray-700">{topic.teacherComments}</p>
-                    </div>
-                  )}
                 </div>
               );
             })}
           </div>
           
-          {missingTopics.length > 10 && (
+          {denemeDegerlendirmeler.length > 15 && (
             <div className="text-center mt-4">
               <p className="text-sm text-gray-500">
-                Son 10 bildirim gösteriliyor. Toplam {missingTopics.length} bildirim bulunuyor.
+                Son 15 değerlendirme gösteriliyor. Toplam {denemeDegerlendirmeler.length} değerlendirme bulunuyor.
               </p>
             </div>
           )}
@@ -7268,50 +7002,42 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
       )}
 
       {/* Yardım Bilgileri */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
-          <span className="text-blue-600 mr-3">💡</span>
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+          <span className="text-purple-600 mr-3">💡</span>
           Nasıl Kullanılır?
         </h3>
         
-        <div className="space-y-3 text-blue-800">
+        <div className="space-y-3 text-purple-800">
           <div className="flex items-start">
-            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+            <span className="bg-purple-200 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
             <div>
-              <p className="font-medium">Öğrenci ve Ders Seçin</p>
-              <p className="text-sm">Hangi öğrencinin hangi derste eksik kaldığını belirleyin.</p>
+              <p className="font-medium">Öğrenci ve Deneme Seçin</p>
+              <p className="text-sm">Hangi öğrencinin hangi deneme türünde performans gösterdiğini belirleyin.</p>
             </div>
           </div>
           
           <div className="flex items-start">
-            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+            <span className="bg-purple-200 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
             <div>
-              <p className="font-medium">Konuları İşaretleyin</p>
-              <p className="text-sm">Öğrencinin çalışması gereken konuları seçin. Birden fazla konu seçebilirsiniz.</p>
+              <p className="font-medium">Net Puanları Girin</p>
+              <p className="text-sm">Ders bazında elde edilen net puanları girin. Boş bırakılabilir.</p>
             </div>
           </div>
           
           <div className="flex items-start">
-            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
-            <div>
-              <p className="font-medium">Yorum Ekleyin</p>
-              <p className="text-sm">Öğrenciye özel motivasyon mesajları veya çalışma tavsiyeleri ekleyin.</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start">
-            <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
+            <span className="bg-purple-200 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
             <div>
               <p className="font-medium">Kaydedin ve Takip Edin</p>
-              <p className="text-sm">Bildirimi kaydedin ve öğrencinin çalışma durumunu takip edin.</p>
+              <p className="text-sm">Değerlendirmeyi kaydedin ve öğrencinin ilerlemesini takip edin.</p>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 p-4 bg-blue-100 rounded-lg">
-          <p className="text-blue-900 text-sm">
-            <strong>📌 Not:</strong> Eksik konu bildirimleri öğrencinin dashboard'ında görünecektir. 
-            Öğrenci bu konuları tamamladıkça bildirim durumu güncellenebilir.
+        <div className="mt-6 p-4 bg-purple-100 rounded-lg">
+          <p className="text-purple-900 text-sm">
+            <strong>📌 Not:</strong> Deneme değerlendirmeleri öğrencinin dashboard'ında görünecektir. 
+            Öğrenci kendi performansını takip edebilecek ve gelişimini görebilecektir.
           </p>
         </div>
       </div>
