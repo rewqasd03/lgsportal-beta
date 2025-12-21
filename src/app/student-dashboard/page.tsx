@@ -4389,13 +4389,11 @@ function DenemeDegerlendirmeText({ studentId, selectedExamId }: { studentId: str
   );
 }
 
-// 📝 Ödev Takibi Tab Komponenti
+// 📝 Ödev Takibi Tab Komponenti - Yeniden Tasarlanmış
 function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
   const [odevler, setOdevler] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [selectedDers, setSelectedDers] = useState<string>('');
-  const [selectedTarih, setSelectedTarih] = useState<string>(new Date().toISOString().split('T')[0]);
 
   // Firebase fonksiyonlarını import et
   useEffect(() => {
@@ -4427,53 +4425,37 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
     }
   };
 
-  // Dersler listesi
+  // Dersler listesi ve renkler
   const dersler = [
-    { key: 'turkce', label: '📖 Türkçe', color: '#10B981' },
-    { key: 'matematik', label: '🔢 Matematik', color: '#F59E0B' },
-    { key: 'fen', label: '🔬 Fen Bilimleri', color: '#3B82F6' },
-    { key: 'sosyal', label: '🌍 Sosyal Bilgiler', color: '#8B5CF6' },
-    { key: 'din', label: '🕌 Din Kültürü', color: '#F97316' },
-    { key: 'ingilizce', label: '🇺🇸 İngilizce', color: '#EF4444' }
+    { key: 'turkce', label: '📖 Türkçe', color: '#10B981', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
+    { key: 'sosyal', label: '🌍 Sosyal Bilgiler', color: '#8B5CF6', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', textColor: 'text-purple-800' },
+    { key: 'din', label: '🕌 Din Kültürü', color: '#F97316', bgColor: 'bg-orange-50', borderColor: 'border-orange-200', textColor: 'text-orange-800' },
+    { key: 'ingilizce', label: '🗣️ İngilizce', color: '#EF4444', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' },
+    { key: 'matematik', label: '🔢 Matematik', color: '#F59E0B', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', textColor: 'text-yellow-800' },
+    { key: 'fen', label: '🔬 Fen Bilimleri', color: '#3B82F6', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
   ];
 
-  // Öğrencinin ödev geçmişini filtrele
-  const filteredOdevler = odevler.filter(odev => {
-    if (selectedDers && odev.ders !== selectedDers) return false;
-    if (selectedTarih && odev.tarih !== selectedTarih) return false;
-    return true;
-  });
+  // Durum kontrollü odevleri filtrele
+  const getFilteredOdevler = (dersKey: string) => {
+    return odevler
+      .filter(odev => odev.ders === dersKey)
+      .sort((a, b) => new Date(b.tarih).getTime() - new Date(a.tarih).getTime()); // Tarihe göre sırala (en yeni üstte)
+  };
 
-  // Son 30 günün ödev istatistikleri
-  const son30GunOdevler = odevler.filter(odev => {
-    const odevTarihi = new Date(odev.tarih);
-    const bugun = new Date();
-    const farkGun = (bugun.getTime() - odevTarihi.getTime()) / (1000 * 60 * 60 * 24);
-    return farkGun <= 30;
-  });
+  // Ödev durumunu belirle
+  const getOdevDurumu = (ogrenciDurum: boolean | undefined) => {
+    if (ogrenciDurum === undefined) return { text: 'Belirsiz', color: 'text-gray-500', bgColor: 'bg-gray-100' };
+    return ogrenciDurum 
+      ? { text: '✅ Yapıldı', color: 'text-green-600', bgColor: 'bg-green-100' }
+      : { text: '❌ Yapılmadı', color: 'text-red-600', bgColor: 'bg-red-100' };
+  };
 
-  // Ders bazında istatistikler
-  const dersIstatistikleri = dersler.map(ders => {
-    const dersOdevleri = odevler.filter(odev => odev.ders === ders.key);
-    const yapilan = dersOdevleri.filter(odev => odev.ogrenciDurum === true).length;
-    const toplam = dersOdevleri.length;
-    const yuzde = toplam > 0 ? (yapilan / toplam) * 100 : 0;
-    
-    return {
-      ...ders,
-      yapilan,
-      toplam,
-      yuzde: Math.round(yuzde * 100) / 100
-    };
-  });
-
-  // Genel istatistikler
-  const genelIstatistikler = {
-    toplamOdev: odevler.length,
-    yapilanOdev: odevler.filter(odev => odev.ogrenciDurum === true).length,
-    yapilmayanOdev: odevler.filter(odev => odev.ogrenciDurum === false).length,
-    ortalamaYuzde: odevler.length > 0 ? 
-      Math.round((odevler.filter(odev => odev.ogrenciDurum === true).length / odevler.length) * 10000) / 100 : 0
+  // Eksik ödev kontrolü
+  const getEksikDurumu = (ogrenciDurum: boolean | undefined) => {
+    if (ogrenciDurum === undefined) return { text: 'Eksik Kontrol', color: 'text-orange-600', bgColor: 'bg-orange-100' };
+    return ogrenciDurum 
+      ? { text: 'Tamamlandı', color: 'text-green-600', bgColor: 'bg-green-100' }
+      : { text: 'Eksik Ödev', color: 'text-red-600', bgColor: 'bg-red-100' };
   };
 
   if (loading) {
@@ -4507,114 +4489,19 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
     <div className="space-y-6">
       {/* Başlık */}
       <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-2">📝 Ödev Takibi</h2>
-        <p className="text-purple-100">Ödev durumlarınızı takip edin ve gelişiminizi görün</p>
+        <h2 className="text-2xl font-bold mb-2">📝 Ders Bazlı Ödev Takibi</h2>
+        <p className="text-purple-100">Her ders için ödev kontrol tarihlerini ve durumlarınızı takip edin</p>
       </div>
 
-      {/* Genel İstatistikler */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <h4 className="text-sm font-medium text-blue-800 mb-1">Toplam Ödev</h4>
-          <p className="text-2xl font-bold text-blue-600">{genelIstatistikler.toplamOdev}</p>
-        </div>
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-          <h4 className="text-sm font-medium text-green-800 mb-1">Tamamlanan</h4>
-          <p className="text-2xl font-bold text-green-600">{genelIstatistikler.yapilanOdev}</p>
-        </div>
-        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-          <h4 className="text-sm font-medium text-red-800 mb-1">Tamamlanmayan</h4>
-          <p className="text-2xl font-bold text-red-600">{genelIstatistikler.yapilmayanOdev}</p>
-        </div>
-        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-          <h4 className="text-sm font-medium text-purple-800 mb-1">Başarı Oranı</h4>
-          <p className="text-2xl font-bold text-purple-600">%{genelIstatistikler.ortalamaYuzde}</p>
-        </div>
-      </div>
-
-      {/* Ders Bazında İstatistikler */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b bg-gray-50">
-          <h3 className="text-lg font-semibold text-gray-800">📚 Ders Bazında Ödev Performansı</h3>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {dersIstatistikleri.map((ders) => (
-              <div key={ders.key} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900">{ders.label}</h4>
-                  <span className="text-lg font-bold" style={{ color: ders.color }}>
-                    %{ders.yuzde}
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tamamlanan:</span>
-                    <span className="font-medium text-green-600">{ders.yapilan}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Toplam:</span>
-                    <span className="font-medium text-gray-900">{ders.toplam}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="h-2 rounded-full transition-all duration-300"
-                      style={{ 
-                        width: `${ders.yuzde}%`, 
-                        backgroundColor: ders.color 
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Filtreler */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">🔍 Ödev Geçmişi Filtrele</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Veri Yenileme */}
+      <div className="bg-white p-4 rounded-lg shadow">
+        <div className="flex justify-between items-center">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📚 Ders Seçin:
-            </label>
-            <select
-              value={selectedDers}
-              onChange={(e) => setSelectedDers(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              <option value="">Tüm Dersler</option>
-              {dersler.map(ders => (
-                <option key={ders.key} value={ders.key}>
-                  {ders.label}
-                </option>
-              ))}
-            </select>
+            <h3 className="text-lg font-semibold text-gray-800">Son Güncelleme</h3>
+            <p className="text-sm text-gray-600">
+              {odevler.length} ödev kaydı bulundu
+            </p>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📅 Tarih Seçin:
-            </label>
-            <input
-              type="date"
-              value={selectedTarih}
-              onChange={(e) => setSelectedTarih(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-        <div className="mt-4 flex gap-3">
-          <button
-            onClick={() => {
-              setSelectedDers('');
-              setSelectedTarih('');
-            }}
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            disabled={loading}
-          >
-            Filtreleri Temizle
-          </button>
           <button
             onClick={loadOgrencilOdevGecmisi}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
@@ -4625,143 +4512,146 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
         </div>
       </div>
 
-      {/* Ödev Geçmişi */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b bg-gray-50">
-          <h3 className="text-lg font-semibold text-gray-800">📅 Ödev Geçmişi</h3>
-          <p className="text-sm text-gray-600 mt-1">
-            {filteredOdevler.length} ödev bulundu
-          </p>
-        </div>
-        
-        {filteredOdevler.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-4xl mb-4">📝</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {odevler.length === 0 ? 'Henüz Ödev Verisi Bulunmuyor' : 'Seçilen Kriterlere Uygun Ödev Bulunamadı'}
-            </h3>
-            <p className="text-gray-500 mb-4">
-              {odevler.length === 0 
-                ? 'Öğretmenleriniz henüz ödev eklememiş veya sizin için ödev tanımlanmamış.' 
-                : 'Farklı ders veya tarih seçerek tekrar deneyin.'
-              }
-            </p>
-            {odevler.length === 0 && (
-              <button
-                onClick={loadOgrencilOdevGecmisi}
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-              >
-                Verileri Yenile
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tarih
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ders
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Sınıf
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Durum
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Sınıf Başarı
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredOdevler.map((odev) => {
-                  const ders = dersler.find(d => d.key === odev.ders);
-                  
-                  return (
-                    <tr key={odev.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {new Date(odev.tarih).toLocaleDateString('tr-TR')}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div 
-                            className="w-3 h-3 rounded-full mr-3"
-                            style={{ backgroundColor: ders?.color }}
-                          ></div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {ders?.label}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{odev.sinif}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                          odev.ogrenciDurum 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {odev.ogrenciDurum ? '✅ Tamamlandı' : '❌ Yapılmadı'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="text-sm">
-                          <div className={`font-medium ${
-                            odev.ogrenciDurum ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            %{odev.yuzde}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {odev.odevYapan}/{odev.toplamOgrenci}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {/* Her Ders için Ayrı Tablo */}
+      {dersler.map((ders) => {
+        const dersOdevleri = getFilteredOdevler(ders.key);
+        const yapilanSayisi = dersOdevleri.filter(odev => odev.ogrenciDurum === true).length;
+        const toplamSayisi = dersOdevleri.length;
+        const basariYuzdesi = toplamSayisi > 0 ? Math.round((yapilanSayisi / toplamSayisi) * 100) : 0;
 
-      {/* Son 30 Gün Trend */}
-      {son30GunOdevler.length > 0 && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b bg-gray-50">
-            <h3 className="text-lg font-semibold text-gray-800">📈 Son 30 Gün Ödev Trendi</h3>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <h4 className="text-sm font-medium text-green-800 mb-1">Son 30 Günde Yapılan</h4>
-                <p className="text-2xl font-bold text-green-600">
-                  {son30GunOdevler.filter(odev => odev.ogrenciDurum === true).length}
-                </p>
-              </div>
-              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                <h4 className="text-sm font-medium text-red-800 mb-1">Son 30 Günde Yapılmayan</h4>
-                <p className="text-2xl font-bold text-red-600">
-                  {son30GunOdevler.filter(odev => odev.ogrenciDurum === false).length}
-                </p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <h4 className="text-sm font-medium text-purple-800 mb-1">Son 30 Gün Başarı</h4>
-                <p className="text-2xl font-bold text-purple-600">
-                  %{son30GunOdevler.length > 0 ? 
-                    Math.round((son30GunOdevler.filter(odev => odev.ogrenciDurum === true).length / son30GunOdevler.length) * 10000) / 100 
-                    : 0}
-                </p>
+        return (
+          <div key={ders.key} className={`${ders.bgColor} border ${ders.borderColor} rounded-lg shadow`}>
+            {/* Ders Başlığı */}
+            <div className={`px-6 py-4 border-b ${ders.borderColor} bg-white rounded-t-lg`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div 
+                    className="w-4 h-4 rounded-full mr-3"
+                    style={{ backgroundColor: ders.color }}
+                  ></div>
+                  <h3 className={`text-xl font-semibold ${ders.textColor}`}>{ders.label}</h3>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-800">{toplamSayisi}</div>
+                    <div className="text-sm text-gray-600">Toplam</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{yapilanSayisi}</div>
+                    <div className="text-sm text-gray-600">Yapılan</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600">{toplamSayisi - yapilanSayisi}</div>
+                    <div className="text-sm text-gray-600">Eksik</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold" style={{ color: ders.color }}>%{basariYuzdesi}</div>
+                    <div className="text-sm text-gray-600">Başarı</div>
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* Ödev Tablosu */}
+            <div className="p-6">
+              {dersOdevleri.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 text-3xl mb-3">📚</div>
+                  <p className="text-gray-500">Bu ders için henüz ödev kaydı bulunmuyor.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full bg-white rounded-lg">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">📅 Kontrol Tarihi</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">👤 Öğrenci Durumu</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">📊 Sınıf Başarı</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">📈 Genel Durum</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {dersOdevleri.map((odev) => {
+                        const durum = getOdevDurumu(odev.ogrenciDurum);
+                        const eksikDurum = getEksikDurumu(odev.ogrenciDurum);
+                        
+                        return (
+                          <tr key={odev.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3">
+                              <div className="text-sm font-medium text-gray-900">
+                                {new Date(odev.tarih).toLocaleDateString('tr-TR')}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {new Date(odev.tarih).toLocaleDateString('en-US', { weekday: 'long' })}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${durum.bgColor} ${durum.color}`}>
+                                {durum.text}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <div className="text-sm">
+                                <div className="font-semibold text-blue-600">%{odev.yuzde}</div>
+                                <div className="text-xs text-gray-500">
+                                  {odev.odevYapan}/{odev.toplamOgrenci} öğrenci
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${eksikDurum.bgColor} ${eksikDurum.color}`}>
+                                {eksikDurum.text}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
+        );
+      })}
+
+      {/* Genel Özet */}
+      {odevler.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">📊 Genel Özet</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {dersler.map((ders) => {
+              const dersOdevleri = getFilteredOdevler(ders.key);
+              const yapilanSayisi = dersOdevleri.filter(odev => odev.ogrenciDurum === true).length;
+              const toplamSayisi = dersOdevleri.length;
+              const basariYuzdesi = toplamSayisi > 0 ? Math.round((yapilanSayisi / toplamSayisi) * 100) : 0;
+              
+              return (
+                <div key={ders.key} className={`p-3 ${ders.bgColor} border ${ders.borderColor} rounded-lg text-center`}>
+                  <div className="text-sm font-medium text-gray-700 mb-1">{ders.label.split(' ')[1]}</div>
+                  <div className="text-lg font-bold" style={{ color: ders.color }}>%{basariYuzdesi}</div>
+                  <div className="text-xs text-gray-500">{yapilanSayisi}/{toplamSayisi}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Boş Durum */}
+      {odevler.length === 0 && (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
+          <div className="text-gray-400 text-6xl mb-4">📝</div>
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">Henüz Ödev Verisi Bulunmuyor</h3>
+          <p className="text-gray-500 mb-6">
+            Öğretmenleriniz henüz ödev eklememiş veya sizin için ödev tanımlanmamış.
+          </p>
+          <button
+            onClick={loadOgrencilOdevGecmisi}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Verileri Yenile
+          </button>
         </div>
       )}
     </div>
