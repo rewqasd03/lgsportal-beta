@@ -1,0 +1,122 @@
+layout-aa89c90ef2f332ab.js:1 🚫 Service Worker devre dışı - Cache temizlendi
+page-74326a54d5fa41a6.js:1 URL StudentId: WzXcrN3Y7b14yby8ywU8
+page-74326a54d5fa41a6.js:1 StudentId set edildi: WzXcrN3Y7b14yby8ywU8
+page-74326a54d5fa41a6.js:1 URL StudentId: WzXcrN3Y7b14yby8ywU8
+page-74326a54d5fa41a6.js:1 Rapor yükleniyor... StudentId: WzXcrN3Y7b14yby8ywU8
+page-74326a54d5fa41a6.js:1 Öğrenci verisi alındı: Object
+page-74326a54d5fa41a6.js:1 Sınavlar alındı: 8
+page-74326a54d5fa41a6.js:1 Sonuçlar alındı: 235
+page-74326a54d5fa41a6.js:1 Tüm öğrenciler alındı: 41
+page-74326a54d5fa41a6.js:1 🎯 DEBUG - StudentId: WzXcrN3Y7b14yby8ywU8
+page-74326a54d5fa41a6.js:1 🎯 DEBUG - Tüm sonuçlar sayısı: 235
+page-74326a54d5fa41a6.js:1 🎯 DEBUG - Öğrenci sonuçları: 8
+page-74326a54d5fa41a6.js:1 🎯 Sonuç 1: Object
+page-74326a54d5fa41a6.js:1 🎯 Sonuç 2: Object
+page-74326a54d5fa41a6.js:1 🎯 Sonuç 3: Object
+page-74326a54d5fa41a6.js:1 🎯 Sonuç 4: Object
+page-74326a54d5fa41a6.js:1 🎯 Sonuç 5: Object
+page-74326a54d5fa41a6.js:1 🎯 Sonuç 6: Object
+page-74326a54d5fa41a6.js:1 🎯 Sonuç 7: Object
+page-74326a54d5fa41a6.js:1 🎯 Sonuç 8: Object
+page-74326a54d5fa41a6.js:1 Öğrencinin examId'leri: Array(8)
+page-74326a54d5fa41a6.js:1 Mevcut examId'ler: Array(8)
+page-74326a54d5fa41a6.js:1 Eksik examId'ler: Array(0)
+page-74326a54d5fa41a6.js:1 Geçerli sonuçlar (0 puan hariç): 8
+page-74326a54d5fa41a6.js:1 ✅ Sınıfın katıldığı denemeler: 8
+page-74326a54d5fa41a6.js:1 ✅ Öğrencinin sonucu olan denemeler: 8
+page-74326a54d5fa41a6.js:1 
+🔍 MUBA DENEMELERİ (8-A sınıfı):
+page-74326a54d5fa41a6.js:1   Muba TG-1 (MjoFKU3pcUb20wUgOyTV): ✅ Sonuç var
+page-74326a54d5fa41a6.js:1 
+🔍 INTRO DENEMELERİ (8-A sınıfı):
+page-74326a54d5fa41a6.js:1   İntro TG-1 (anIdPymXwwWACrM8f9uf): ✅ Sonuç var
+page-74326a54d5fa41a6.js:1 Rapor verisi hazırlandı
+305-e74038553239054e.js:1 📋 Hedef arama - Öğrenci ID: WzXcrN3Y7b14yby8ywU8
+305-e74038553239054e.js:1 📋 Doc mevcut mu: true
+305-e74038553239054e.js:1 📋 Bulunan net hedefleri (Dashboard formatı): Object
+305-e74038553239054e.js:1 🎯 Puan hedefi: 450
+305-e74038553239054e.js:1 🔄 Panel için dönüştürülmüş: Object
+305-e74038553239054e.js:1 🎯 Puan hedefi bulundu (WzXcrN3Y7b14yby8ywU8): 450
+page-74326a54d5fa41a6.js:1 Hedefler yüklendi: WzXcrN3Y7b14yby8ywU8 Object
+page-74326a54d5fa41a6.js:1 Puan hedefi yüklendi: 450
+page-74326a54d5fa41a6.js:1 ✅ Hedefler bulundu: Object
+page-74326a54d5fa41a6.js:1   fen: 0
+page-74326a54d5fa41a6.js:1   ingilizce: 0
+page-74326a54d5fa41a6.js:1   sosyal: 0
+page-74326a54d5fa41a6.js:1   matematik: 0
+page-74326a54d5fa41a6.js:1   turkce: 15
+page-74326a54d5fa41a6.js:1   din: 0
+page-74326a54d5fa41a6.js:1 ✅ Puan hedefi: 450
+page-74326a54d5fa41a6.js:1 🔍 Student Dashboard - Latest Result: Object
+page-74326a54d5fa41a6.js:1 🔍 puan field: undefined
+page-74326a54d5fa41a6.js:1 🔍 scores.puan field: 271.99
+page-74326a54d5fa41a6.js:1 🔍 totalScore field: undefined
+page-74326a54d5fa41a6.js:1 🔍 nets.total: 26.42
+page-74326a54d5fa41a6.js:1 🔍 scores field: Object
+page-74326a54d5fa41a6.js:1 🔍 Final calculated score: 272
+page-74326a54d5fa41a6.js:1 🔍 Highest score calculated: 275 All scores: Array(8)
+page-74326a54d5fa41a6.js:1 🔍 Student Dashboard - Latest Result: Object
+page-74326a54d5fa41a6.js:1 🔍 puan field: undefined
+page-74326a54d5fa41a6.js:1 🔍 scores.puan field: 271.99
+page-74326a54d5fa41a6.js:1 🔍 totalScore field: undefined
+page-74326a54d5fa41a6.js:1 🔍 nets.total: 26.42
+page-74326a54d5fa41a6.js:1 🔍 scores field: Object
+page-74326a54d5fa41a6.js:1 🔍 Final calculated score: 272
+page-74326a54d5fa41a6.js:1 ✅ View count güncellendi
+page-74326a54d5fa41a6.js:1 🔍 Student Dashboard - Latest Result: Object
+page-74326a54d5fa41a6.js:1 🔍 puan field: undefined
+page-74326a54d5fa41a6.js:1 🔍 scores.puan field: 271.99
+page-74326a54d5fa41a6.js:1 🔍 totalScore field: undefined
+page-74326a54d5fa41a6.js:1 🔍 nets.total: 26.42
+page-74326a54d5fa41a6.js:1 🔍 scores field: Object
+page-74326a54d5fa41a6.js:1 🔍 Final calculated score: 272
+page-74326a54d5fa41a6.js:1 🔍 Highest score calculated: 275 All scores: Array(8)
+page-74326a54d5fa41a6.js:1 🔍 Student Dashboard - Latest Result: Object
+page-74326a54d5fa41a6.js:1 🔍 puan field: undefined
+page-74326a54d5fa41a6.js:1 🔍 scores.puan field: 271.99
+page-74326a54d5fa41a6.js:1 🔍 totalScore field: undefined
+page-74326a54d5fa41a6.js:1 🔍 nets.total: 26.42
+page-74326a54d5fa41a6.js:1 🔍 scores field: Object
+page-74326a54d5fa41a6.js:1 🔍 Final calculated score: 272
+page-74326a54d5fa41a6.js:1 🔍 Student Dashboard - Latest Result: Object
+page-74326a54d5fa41a6.js:1 🔍 puan field: undefined
+page-74326a54d5fa41a6.js:1 🔍 scores.puan field: 271.99
+page-74326a54d5fa41a6.js:1 🔍 totalScore field: undefined
+page-74326a54d5fa41a6.js:1 🔍 nets.total: 26.42
+page-74326a54d5fa41a6.js:1 🔍 scores field: Object
+page-74326a54d5fa41a6.js:1 🔍 Final calculated score: 272
+page-74326a54d5fa41a6.js:1 🔍 Highest score calculated: 275 All scores: Array(8)
+page-74326a54d5fa41a6.js:1 🔍 Student Dashboard - Latest Result: Object
+page-74326a54d5fa41a6.js:1 🔍 puan field: undefined
+page-74326a54d5fa41a6.js:1 🔍 scores.puan field: 271.99
+page-74326a54d5fa41a6.js:1 🔍 totalScore field: undefined
+page-74326a54d5fa41a6.js:1 🔍 nets.total: 26.42
+page-74326a54d5fa41a6.js:1 🔍 scores field: Object
+page-74326a54d5fa41a6.js:1 🔍 Final calculated score: 272
+page-74326a54d5fa41a6.js:1 🔍 Student Dashboard - Latest Result: Object
+page-74326a54d5fa41a6.js:1 🔍 puan field: undefined
+page-74326a54d5fa41a6.js:1 🔍 scores.puan field: 271.99
+page-74326a54d5fa41a6.js:1 🔍 totalScore field: undefined
+page-74326a54d5fa41a6.js:1 🔍 nets.total: 26.42
+page-74326a54d5fa41a6.js:1 🔍 scores field: Object
+page-74326a54d5fa41a6.js:1 🔍 Final calculated score: 272
+page-74326a54d5fa41a6.js:1 🔍 Highest score calculated: 275 All scores: Array(8)
+page-74326a54d5fa41a6.js:1 🔍 Student Dashboard - Latest Result: Object
+page-74326a54d5fa41a6.js:1 🔍 puan field: undefined
+page-74326a54d5fa41a6.js:1 🔍 scores.puan field: 271.99
+page-74326a54d5fa41a6.js:1 🔍 totalScore field: undefined
+page-74326a54d5fa41a6.js:1 🔍 nets.total: 26.42
+page-74326a54d5fa41a6.js:1 🔍 scores field: Object
+page-74326a54d5fa41a6.js:1 🔍 Final calculated score: 272
+23-f59f9b7847aace8a.js:1 Error: Minified React error #310; visit https://react.dev/errors/310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at rF (fd9d1056-311b214c120f52a7.js:1:41401)
+    at rD (fd9d1056-311b214c120f52a7.js:1:41967)
+    at Object.useState (fd9d1056-311b214c120f52a7.js:1:52494)
+    at t.useState (23-f59f9b7847aace8a.js:2:32039)
+    at page-74326a54d5fa41a6.js:1:57282
+    at b (page-74326a54d5fa41a6.js:1:58317)
+    at rE (fd9d1056-311b214c120f52a7.js:1:40343)
+    at l$ (fd9d1056-311b214c120f52a7.js:1:59318)
+    at iZ (fd9d1056-311b214c120f52a7.js:1:117925)
+    at ia (fd9d1056-311b214c120f52a7.js:1:95164)
+window.console.error @ 23-f59f9b7847aace8a.js:1
