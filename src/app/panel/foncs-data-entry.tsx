@@ -6931,9 +6931,12 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           const result = examResults.find((r: any) => r.examId === selectedExam || r.id === selectedExam);
           if (!result) return null;
           
-          // Veri debug bilgileri
-          // console.log('🔍 DEBUG - Seçilen sonuç:', result);
-          // console.log('🔍 DEBUG - Nets:', result.nets);
+          // Veri debug bilgileri - gerçek veri yapısını görmek için
+          console.log('🔍 DEBUG - Seçilen sonuç:', result);
+          console.log('🔍 DEBUG - Nets:', result.nets);
+          console.log('🔍 DEBUG - Scores:', result.scores);
+          console.log('🔍 DEBUG - Türkçe:', result.turkce);
+          console.log('🔍 DEBUG - Matematik:', result.matematik);
           
           const subjects = [
             { key: 'turkce', name: 'Türkçe', icon: '📖' },
@@ -6945,25 +6948,36 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
           ];
           
           const getScore = (subject: string) => {
-            // Student dashboard'daki gibi number'a çevir
-            const netValue = result.nets?.[subject];
-            const net = typeof netValue === 'string' ? parseFloat(netValue) : (netValue || 0);
+            // Firestore'da zaten D/Y/B/N değerleri var mı kontrol et
+            const directScores = result[subject]; // result.turkce, result.matematik vs.
+            const netsScores = result.nets?.[subject]; // result.nets.turkce
             
-            // Debug: console.log(`🔍 DEBUG - ${subject} raw:`, netValue, `parsed:`, net);
+            console.log(`🔍 DEBUG - ${subject} direct:`, directScores);
+            console.log(`🔍 DEBUG - ${subject} nets:`, netsScores);
             
-            // Doğru/Yanlış/Boş hesaplaması - Student dashboard'a göre basit tahmin
-            // Net = Doğru - (Yanlış/4) formülünden tahmin yapalım
-            // 20 soruluk denemede yaklaşık hesap
-            const dogru = Math.round(Math.max(0, net * 4));
-            const yanlis = Math.max(0, dogru - Math.round(net * 5));
-            const bos = Math.max(0, 20 - dogru - yanlis);
+            // Eğer doğrudan D/Y/B/N objesi varsa onu kullan
+            if (directScores && typeof directScores === 'object' && ('D' in directScores || 'net' in directScores)) {
+              return {
+                D: directScores.D || 0,
+                Y: directScores.Y || 0,
+                B: directScores.B || 0,
+                net: parseFloat((directScores.N || directScores.net || 0).toFixed(1))
+              };
+            }
             
-            return { 
-              net: parseFloat(net.toFixed(1)), 
-              D: dogru,
-              Y: yanlis,
-              B: bos
-            };
+            // Eğer sadece net varsa, onu kullan
+            if (netsScores !== undefined) {
+              const net = typeof netsScores === 'string' ? parseFloat(netsScores) : netsScores;
+              return {
+                D: Math.round(Math.max(0, net * 4)),
+                Y: Math.max(0, Math.round(net * 4) - Math.round(net * 5)),
+                B: Math.max(0, 20 - Math.round(net * 4)),
+                net: parseFloat(net.toFixed(1))
+              };
+            }
+            
+            // Hiçbiri yoksa 0 döndür
+            return { D: 0, Y: 0, B: 0, net: 0 };
           };
           
           const totals = subjects.reduce((acc, s) => {
