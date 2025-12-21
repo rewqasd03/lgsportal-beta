@@ -5789,19 +5789,26 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
       const { getOdevDurumlari } = await import('../../firebase');
       const durumlar = await getOdevDurumlari(selectedDers, selectedSinif, tarih);
       
-      // Sadece kayıt varsa durumları yükle, yoksa boş bırak
+      // Eğer kayıt varsa durumları yükle, yoksa tüm öğrenciler için boş durumlar oluştur
       if (Object.keys(durumlar).length > 0) {
         setOdevDurumlar(durumlar);
-        setDirtyStates({});
       } else {
-        // Hiç kayıt yoksa boş durumlar - hiçbir şey yapma, sadece boş
-        setOdevDurumlar({});
-        setDirtyStates({});
+        // Hiç kayıt yoksa tüm öğrenciler için boş durumlar (kayıt henüz yapılmamış)
+        const bosDurumlar: {[key: string]: string} = {};
+        seciliSinifOgrencileri.forEach(student => {
+          bosDurumlar[student.id] = ''; // Boş durum
+        });
+        setOdevDurumlar(bosDurumlar);
       }
+      setDirtyStates({});
     } catch (error) {
       console.error('Ödev durumları yüklenirken hata:', error);
-      // Hata durumunda da boş bırak
-      setOdevDurumlar({});
+      // Hata durumunda da tüm öğrenciler için boş durumlar
+      const hataDurumlar: {[key: string]: string} = {};
+      seciliSinifOgrencileri.forEach(student => {
+        hataDurumlar[student.id] = ''; // Boş durum
+      });
+      setOdevDurumlar(hataDurumlar);
       setDirtyStates({});
     }
   };
