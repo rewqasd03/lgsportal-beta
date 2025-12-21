@@ -6016,6 +6016,24 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
         </div>
       </div>
 
+      {/* Din Kültürü Veri Temizleme - HER ZAMAN GÖRÜNÜR */}
+      <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-red-700">⚠️ Din Kültürü Veri Sorunu</h3>
+            <p className="text-xs text-red-600">Din Kültürü dersindeki bozuk kayıtları temizlemek için butonu kullanın</p>
+          </div>
+          <button
+            onClick={handleCleanDinKulturuData}
+            disabled={loading}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center text-sm font-medium"
+            title="Din Kültürü dersindeki tüm sorunlu verileri siler"
+          >
+            {loading ? '⏳' : '🗑️'} Din Kültürü Verilerini Temizle
+          </button>
+        </div>
+      </div>
+
       {/* Tab İçeriği */}
       {activeOdevTab === 'yeni' && (
         <>
