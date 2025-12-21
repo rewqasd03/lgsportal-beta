@@ -4034,7 +4034,7 @@ export default function FoncsDataEntry() {
       case "excel-import": return <ExcelImportTab students={students} exams={exams} onDataUpdate={loadDataFromFirebase} />;
       case "kitap-sinavi": return <KitapSinaviTab students={students} onDataUpdate={loadDataFromFirebase} />;
       case "odev-takibi": return <OdevTakibiTab students={students} onDataUpdate={loadDataFromFirebase} />;
-      case "eksik-konu": return <EksikKonuBildirimiTab students={students} onDataUpdate={loadDataFromFirebase} />;
+      case "eksik-konu": return <DenemeDegerlendirmeTab students={students} onDataUpdate={loadDataFromFirebase} />;
 
       case "hedef": return <TargetTab />;
       case "lgs-hesaplama": return <LGSCalculatorTab />;
@@ -6707,45 +6707,80 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
 
 
 // 📊 Deneme Değerlendirme Tab Component
-// 📊 Deneme Değerlendirme Tab Component
-const EksikKonuBildirimiTab = ({ students, onDataUpdate }: { 
+const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: { 
   students: any[]; 
   onDataUpdate: () => void;
 }) => {
+  const [selectedSinif, setSelectedSinif] = useState<string>('');
   const [selectedStudent, setSelectedStudent] = useState<string>('');
-  const [selectedDeneme, setSelectedDeneme] = useState<string>('');
-  const [turkceNet, setTurkceNet] = useState<string>('');
-  const [matematikNet, setMatematikNet] = useState<string>('');
-  const [fenNet, setFenNet] = useState<string>('');
-  const [sosyalNet, setSosyalNet] = useState<string>('');
+  const [selectedExam, setSelectedExam] = useState<string>('');
+  const [evaluationText, setEvaluationText] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [denemeDegerlendirmeler, setDenemeDegerlendirmeler] = useState<any[]>([]);
+  const [studentExams, setStudentExams] = useState<any[]>([]);
+  const [examResults, setExamResults] = useState<any[]>([]);
 
-  // Deneme türleri
-  const denemeTipleri = [
-    'LGS Deneme Sınavı',
-    'Matematik Denemesi',
-    'Türkçe Denemesi',
-    'Fen Bilimleri Denemesi',
-    'Sosyal Bilgiler Denemesi',
-    'Genel Tekrar Denemesi',
-    'Konu Bazlı Deneme',
-    'Diğer'
-  ];
+  // Sınıf listesi
+  const siniflar = Array.from(new Set(students.map(s => s.class))).sort();
 
-  // Öğrenci seçimi değiştiğinde denemeleri temizle
+  // Sınıf değiştiğinde öğrenciyi temizle
   useEffect(() => {
-    setSelectedDeneme('');
-    setTurkceNet('');
-    setMatematikNet('');
-    setFenNet('');
-    setSosyalNet('');
+    setSelectedStudent('');
+    setSelectedExam('');
+    setEvaluationText('');
+    setStudentExams([]);
+    setExamResults([]);
+  }, [selectedSinif]);
+
+  // Öğrenci değiştiğinde denemeleri yükle
+  useEffect(() => {
+    if (selectedStudent) {
+      loadStudentExams();
+    }
   }, [selectedStudent]);
+
+  // Öğrencinin denemelerini yükle
+  const loadStudentExams = async () => {
+    setLoading(true);
+    try {
+      const { getDocs, collection, query, where, orderBy } = await import('firebase/firestore');
+      const { db } = await import('../../firebase');
+
+      // Öğrencinin denemelerini getir
+      const examsQuery = query(
+        collection(db, 'exams'),
+        where('studentId', '==', selectedStudent),
+        orderBy('examDate', 'desc')
+      );
+      const examsSnapshot = await getDocs(examsQuery);
+      const exams = examsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setStudentExams(exams);
+
+      // Öğrencinin sonuçlarını da getir
+      const resultsQuery = query(
+        collection(db, 'results'),
+        where('studentId', '==', selectedStudent),
+        orderBy('examDate', 'desc')
+      );
+      const resultsSnapshot = await getDocs(resultsQuery);
+      const results = resultsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setExamResults(results);
+    } catch (error) {
+      console.error('Deneme verilerini yükleme hatası:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Deneme değerlendirme kaydetme
   const saveDenemeDegerlendirme = async () => {
-    if (!selectedStudent || !selectedDeneme) {
-      alert('Lütfen öğrenci ve deneme türü seçin.');
+    if (!selectedStudent || !selectedExam || !evaluationText.trim()) {
+      alert("Lütfen öğrenci, deneme seçin ve değerlendirme yazın.");
       return;
     }
 
@@ -6754,27 +6789,28 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
       const { addDoc, collection } = await import('firebase/firestore');
       const { db } = await import('../../firebase');
 
+      const selectedExamData = studentExams.find(exam => exam.id === selectedExam) || 
+                               examResults.find(result => result.id === selectedExam);
+
       await addDoc(collection(db, 'denemeDegerlendirmeleri'), {
         studentId: selectedStudent,
         studentName: students.find(s => s.id === selectedStudent)?.name || '',
-        denemeTuru: selectedDeneme,
-        turkceNet: turkceNet ? parseFloat(turkceNet) : null,
-        matematikNet: matematikNet ? parseFloat(matematikNet) : null,
-        fenNet: fenNet ? parseFloat(fenNet) : null,
-        sosyalNet: sosyalNet ? parseFloat(sosyalNet) : null,
+        examId: selectedExam,
+        examName: selectedExamData?.name || selectedExamData?.examName || 'Bilinmeyen Deneme',
+        evaluationText: evaluationText.trim(),
         createdAt: new Date()
       });
 
       // Form'u temizle
+      setSelectedSinif('');
       setSelectedStudent('');
-      setSelectedDeneme('');
-      setTurkceNet('');
-      setMatematikNet('');
-      setFenNet('');
-      setSosyalNet('');
+      setSelectedExam('');
+      setEvaluationText('');
+      setStudentExams([]);
+      setExamResults([]);
       onDataUpdate();
 
-      alert('Deneme değerlendirmesi başarıyla kaydedildi!');
+      alert("Deneme değerlendirmesi başarıyla kaydedildi!");
     } catch (error) {
       console.error('Deneme değerlendirme kaydetme hatası:', error);
       alert('Kaydetme sırasında bir hata oluştu: ' + error.message);
@@ -6782,31 +6818,6 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
       setLoading(false);
     }
   };
-
-  // Deneme değerlendirmelerini yükle
-  useEffect(() => {
-    const loadDenemeDegerlendirmeler = async () => {
-      setLoading(true);
-      try {
-        const { getDocs, collection, orderBy, query } = await import('firebase/firestore');
-        const { db } = await import('../../firebase');
-
-        const q = query(collection(db, 'denemeDegerlendirmeleri'), orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
-        const evaluations = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setDenemeDegerlendirmeler(evaluations);
-      } catch (error) {
-        console.error('Deneme değerlendirmeleri yükleme hatası:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadDenemeDegerlendirmeler();
-  }, []);
 
   // Seçili öğrenci
   const selectedStudentData = students.find(s => s.id === selectedStudent);
@@ -6824,6 +6835,28 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
         <h3 className="text-lg font-semibold mb-6 text-gray-800">📝 Yeni Değerlendirme Ekle</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Sınıf Seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              🏫 Sınıf Seçin:
+            </label>
+            <select
+              value={selectedSinif}
+              onChange={(e) => {
+                setSelectedSinif(e.target.value);
+                setSelectedStudent('');
+                setSelectedExam('');
+                setEvaluationText('');
+              }}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            >
+              <option value="">Sınıf seçiniz...</option>
+              {siniflar.map((sinif) => (
+                <option key={sinif} value={sinif}>{sinif}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Öğrenci Seçimi */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -6832,174 +6865,132 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
             <select
               value={selectedStudent}
               onChange={(e) => setSelectedStudent(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              disabled={!selectedSinif}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100"
             >
               <option value="">Öğrenci seçiniz...</option>
-              {students.map((student) => (
-                <option key={student.id} value={student.id}>{student.name} ({student.class})</option>
+              {selectedSinif && students.filter(s => s.class === selectedSinif).map((student) => (
+                <option key={student.id} value={student.id}>{student.name}</option>
               ))}
             </select>
           </div>
+        </div>
 
-          {/* Deneme Türü Seçimi */}
-          <div>
+        {/* Deneme Seçimi */}
+        {selectedStudent && studentExams.length > 0 && (
+          <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              📚 Deneme Türü:
+              📚 Deneme Seçin:
             </label>
             <select
-              value={selectedDeneme}
-              onChange={(e) => setSelectedDeneme(e.target.value)}
+              value={selectedExam}
+              onChange={(e) => {
+                setSelectedExam(e.target.value);
+                setEvaluationText('');
+              }}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             >
-              <option value="">Deneme türü seçiniz...</option>
-              {denemeTipleri.map((deneme) => (
-                <option key={deneme} value={deneme}>{deneme}</option>
+              <option value="">Deneme seçiniz...</option>
+              {studentExams.map((exam) => (
+                <option key={exam.id} value={exam.id}>
+                  {exam.name || exam.examName} - {new Date(exam.examDate).toLocaleDateString('tr-TR')}
+                </option>
               ))}
             </select>
           </div>
-        </div>
+        )}
 
-        {/* Net Puanları */}
-        <div className="mt-6">
-          <h4 className="text-md font-semibold text-gray-700 mb-4">🎯 Net Puanları (İsteğe bağlı):</h4>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                📖 Türkçe Net:
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                min="0"
-                value={turkceNet}
-                onChange={(e) => setTurkceNet(e.target.value)}
-                placeholder="örn: 12.5"
-                className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                🔢 Matematik Net:
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                min="0"
-                value={matematikNet}
-                onChange={(e) => setMatematikNet(e.target.value)}
-                placeholder="örn: 8.0"
-                className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                🔬 Fen Bilimleri Net:
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                min="0"
-                value={fenNet}
-                onChange={(e) => setFenNet(e.target.value)}
-                placeholder="örn: 9.5"
-                className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                🌍 Sosyal Bilgiler Net:
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                min="0"
-                value={sosyalNet}
-                onChange={(e) => setSosyalNet(e.target.value)}
-                placeholder="örn: 11.0"
-                className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
+        {selectedStudent && studentExams.length === 0 && (
+          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-800 text-sm">
+              <strong>⚠️ Bilgi:</strong> Bu öğrencinin henüz deneme kaydı bulunmuyor.
+            </p>
           </div>
-        </div>
+        )}
+
+        {/* Deneme Sonucu */}
+        {selectedExam && (() => {
+          const examData = studentExams.find(exam => exam.id === selectedExam);
+          const examResult = examResults.find(result => result.examId === selectedExam);
+          
+          return (
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+              <h4 className="text-md font-semibold text-gray-700 mb-3">📊 Deneme Sonucu:</h4>
+              
+              {examData && (
+                <div className="mb-3">
+                  <p className="font-medium text-gray-800">{examData.name || examData.examName}</p>
+                  <p className="text-sm text-gray-500">{new Date(examData.examDate).toLocaleDateString('tr-TR')}</p>
+                </div>
+              )}
+              
+              {examResult && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {examResult.turkceNet !== undefined && (
+                    <div className="text-center p-2 bg-green-50 rounded">
+                      <div className="text-sm text-green-600">📖 Türkçe</div>
+                      <div className="font-bold text-green-800">{examResult.turkceNet} net</div>
+                    </div>
+                  )}
+                  {examResult.matematikNet !== undefined && (
+                    <div className="text-center p-2 bg-blue-50 rounded">
+                      <div className="text-sm text-blue-600">🔢 Matematik</div>
+                      <div className="font-bold text-blue-800">{examResult.matematikNet} net</div>
+                    </div>
+                  )}
+                  {examResult.fenNet !== undefined && (
+                    <div className="text-center p-2 bg-purple-50 rounded">
+                      <div className="text-sm text-purple-600">🔬 Fen</div>
+                      <div className="font-bold text-purple-800">{examResult.fenNet} net</div>
+                    </div>
+                  )}
+                  {examResult.sosyalNet !== undefined && (
+                    <div className="text-center p-2 bg-orange-50 rounded">
+                      <div className="text-sm text-orange-600">🌍 Sosyal</div>
+                      <div className="font-bold text-orange-800">{examResult.sosyalNet} net</div>
+                    </div>
+                  )}
+                  {examResult.totalScore !== undefined && (
+                    <div className="text-center p-2 bg-yellow-50 rounded col-span-full md:col-span-4">
+                      <div className="text-sm text-yellow-600">🎯 Toplam Puan</div>
+                      <div className="font-bold text-yellow-800">{examResult.totalScore} puan</div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Değerlendirme Kutusu */}
+        {selectedExam && (
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              💬 Öğrenci Değerlendirmesi:
+            </label>
+            <textarea
+              value={evaluationText}
+              onChange={(e) => setEvaluationText(e.target.value)}
+              placeholder="Bu deneme ile ilgili öğrencinin performansını, güçlü ve zayıf yönlerini, çalışma önerilerini yazın..."
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              rows={5}
+            />
+          </div>
+        )}
 
         {/* Kaydet Butonu */}
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={saveDenemeDegerlendirme}
-            disabled={loading || !selectedStudent || !selectedDeneme}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center font-medium"
-          >
-            {loading ? '⏳ Kaydediliyor...' : '💾 Değerlendirmeyi Kaydet'}
-          </button>
-        </div>
-      </div>
-
-      {/* Mevcut Değerlendirmeler */}
-      {denemeDegerlendirmeler.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-6 text-gray-800">📋 Mevcut Değerlendirmeler</h3>
-          
-          <div className="space-y-4">
-            {denemeDegerlendirmeler.slice(0, 15).map((evaluation) => {
-              const student = students.find(s => s.id === evaluation.studentId);
-              
-              return (
-                <div key={evaluation.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">
-                        {student?.name || 'Bilinmeyen Öğrenci'}
-                      </h4>
-                      <p className="text-sm text-gray-500">
-                        {evaluation.denemeTuru} - {new Date(evaluation.createdAt).toLocaleDateString('tr-TR')}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
-                    {evaluation.turkceNet !== null && (
-                      <div className="text-center p-2 bg-green-50 rounded">
-                        <div className="text-sm text-green-600">📖 Türkçe</div>
-                        <div className="font-bold text-green-800">{evaluation.turkceNet} net</div>
-                      </div>
-                    )}
-                    {evaluation.matematikNet !== null && (
-                      <div className="text-center p-2 bg-blue-50 rounded">
-                        <div className="text-sm text-blue-600">🔢 Matematik</div>
-                        <div className="font-bold text-blue-800">{evaluation.matematikNet} net</div>
-                      </div>
-                    )}
-                    {evaluation.fenNet !== null && (
-                      <div className="text-center p-2 bg-purple-50 rounded">
-                        <div className="text-sm text-purple-600">🔬 Fen</div>
-                        <div className="font-bold text-purple-800">{evaluation.fenNet} net</div>
-                      </div>
-                    )}
-                    {evaluation.sosyalNet !== null && (
-                      <div className="text-center p-2 bg-orange-50 rounded">
-                        <div className="text-sm text-orange-600">🌍 Sosyal</div>
-                        <div className="font-bold text-orange-800">{evaluation.sosyalNet} net</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+        {selectedExam && evaluationText.trim() && (
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={saveDenemeDegerlendirme}
+              disabled={loading}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center font-medium"
+            >
+              {loading ? '⏳ Kaydediliyor...' : '💾 Değerlendirmeyi Kaydet'}
+            </button>
           </div>
-          
-          {denemeDegerlendirmeler.length > 15 && (
-            <div className="text-center mt-4">
-              <p className="text-sm text-gray-500">
-                Son 15 değerlendirme gösteriliyor. Toplam {denemeDegerlendirmeler.length} değerlendirme bulunuyor.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Yardım Bilgileri */}
       <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
@@ -7012,24 +7003,32 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
           <div className="flex items-start">
             <span className="bg-purple-200 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
             <div>
-              <p className="font-medium">Öğrenci ve Deneme Seçin</p>
-              <p className="text-sm">Hangi öğrencinin hangi deneme türünde performans gösterdiğini belirleyin.</p>
+              <p className="font-medium">Sınıf ve Öğrenci Seçin</p>
+              <p className="text-sm">Hangi sınıftan hangi öğrencinin değerlendirmesini yapacağınızı belirleyin.</p>
             </div>
           </div>
           
           <div className="flex items-start">
             <span className="bg-purple-200 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
             <div>
-              <p className="font-medium">Net Puanları Girin</p>
-              <p className="text-sm">Ders bazında elde edilen net puanları girin. Boş bırakılabilir.</p>
+              <p className="font-medium">Deneme Sonucunu İnceleyin</p>
+              <p className="text-sm">Öğrencinin girdiği denemeyi seçin ve mevcut sonuçlarını görüntüleyin.</p>
             </div>
           </div>
           
           <div className="flex items-start">
             <span className="bg-purple-200 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
             <div>
+              <p className="font-medium">Değerlendirme Yazın</p>
+              <p className="text-sm">Öğrencinin performansı hakkında detaylı değerlendirme ve önerilerinizi yazın.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <span className="bg-purple-200 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
+            <div>
               <p className="font-medium">Kaydedin ve Takip Edin</p>
-              <p className="text-sm">Değerlendirmeyi kaydedin ve öğrencinin ilerlemesini takip edin.</p>
+              <p className="text-sm">Değerlendirmeyi kaydedin ve öğrencinin gelişimini takip edin.</p>
             </div>
           </div>
         </div>
@@ -7037,7 +7036,7 @@ const EksikKonuBildirimiTab = ({ students, onDataUpdate }: {
         <div className="mt-6 p-4 bg-purple-100 rounded-lg">
           <p className="text-purple-900 text-sm">
             <strong>📌 Not:</strong> Deneme değerlendirmeleri öğrencinin dashboard'ında görünecektir. 
-            Öğrenci kendi performansını takip edebilecek ve gelişimini görebilecektir.
+            Öğrenci öğretmenin değerlendirmelerini okuyabilir ve çalışma önerilerini takip edebilir.
           </p>
         </div>
       </div>
