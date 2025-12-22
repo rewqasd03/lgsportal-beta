@@ -3547,7 +3547,7 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
         {/* Puan Aralıklarına Göre Lise Önerileri */}
         <div className="space-y-4">
           <h4 className="text-lg font-semibold text-gray-800 mb-3">
-            🎯 Net Ortalamanıza Göre Lise Önerileri
+            🎯 Puan Ortalamanıza Göre Lise Önerileri
           </h4>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -3557,7 +3557,7 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
                 ✅ Yüksek İhtimal
               </h5>
               <div className="text-xs text-green-700 mb-3">
-                {Math.round(highRange.min)}-{Math.round(highRange.max)} net aralığı
+                {Math.round(highRange.min)}-{Math.round(highRange.max)} puan aralığı
               </div>
               <div className="space-y-2">
                 {highProbabilitySchools.length > 0 ? highProbabilitySchools.slice(0, 4).map(school => (
@@ -3577,7 +3577,7 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
                 ⚠️ Orta İhtimal
               </h5>
               <div className="text-xs text-yellow-700 mb-3">
-                {Math.round(mediumRange.min)}-{Math.round(mediumRange.max)} net aralığı
+                {Math.round(mediumRange.min)}-{Math.round(mediumRange.max)} puan aralığı
               </div>
               <div className="space-y-2">
                 {mediumProbabilitySchools.length > 0 ? mediumProbabilitySchools.slice(0, 4).map(school => (
@@ -3597,7 +3597,7 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
                 🔥 Düşük İhtimal
               </h5>
               <div className="text-xs text-red-700 mb-3">
-                {Math.round(lowRange.min)}-{Math.round(lowRange.max)} net aralığı
+                {Math.round(lowRange.min)}-{Math.round(lowRange.max)} puan aralığı
               </div>
               <div className="space-y-2">
                 {lowProbabilitySchools.length > 0 ? lowProbabilitySchools.slice(0, 4).map(school => (
