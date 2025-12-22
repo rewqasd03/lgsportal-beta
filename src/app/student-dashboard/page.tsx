@@ -3490,52 +3490,53 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
   const highestScore = calculateHighestScore();
 
   // Puan aralıklarını hesapla
-  const highRange = { min: averageScore + 21, max: averageScore + 40 };
-  const mediumRange = { min: averageScore - 20, max: averageScore + 20 };
+  const highRange = { min: averageScore - 20, max: averageScore + 20 };
+  const mediumRange = { min: averageScore + 21, max: averageScore + 40 };
   const lowRange = { min: averageScore + 41, max: averageScore + 60 };
 
-  // Türkiye geneli lise veritabanı
-  const highSchools = [
-    { name: "Robert Kolej", type: "Özel", score: 485.5 },
-    { name: "Galatasaray Lisesi", type: "Fen Lisesi", score: 482.3 },
-    { name: "İstanbul Fen Lisesi", type: "Fen Lisesi", score: 479.8 },
-    { name: "Robert Koleji", type: "Fen Lisesi", score: 477.2 },
-    { name: "Kabataş Erkek Lisesi", type: "Fen Lisesi", score: 474.6 },
-    { name: "İstanbul Erkek Lisesi", type: "Fen Lisesi", score: 469.5 },
-    { name: "Nişantaşı Anadolu Lisesi", type: "Anadolu Lisesi", score: 467.2 },
-    { name: "Kadıköy Anadolu Lisesi", type: "Anadolu Lisesi", score: 464.8 },
-    { name: "Beşiktaş Anadolu Lisesi", type: "Anadolu Lisesi", score: 462.4 },
-    { name: "Üsküdar Anadolu Lisesi", type: "Anadolu Lisesi", score: 459.9 },
-    { name: "Ataşehir Anadolu Lisesi", type: "Anadolu Lisesi", score: 457.3 },
-    { name: "Şişli Anadolu Lisesi", type: "Anadolu Lisesi", score: 454.8 },
-    { name: "Beyoğlu Anadolu Lisesi", type: "Anadolu Lisesi", score: 452.2 },
-    { name: "Fatih Anadolu Lisesi", type: "Anadolu Lisesi", score: 449.7 },
-    { name: "Bakırköy Anadolu Lisesi", type: "Anadolu Lisesi", score: 447.1 },
-    { name: "Zeytinburnu Anadolu Lisesi", type: "Anadolu Lisesi", score: 444.6 },
-    { name: "Bahçelievler Anadolu Lisesi", type: "Anadolu Lisesi", score: 442.0 },
-    { name: "Güngören Anadolu Lisesi", type: "Anadolu Lisesi", score: 439.5 },
-    { name: "Küçükçekmece Anadolu Lisesi", type: "Anadolu Lisesi", score: 437.0 },
-    { name: "Esenler Anadolu Lisesi", type: "Anadolu Lisesi", score: 434.4 },
-    { name: "Gaziosmanpaşa Anadolu Lisesi", type: "Anadolu Lisesi", score: 431.9 },
-    { name: "Bayrampaşa Anadolu Lisesi", type: "Anadolu Lisesi", score: 429.3 },
-    { name: "Eyüpsultan Anadolu Lisesi", type: "Anadolu Lisesi", score: 426.8 },
-    { name: "Sarıyer Anadolu Lisesi", type: "Anadolu Lisesi", score: 424.2 },
-    { name: "Kağıthane Anadolu Lisesi", type: "Anadolu Lisesi", score: 421.7 },
-    { name: "Sultangazi Anadolu Lisesi", type: "Anadolu Lisesi", score: 419.1 },
-    { name: "Başakşehir Anadolu Lisesi", type: "Anadolu Lisesi", score: 416.6 },
-    { name: "Bağcılar Anadolu Lisesi", type: "Anadolu Lisesi", score: 414.0 }
+  // Van ili lise veritabanı
+  const vanLgsSchools = [
+    { name: "Van Türk Telekom Fen Lisesi", type: "Fen Lisesi", score: 460.91, district: "Edremit" },
+    { name: "İpekyolu Borsa İstanbul Fen Lisesi", type: "Fen Lisesi", score: 441.61, district: "İpekyolu" },
+    { name: "Tuşba TOBB Fen Lisesi", type: "Fen Lisesi", score: 422.90, district: "Tuşba" },
+    { name: "Niyazi Türkmenoğlu Anadolu Lisesi", type: "Anadolu Lisesi", score: 416.75, district: "İpekyolu" },
+    { name: "Erciş Fen Lisesi", type: "Fen Lisesi", score: 402.18, district: "Erciş" },
+    { name: "Kazım Karabekir Anadolu Lisesi", type: "Anadolu Lisesi", score: 400.23, district: "İpekyolu" },
+    { name: "Türkiye Yardımsevenler Derneği Anadolu Lisesi", type: "Anadolu Lisesi", score: 387.01, district: "Edremit" },
+    { name: "Van Atatürk Anadolu Lisesi", type: "Anadolu Lisesi", score: 379.46, district: "İpekyolu" },
+    { name: "Abdurrahman Gazi Borsa İstanbul Anadolu Lisesi", type: "Anadolu Lisesi", score: 367.20, district: "Tuşba" },
+    { name: "Muradiye Alpaslan Fen Lisesi", type: "Fen Lisesi", score: 366.59, district: "Muradiye" },
+    { name: "Erciş Sosyal Bilimler Lisesi", type: "Sosyal Bilimler Lisesi", score: 366.09, district: "Erciş" },
+    { name: "Van Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 360.29, district: "İpekyolu" },
+    { name: "Van-Borsa İstanbul Mesleki ve Teknik Anadolu Lisesi", type: "Mesleki ve Teknik Anadolu Lisesi", score: 349.74, district: "Edremit" },
+    { name: "Sevim Kürüm Anadolu Lisesi", type: "Anadolu Lisesi", score: 349.08, district: "Erciş" },
+    { name: "İskele Kız Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 325.31, district: "İpekyolu" },
+    { name: "Edremit Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 312.80, district: "Edremit" },
+    { name: "Mehmet Erdemoğlu Mesleki ve Teknik Anadolu Lisesi", type: "Mesleki ve Teknik Anadolu Lisesi", score: 305.71, district: "İpekyolu" },
+    { name: "Şehit Polis Halil Hamuryen Kız Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 308.52, district: "Erciş" },
+    { name: "Tevfik İleri Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 294.42, district: "Erciş" },
+    { name: "Erciş Mesleki ve Teknik Anadolu Lisesi", type: "Mesleki ve Teknik Anadolu Lisesi", score: 293.47, district: "Erciş" },
+    { name: "Mizancı Murat Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 293.21, district: "Edremit" },
+    { name: "Gevaş Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 267.96, district: "Gevaş" },
+    { name: "Hüseyin Çelik Kız Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 263.42, district: "Tuşba" },
+    { name: "Özalp Kız Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 255.88, district: "Özalp" },
+    { name: "Tuşba Şehit Ferhat Arslan Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 251.82, district: "Tuşba" },
+    { name: "Şehit Haluk Varlı Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 221.47, district: "Gürpınar" },
+    { name: "Muradiye Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 208.61, district: "Muradiye" },
+    { name: "Başkale Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 199.41, district: "Başkale" },
+    { name: "Çaldıran Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 197.30, district: "Çaldıran" }
   ];
 
   // Liseleri kategorize et
-  const highProbabilitySchools = highSchools.filter(school => 
+  const highProbabilitySchools = vanLgsSchools.filter(school => 
     school.score >= highRange.min && school.score <= highRange.max
   );
   
-  const mediumProbabilitySchools = highSchools.filter(school => 
+  const mediumProbabilitySchools = vanLgsSchools.filter(school => 
     school.score >= mediumRange.min && school.score <= mediumRange.max
   );
   
-  const lowProbabilitySchools = highSchools.filter(school => 
+  const lowProbabilitySchools = vanLgsSchools.filter(school => 
     school.score >= lowRange.min && school.score <= lowRange.max
   );
 
@@ -3602,7 +3603,7 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
                 {highProbabilitySchools.length > 0 ? highProbabilitySchools.slice(0, 4).map(school => (
                   <div key={school.name} className="bg-white p-2 rounded border">
                     <div className="text-sm font-medium text-gray-900">{school.name}</div>
-                    <div className="text-xs text-gray-600">{school.type} • {school.score} taban</div>
+                    <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
                   </div>
                 )) : (
                   <div className="text-xs text-green-600">Bu aralıkta okul bulunmuyor</div>
@@ -3610,7 +3611,7 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
               </div>
             </div>
 
-            {/* Orta İhtimal - Ortalama -20 ile +20 arası */}
+            {/* Orta İhtimal - Ortalama +21 ile +40 arası */}
             <div className="border-2 border-yellow-200 bg-yellow-50 rounded-lg p-4">
               <h5 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center">
                 ⚠️ Orta İhtimal
@@ -3622,7 +3623,7 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
                 {mediumProbabilitySchools.length > 0 ? mediumProbabilitySchools.slice(0, 4).map(school => (
                   <div key={school.name} className="bg-white p-2 rounded border">
                     <div className="text-sm font-medium text-gray-900">{school.name}</div>
-                    <div className="text-xs text-gray-600">{school.type} • {school.score} taban</div>
+                    <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
                   </div>
                 )) : (
                   <div className="text-xs text-yellow-600">Bu aralıkta okul bulunmuyor</div>
@@ -3642,7 +3643,7 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
                 {lowProbabilitySchools.length > 0 ? lowProbabilitySchools.slice(0, 4).map(school => (
                   <div key={school.name} className="bg-white p-2 rounded border">
                     <div className="text-sm font-medium text-gray-900">{school.name}</div>
-                    <div className="text-xs text-gray-600">{school.type} • {school.score} taban</div>
+                    <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
                   </div>
                 )) : (
                   <div className="text-xs text-red-600">Bu aralıkta okul bulunmuyor</div>
