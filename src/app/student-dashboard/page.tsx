@@ -3406,28 +3406,54 @@ const vanLgsSchools = [
   }
 ];
 
-// Basit Lise Tahmin Sistemi - Hedef Takibi için
+// Hedef Takibi & Lise Tercih Önerileri - Ortalamaya Dayalı Sistem
 function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestScore }: {
   reportData: ReportData;
   studentTargets: {[subject: string]: number};
   latestNet: number;
   latestScore: number;
 }) {
+  // Ortalama puanı hesapla
+  const calculateAverageScore = (): number => {
+    if (reportData.examResults.length === 0) return 0;
+    let totalScore = 0;
+    let count = 0;
+    reportData.examResults.forEach(examResult => {
+      const studentResult = examResult.studentResults[0];
+      if (studentResult) {
+        let score = studentResult.puan || studentResult.totalScore || studentResult.nets?.total || 0;
+        if (typeof score === 'number' && score > 0) {
+          totalScore += score;
+          count++;
+        }
+      }
+    });
+    return count > 0 ? totalScore / count : 0;
+  };
+
   // En yüksek puanı hesapla
-  const currentStudentScore = (() => {
+  const calculateHighestScore = (): number => {
     if (reportData.examResults.length === 0) return 0;
     let highestScore = 0;
     reportData.examResults.forEach(examResult => {
       const studentResult = examResult.studentResults[0];
       if (studentResult) {
-        let totalScore = studentResult.puan || studentResult.totalScore || studentResult.nets?.total || 0;
-        if (typeof totalScore === 'number' && totalScore > 0) {
-          highestScore = Math.max(highestScore, totalScore);
+        let score = studentResult.puan || studentResult.totalScore || studentResult.nets?.total || 0;
+        if (typeof score === 'number' && score > 0) {
+          highestScore = Math.max(highestScore, score);
         }
       }
     });
     return highestScore;
-  })();
+  };
+
+  const averageScore = calculateAverageScore();
+  const highestScore = calculateHighestScore();
+
+  // Puan aralıklarını hesapla
+  const highRange = { min: averageScore + 21, max: averageScore + 40 };
+  const mediumRange = { min: averageScore - 20, max: averageScore + 20 };
+  const lowRange = { min: averageScore + 41, max: averageScore + 60 };
 
   // Türkiye geneli lise veritabanı
   const highSchools = [
@@ -3461,16 +3487,29 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
     { name: "Bağcılar Anadolu Lisesi", type: "Anadolu Lisesi", score: 414.0 }
   ];
 
-  if (currentStudentScore === 0) {
+  // Liseleri kategorize et
+  const highProbabilitySchools = highSchools.filter(school => 
+    school.score >= highRange.min && school.score <= highRange.max
+  );
+  
+  const mediumProbabilitySchools = highSchools.filter(school => 
+    school.score >= mediumRange.min && school.score <= mediumRange.max
+  );
+  
+  const lowProbabilitySchools = highSchools.filter(school => 
+    school.score >= lowRange.min && school.score <= lowRange.max
+  );
+
+  if (averageScore === 0 && highestScore === 0) {
     return (
       <div className="space-y-4">
         <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4">🏫 Lise Tahmin Sistemi</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mb-4">📊 Ortalama Puan Analizi</h3>
           <div className="p-6 bg-orange-50 border border-orange-200 rounded-lg text-center">
             <div className="text-6xl mb-4">📊</div>
             <h4 className="text-lg font-semibold text-orange-800 mb-2">Puan Hesaplaması Gerekli</h4>
             <p className="text-orange-700">
-              Lise tahminleri için deneme sınavı sonuçlarına ihtiyacımız var.
+              Lise önerileri için deneme sınavı sonuçlarına ihtiyacımız var.
             </p>
           </div>
         </div>
@@ -3478,54 +3517,50 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
     );
   }
 
-  // Basit kategorize sistemi: Yüksek İhtimal (±20), Orta İhtimal (+20/+60), Düşük İhtimal (+60/+100)
-  const yuksekIhtimal = highSchools.filter(school => 
-    school.score >= (currentStudentScore - 20) && school.score <= (currentStudentScore + 20)
-  );
-  
-  const ortaIhtimal = highSchools.filter(school => 
-    school.score > (currentStudentScore + 20) && school.score <= (currentStudentScore + 60)
-  );
-  
-  const dusukIhtimal = highSchools.filter(school => 
-    school.score > (currentStudentScore + 60) && school.score <= (currentStudentScore + 100)
-  );
-
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="text-sm font-semibold text-gray-800 mb-4">🏫 Basit Lise Tahmin Sistemi</h3>
+        <h3 className="text-sm font-semibold text-gray-800 mb-4">📊 Ortalama Puan Analizi</h3>
         
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h4 className="text-lg font-semibold text-blue-900 mb-2">📊 Mevcut Durumunuz</h4>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600">
-              {Math.round(currentStudentScore)} puan
+        {/* Ortalama ve En Yüksek Puan */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+            <div className="text-sm text-blue-700 mb-1">📈 Ortalama Puan</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {Math.round(averageScore)} puan
             </div>
-            <div className="text-sm text-blue-700">En Yüksek Deneme Puanınız</div>
-            <div className="text-xs text-gray-600 mt-1">
-              Bu puan etrafındaki lise önerilerinizi görüntülüyoruz
+            <div className="text-xs text-blue-600 mt-1">
+              (Denemelerin ortalaması)
+            </div>
+          </div>
+          <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+            <div className="text-sm text-green-700 mb-1">🏆 En Yüksek Puan</div>
+            <div className="text-2xl font-bold text-green-600">
+              {Math.round(highestScore)} puan
+            </div>
+            <div className="text-xs text-green-600 mt-1">
+              (En başarılı deneme)
             </div>
           </div>
         </div>
 
-        {/* Basit Puan Aralığı Lise Önerileri */}
+        {/* Puan Aralıklarına Göre Lise Önerileri */}
         <div className="space-y-4">
           <h4 className="text-lg font-semibold text-gray-800 mb-3">
-            🎯 Puanınıza Göre Lise Önerileri
+            🎯 Ortalamanıza Göre Lise Önerileri
           </h4>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Yüksek İhtimal */}
+            {/* Yüksek İhtimal - Ortalama +21 ile +40 arası */}
             <div className="border-2 border-green-200 bg-green-50 rounded-lg p-4">
               <h5 className="text-sm font-semibold text-green-800 mb-2 flex items-center">
                 ✅ Yüksek İhtimal
               </h5>
               <div className="text-xs text-green-700 mb-3">
-                {Math.round(currentStudentScore - 20)}-{Math.round(currentStudentScore + 20)} puan aralığı
+                {Math.round(highRange.min)}-{Math.round(highRange.max)} puan aralığı
               </div>
               <div className="space-y-2">
-                {yuksekIhtimal.length > 0 ? yuksekIhtimal.slice(0, 4).map(school => (
+                {highProbabilitySchools.length > 0 ? highProbabilitySchools.slice(0, 4).map(school => (
                   <div key={school.name} className="bg-white p-2 rounded border">
                     <div className="text-sm font-medium text-gray-900">{school.name}</div>
                     <div className="text-xs text-gray-600">{school.type} • {school.score} taban</div>
@@ -3536,16 +3571,16 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
               </div>
             </div>
 
-            {/* Orta İhtimal */}
+            {/* Orta İhtimal - Ortalama -20 ile +20 arası */}
             <div className="border-2 border-yellow-200 bg-yellow-50 rounded-lg p-4">
               <h5 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center">
                 ⚠️ Orta İhtimal
               </h5>
               <div className="text-xs text-yellow-700 mb-3">
-                {Math.round(currentStudentScore + 20)}-{Math.round(currentStudentScore + 60)} puan aralığı
+                {Math.round(mediumRange.min)}-{Math.round(mediumRange.max)} puan aralığı
               </div>
               <div className="space-y-2">
-                {ortaIhtimal.length > 0 ? ortaIhtimal.slice(0, 4).map(school => (
+                {mediumProbabilitySchools.length > 0 ? mediumProbabilitySchools.slice(0, 4).map(school => (
                   <div key={school.name} className="bg-white p-2 rounded border">
                     <div className="text-sm font-medium text-gray-900">{school.name}</div>
                     <div className="text-xs text-gray-600">{school.type} • {school.score} taban</div>
@@ -3556,16 +3591,16 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
               </div>
             </div>
 
-            {/* Düşük İhtimal */}
+            {/* Düşük İhtimal - Ortalama +41 ile +60 arası */}
             <div className="border-2 border-red-200 bg-red-50 rounded-lg p-4">
               <h5 className="text-sm font-semibold text-red-800 mb-2 flex items-center">
                 🔥 Düşük İhtimal
               </h5>
               <div className="text-xs text-red-700 mb-3">
-                {Math.round(currentStudentScore + 60)}-{Math.round(currentStudentScore + 100)} puan aralığı
+                {Math.round(lowRange.min)}-{Math.round(lowRange.max)} puan aralığı
               </div>
               <div className="space-y-2">
-                {dusukIhtimal.length > 0 ? dusukIhtimal.slice(0, 4).map(school => (
+                {lowProbabilitySchools.length > 0 ? lowProbabilitySchools.slice(0, 4).map(school => (
                   <div key={school.name} className="bg-white p-2 rounded border">
                     <div className="text-sm font-medium text-gray-900">{school.name}</div>
                     <div className="text-xs text-gray-600">{school.type} • {school.score} taban</div>
