@@ -5737,6 +5737,11 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
   const [activeOdevTab, setActiveOdevTab] = useState<'yeni' | 'rapor'>('yeni');
   const [raporSinif, setRaporSinif] = useState<string>('');
   const [raporOgrenci, setRaporOgrenci] = useState<string>('');
+  const [raporDers, setRaporDers] = useState<string>('');
+  
+  // Geçmiş kontroller için filtreler
+  const [gecmisFilterSinif, setGecmisFilterSinif] = useState<string>('');
+  const [gecmisFilterDers, setGecmisFilterDers] = useState<string>('');
 
   // Dersler listesi
   const dersler = [
@@ -6073,6 +6078,39 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
     setDirtyStates({});
   };
 
+  // Geçmiş kaydı sil
+  const handleDeleteRecord = async (record: any) => {
+    const kayitBilgi = `${record.ders} - ${record.sinif} - ${new Date(record.tarih).toLocaleDateString('tr-TR')}`;
+    
+    if (!confirm(`⚠️ Bu kaydı silmek istediğinize emin misiniz?\n\n📝 Kayıt: ${kayitBilgi}\n\nBu işlem geri alınamaz!`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { deleteOdev } = await import('../../firebase');
+      
+      // Önce Firebase'den sil
+      await deleteOdev(record.id);
+      
+      // Local state'i güncelle
+      setGecmisKayitlar(prev => prev.filter(kayit => kayit.id !== record.id));
+      
+      // Öğrenci dashboard'ını güncelle
+      if (onDataUpdate) onDataUpdate();
+      
+      alert(`✅ Kayıt başarıyla silindi!\n\n📝 ${kayitBilgi}`);
+      
+      // Geçmiş kayıtları yeniden yükle
+      loadGecmisKayitlar();
+    } catch (error) {
+      console.error('Kayıt silme hatası:', error);
+      alert('❌ Kayıt silme sırasında hata oluştu!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // İstatistikler
   const istatistikler = {
     toplamOgrenci: seciliSinifOgrencileri.length,
@@ -6315,10 +6353,66 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-lg font-semibold mb-4">📊 Geçmiş Kontroller</h3>
             
+            {/* Filtre Alanı */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  🏫 Sınıf Filtresi:
+                </label>
+                <select
+                  value={gecmisFilterSinif}
+                  onChange={(e) => setGecmisFilterSinif(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Tüm Sınıflar</option>
+                  {siniflar.map((sinif) => (
+                    <option key={sinif} value={sinif}>{sinif}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  📚 Ders Filtresi:
+                </label>
+                <select
+                  value={gecmisFilterDers}
+                  onChange={(e) => setGecmisFilterDers(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Tüm Dersler</option>
+                  {dersler.map((ders) => (
+                    <option key={ders.key} value={ders.key}>{ders.label}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    setGecmisFilterSinif('');
+                    setGecmisFilterDers('');
+                  }}
+                  className="w-full px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  🔄 Filtreleri Temizle
+                </button>
+              </div>
+            </div>
+            
             {loading && gecmisKayitlar.length === 0 ? (
               <div className="text-center py-8 text-gray-500">⏳ Geçmiş kayıtlar yükleniyor...</div>
             ) : (() => {
-              const filteredKayitlar = gecmisKayitlar.filter(kayit => kayit.yapildi + kayit.eksikYapildi + kayit.yapilmadi > 0);
+              // Filtreleme mantığı
+              const filteredKayitlar = gecmisKayitlar.filter(kayit => {
+                // Sınıf filtresi
+                if (gecmisFilterSinif && kayit.sinif !== gecmisFilterSinif) return false;
+                // Ders filtresi
+                if (gecmisFilterDers && kayit.ders !== gecmisFilterDers) return false;
+                // Sadece verisi olan kayıtları göster
+                return kayit.yapildi + kayit.eksikYapildi + kayit.yapilmadi > 0;
+              });
+              
               const dinKulturuKayitlar = gecmisKayitlar.filter(kayit => kayit.ders === 'din-kulturu');
               const bosKayitlar = gecmisKayitlar.filter(kayit => kayit.yapildi + kayit.eksikYapildi + kayit.yapilmadi === 0);
               
@@ -6345,8 +6439,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                     </tr>
                   </thead>
                   <tbody>
-                    {gecmisKayitlar
-                      .filter(kayit => kayit.yapildi + kayit.eksikYapildi + kayit.yapilmadi > 0)
+                    {filteredKayitlar
                       .map((kayit) => {
                         const yapildiCount = kayit.ogrenciler.filter((o: any) => o.durum === 'yapildi').length;
                         const eksikYapildiCount = kayit.ogrenciler.filter((o: any) => o.durum === 'eksikYapildi').length;
@@ -6367,12 +6460,20 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                               <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-sm">{yapilmadiCount}</span>
                             </td>
                             <td className="p-3 text-center">
-                              <button
-                                onClick={() => handleEditRecord(kayit)}
-                                className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-                              >
-                                ✏️ Düzenle
-                              </button>
+                              <div className="flex justify-center gap-2">
+                                <button
+                                  onClick={() => handleEditRecord(kayit)}
+                                  className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                >
+                                  ✏️ Düzenle
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteRecord(kayit)}
+                                  className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                                >
+                                  🗑️ Sil
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -6392,7 +6493,7 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
           <h3 className="text-lg font-semibold mb-6">📊 Ödev Raporu</h3>
           
           {/* Rapor Filtreleri */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {/* Sınıf Seçimi */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -6409,6 +6510,23 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                 <option value="">Sınıf seçiniz...</option>
                 {siniflar.map((sinif) => (
                   <option key={sinif} value={sinif}>{sinif}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Ders Seçimi */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📚 Ders Seçin (Opsiyonel):
+              </label>
+              <select
+                value={raporDers}
+                onChange={(e) => setRaporDers(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Tüm Dersler</option>
+                {dersler.map((ders) => (
+                  <option key={ders.key} value={ders.key}>{ders.label}</option>
                 ))}
               </select>
             </div>
@@ -6440,11 +6558,15 @@ const OdevTakibiTab = ({ students, onDataUpdate }: {
                 <h4 className="text-lg font-semibold text-blue-800 mb-4">
                   📈 {raporSinif} Sınıfı Ödev Özeti
                   {raporOgrenci && ` - ${students.find(s => s.id === raporOgrenci)?.name}`}
+                  {raporDers && ` - ${dersler.find(d => d.key === raporDers)?.label}`}
                 </h4>
                 
                 {/* Ders Bazında İstatistikler */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {dersler.map((ders) => {
+                    // Ders filtresi varsa sadece o dersi göster
+                    if (raporDers && ders.key !== raporDers) return null;
+                    
                     const dersKayitlari = gecmisKayitlar.filter(kayit => 
                       kayit.ders === ders.key && 
                       kayit.sinif === raporSinif &&
