@@ -4604,9 +4604,19 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
   };
 
   // Ödev durumunu belirle
-  const getOdevDurumu = (ogrenciDurum: boolean | undefined) => {
-    // null, undefined, false değerlerini "Yapılmadı" olarak kabul et
-    if (ogrenciDurum === true) {
+  const getBooleanDurum = (durum: string | boolean | undefined): boolean => {
+    if (typeof durum === 'boolean') return durum;
+    if (typeof durum === 'string') {
+      // 'yapildi' veya 'yapıldı' veya 'true' string'i ise true döndür
+      return durum === 'yapildi' || durum === 'yapıldı' || durum === 'true';
+    }
+    return false;
+  };
+
+  const getOdevDurumu = (ogrenciDurum: string | boolean | undefined) => {
+    const isYapildi = getBooleanDurum(ogrenciDurum);
+    
+    if (isYapildi) {
       return { text: '✅ Yapıldı', color: 'text-green-600', bgColor: 'bg-green-100' };
     } else {
       return { text: '❌ Yapılmadı', color: 'text-red-600', bgColor: 'bg-red-100' };
@@ -4614,9 +4624,10 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
   };
 
   // Eksik ödev kontrolü
-  const getEksikDurumu = (ogrenciDurum: boolean | undefined) => {
-    // null, undefined, false değerlerini "Eksik Ödev" olarak kabul et
-    if (ogrenciDurum === true) {
+  const getEksikDurumu = (ogrenciDurum: string | boolean | undefined) => {
+    const isYapildi = getBooleanDurum(ogrenciDurum);
+    
+    if (isYapildi) {
       return { text: 'Tamamlandı', color: 'text-green-600', bgColor: 'bg-green-100' };
     } else {
       return { text: 'Eksik Ödev', color: 'text-red-600', bgColor: 'bg-red-100' };
@@ -4680,7 +4691,7 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
       {/* Her Ders için Ayrı Tablo */}
       {dersler.map((ders) => {
         const dersOdevleri = getFilteredOdevler(ders.key);
-        const yapilanSayisi = dersOdevleri.filter(odev => odev.ogrenciDurum === true).length;
+        const yapilanSayisi = dersOdevleri.filter(odev => getBooleanDurum(odev.ogrenciDurum)).length;
         const toplamSayisi = dersOdevleri.length;
         const basariYuzdesi = toplamSayisi > 0 ? Math.round((yapilanSayisi / toplamSayisi) * 100) : 0;
 
