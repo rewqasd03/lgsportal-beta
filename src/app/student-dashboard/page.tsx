@@ -3413,7 +3413,17 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
   latestNet: number;
   latestScore: number;
 }) {
-  // Ortalama puanı hesapla - doğrudan puan alanından
+  // Helper: String veya number puan alanını number'a çevir
+  const parsePuan = (value: any): number => {
+    if (typeof value === 'number') return value > 0 ? value : 0;
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return 0;
+  };
+
+  // Ortalama puanı hesapla
   const calculateAverageScore = (): number => {
     if (!reportData.examResults || reportData.examResults.length === 0) return 0;
     let totalScore = 0;
@@ -3422,9 +3432,8 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
     reportData.examResults.forEach((examResult: any) => {
       if (examResult.studentResults && examResult.studentResults.length > 0) {
         const studentResult = examResult.studentResults[0];
-        // Doğrudan puan alanını oku
-        const score = studentResult?.puan;
-        if (typeof score === 'number' && score > 0) {
+        const score = parsePuan(studentResult?.puan);
+        if (score > 0) {
           totalScore += score;
           count++;
         }
@@ -3442,9 +3451,8 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
     reportData.examResults.forEach((examResult: any) => {
       if (examResult.studentResults && examResult.studentResults.length > 0) {
         const studentResult = examResult.studentResults[0];
-        // Doğrudan puan alanını oku
-        const score = studentResult?.puan;
-        if (typeof score === 'number' && score > 0) {
+        const score = parsePuan(studentResult?.puan);
+        if (score > 0) {
           highestScore = Math.max(highestScore, score);
         }
       }
