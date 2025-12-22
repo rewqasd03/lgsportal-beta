@@ -3421,13 +3421,16 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
     reportData.examResults.forEach(examResult => {
       const studentResult = examResult.studentResults[0];
       if (studentResult) {
+        console.log('🔍 DEBUG Average - Student Result:', JSON.stringify(studentResult, null, 2));
         let score = studentResult.puan || studentResult.totalScore || studentResult.nets?.total || 0;
+        console.log('🔍 DEBUG Average - Extracted score:', score);
         if (typeof score === 'number' && score > 0) {
           totalScore += score;
           count++;
         }
       }
     });
+    console.log('🔍 DEBUG Average - Final:', count > 0 ? totalScore / count : 0, 'totalScore:', totalScore, 'count:', count);
     return count > 0 ? totalScore / count : 0;
   };
 
@@ -3438,12 +3441,15 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
     reportData.examResults.forEach(examResult => {
       const studentResult = examResult.studentResults[0];
       if (studentResult) {
+        console.log('🔍 DEBUG Highest - Student Result:', JSON.stringify(studentResult, null, 2));
         let score = studentResult.puan || studentResult.totalScore || studentResult.nets?.total || 0;
+        console.log('🔍 DEBUG Highest - Extracted score:', score);
         if (typeof score === 'number' && score > 0) {
           highestScore = Math.max(highestScore, score);
         }
       }
     });
+    console.log('🔍 DEBUG Highest - Final:', highestScore);
     return highestScore;
   };
 
