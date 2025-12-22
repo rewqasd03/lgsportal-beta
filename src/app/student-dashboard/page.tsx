@@ -3525,18 +3525,18 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
         {/* Ortalama ve En Yüksek Puan */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
-            <div className="text-sm text-blue-700 mb-1">📈 Ortalama Net</div>
+            <div className="text-sm text-blue-700 mb-1">📈 Ortalama Puan</div>
             <div className="text-2xl font-bold text-blue-600">
-              {Math.round(averageScore)} net
+              {Math.round(averageScore)} puan
             </div>
             <div className="text-xs text-blue-600 mt-1">
               (Denemelerin ortalaması)
             </div>
           </div>
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
-            <div className="text-sm text-green-700 mb-1">🏆 En Yüksek Net</div>
+            <div className="text-sm text-green-700 mb-1">🏆 En Yüksek Puan</div>
             <div className="text-2xl font-bold text-green-600">
-              {Math.round(highestScore)} net
+              {Math.round(highestScore)} puan
             </div>
             <div className="text-xs text-green-600 mt-1">
               (En başarılı deneme)
