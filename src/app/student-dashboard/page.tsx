@@ -3413,43 +3413,43 @@ function LiseTercihOnerileriTab({ reportData, studentTargets, latestNet, latestS
   latestNet: number;
   latestScore: number;
 }) {
-  // Ortalama puanı hesapla
+  // Ortalama puanı hesapla - doğrudan puan alanından
   const calculateAverageScore = (): number => {
-    if (reportData.examResults.length === 0) return 0;
+    if (!reportData.examResults || reportData.examResults.length === 0) return 0;
     let totalScore = 0;
     let count = 0;
-    reportData.examResults.forEach(examResult => {
-      const studentResult = examResult.studentResults[0];
-      if (studentResult) {
-        console.log('🔍 DEBUG Average - Student Result:', JSON.stringify(studentResult, null, 2));
-        let score = studentResult.puan || studentResult.totalScore || studentResult.nets?.total || 0;
-        console.log('🔍 DEBUG Average - Extracted score:', score);
+    
+    reportData.examResults.forEach((examResult: any) => {
+      if (examResult.studentResults && examResult.studentResults.length > 0) {
+        const studentResult = examResult.studentResults[0];
+        // Doğrudan puan alanını oku
+        const score = studentResult?.puan;
         if (typeof score === 'number' && score > 0) {
           totalScore += score;
           count++;
         }
       }
     });
-    console.log('🔍 DEBUG Average - Final:', count > 0 ? totalScore / count : 0, 'totalScore:', totalScore, 'count:', count);
+    
     return count > 0 ? totalScore / count : 0;
   };
 
   // En yüksek puanı hesapla
   const calculateHighestScore = (): number => {
-    if (reportData.examResults.length === 0) return 0;
+    if (!reportData.examResults || reportData.examResults.length === 0) return 0;
     let highestScore = 0;
-    reportData.examResults.forEach(examResult => {
-      const studentResult = examResult.studentResults[0];
-      if (studentResult) {
-        console.log('🔍 DEBUG Highest - Student Result:', JSON.stringify(studentResult, null, 2));
-        let score = studentResult.puan || studentResult.totalScore || studentResult.nets?.total || 0;
-        console.log('🔍 DEBUG Highest - Extracted score:', score);
+    
+    reportData.examResults.forEach((examResult: any) => {
+      if (examResult.studentResults && examResult.studentResults.length > 0) {
+        const studentResult = examResult.studentResults[0];
+        // Doğrudan puan alanını oku
+        const score = studentResult?.puan;
         if (typeof score === 'number' && score > 0) {
           highestScore = Math.max(highestScore, score);
         }
       }
     });
-    console.log('🔍 DEBUG Highest - Final:', highestScore);
+    
     return highestScore;
   };
 
