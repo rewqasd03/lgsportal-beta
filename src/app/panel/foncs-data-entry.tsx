@@ -4040,7 +4040,7 @@ export default function FoncsDataEntry() {
       case "lgs-hesaplama": return <LGSCalculatorTab />;
       case "analytics": return <AnalyticsTab students={students} results={results} exams={exams} />;
       case "van-taban-puan": return <VanTabanPuanTab lgsSchools={lgsSchools} obpSchools={obpSchools} />;
-      case "puan-bazli-tavsiye": return <PuanBazliLiseTavsiyesiTab students={students} lgsSchools={lgsSchools} obpSchools={obpSchools} />;
+      case "puan-bazli-tavsiye": return <PuanBazliLiseTavsiyesiTab students={students} results={results} exams={exams} lgsSchools={lgsSchools} obpSchools={obpSchools} />;
       default: return <HomeTab />;
     }
   };
@@ -5072,8 +5072,10 @@ const YerelYerlestirmePuanlariPanel = () => {
 };
 
 // 🎯 PUAN BAZLI LİSE TAVSİYESİ TAB COMPONENT
-const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: { 
+const PuanBazliLiseTavsiyesiTab = ({ students, results, exams, lgsSchools, obpSchools }: { 
   students: Student[],
+  results: any[],
+  exams: any[],
   lgsSchools: Array<{
     name: string;
     type: string;
@@ -5094,21 +5096,87 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
   const [studentPuan, setStudentPuan] = useState<number>(0);
   const [averagePuan, setAveragePuan] = useState<number>(0);
 
-  // Seçili öğrenci değiştiğinde puanı hesapla
-  useEffect(() => {
-    if (selectedStudent) {
-      // Basit puan hesaplama - gerçek implementasyonda Firebase'den veri çekilir
-      const student = students.find(s => s.id === selectedStudent);
-      // Örnek puan - gerçek uygulamada deneme sonuçlarından hesaplanır
-      const randomPuan = Math.floor(Math.random() * 200) + 300; // 300-500 arası
-      const randomAverage = Math.floor(Math.random() * 150) + 250; // 250-400 arası ortalama
-      setStudentPuan(randomPuan);
-      setAveragePuan(randomAverage);
-    } else {
-      setStudentPuan(0);
-      setAveragePuan(0);
+  // Helper: String veya number puan alanını number'a çevir
+  const parsePuan = (value: any): number => {
+    if (typeof value === 'number') return value > 0 ? value : 0;
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? 0 : parsed;
     }
-  }, [selectedStudent, students]);
+    return 0;
+  };
+
+  // Helper: studentResult'dan puanı al (fallback zinciri)
+  const getScoreFromResult = (studentResult: any): number => {
+    if (!studentResult) return 0;
+    
+    // Önce manuel girilen puanı kontrol et (en doğru değer)
+    let totalScore = parsePuan(studentResult.puan);
+    
+    // Eğer puan yoksa, scores.puan alanını kontrol et
+    if (!totalScore) {
+      totalScore = parsePuan(studentResult.scores?.puan);
+    }
+    
+    // Eğer totalScore alanı varsa onu kontrol et
+    if (!totalScore) {
+      totalScore = parsePuan(studentResult.totalScore);
+    }
+    
+    // Son olarak nets.total'ı kontrol et
+    if (!totalScore) {
+      totalScore = parsePuan(studentResult.nets?.total);
+    }
+    
+    return totalScore;
+  };
+
+  // Seçili öğrenci değiştiğinde puanları hesapla
+  useEffect(() => {
+    if (selectedStudent && results.length > 0) {
+      // Öğrencinin deneme sonuçlarını bul
+      const studentResults = results.filter((r: any) => r.studentId === selectedStudent);
+      
+      if (studentResults.length > 0) {
+        // Ortalama puanı hesapla
+        let totalScore = 0;
+        let count = 0;
+        let highestScore = 0;
+        
+        studentResults.forEach((result: any) => {
+          // result'ın içindeki puanı al - examResults formatında olabilir
+          const examData = result.examData || result;
+          const studentResult = examData?.studentResults?.find((sr: any) => sr.studentId === selectedStudent);
+          
+          if (studentResult) {
+            const score = getScoreFromResult(studentResult);
+            if (score > 0) {
+              totalScore += score;
+              count++;
+              highestScore = Math.max(highestScore, score);
+            }
+          } else {
+            // Direct result format
+            const score = getScoreFromResult(result);
+            if (score > 0) {
+              totalScore += score;
+              count++;
+              highestScore = Math.max(highestScore, score);
+            }
+          }
+        });
+        
+        setAveragePuan(count > 0 ? totalScore / count : 0);
+        setStudentPuan(highestScore);
+      } else {
+        setAveragePuan(0);
+        setStudentPuan(0);
+      }
+    } else {
+      setAveragePuan(0);
+      setStudentPuan(0);
+    }
+  }, [selectedStudent, results]);
 
   // Van ili lise veritabanı
   const vanLgsSchools = [
