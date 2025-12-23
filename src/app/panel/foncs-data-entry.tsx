@@ -5092,9 +5092,13 @@ const PuanBazliLiseTavsiyesiTab = ({ students, results, exams, lgsSchools, obpSc
     district: string;
   }>
 }) => {
+  const [selectedSinif, setSelectedSinif] = useState<string>('');
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [studentPuan, setStudentPuan] = useState<number>(0);
   const [averagePuan, setAveragePuan] = useState<number>(0);
+
+  // Sınıf listesi
+  const siniflar = Array.from(new Set(students.map(s => s.class))).sort();
 
   // Helper: String veya number puan alanını number'a çevir
   const parsePuan = (value: any): number => {
@@ -5341,19 +5345,41 @@ const PuanBazliLiseTavsiyesiTab = ({ students, results, exams, lgsSchools, obpSc
         <h3 className="text-xl font-semibold text-gray-800 mb-6">👨‍🎓 Öğrenci Seçimi</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Sınıf Seçimi */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Öğrenci Seçin
+              🏫 Sınıf Seçin
+            </label>
+            <select
+              value={selectedSinif}
+              onChange={(e) => {
+                setSelectedSinif(e.target.value);
+                setSelectedStudent('');
+              }}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            >
+              <option value="">Sınıf seçin...</option>
+              {siniflar.map(sinif => (
+                <option key={sinif} value={sinif}>{sinif}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Öğrenci Seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              👤 Öğrenci Seçin
             </label>
             <select
               value={selectedStudent}
               onChange={(e) => setSelectedStudent(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              disabled={!selectedSinif}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100"
             >
               <option value="">Öğrenci seçin...</option>
-              {students.map(student => (
+              {selectedSinif && students.filter(s => s.class === selectedSinif).map(student => (
                 <option key={student.id} value={student.id}>
-                  {student.name} ({student.class})
+                  {student.name}
                 </option>
               ))}
             </select>
