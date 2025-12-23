@@ -5092,6 +5092,7 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
 }) => {
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [studentPuan, setStudentPuan] = useState<number>(0);
+  const [averagePuan, setAveragePuan] = useState<number>(0);
 
   // Seçili öğrenci değiştiğinde puanı hesapla
   useEffect(() => {
@@ -5100,32 +5101,14 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
       const student = students.find(s => s.id === selectedStudent);
       // Örnek puan - gerçek uygulamada deneme sonuçlarından hesaplanır
       const randomPuan = Math.floor(Math.random() * 200) + 300; // 300-500 arası
+      const randomAverage = Math.floor(Math.random() * 150) + 250; // 250-400 arası ortalama
       setStudentPuan(randomPuan);
+      setAveragePuan(randomAverage);
     } else {
       setStudentPuan(0);
+      setAveragePuan(0);
     }
   }, [selectedStudent, students]);
-
-  // Puan aralığına göre lise önerisi
-  const getLiseOnerisi = (puan: number) => {
-    if (puan >= 450) return { renk: 'green', mesaj: 'Mükemmel! En iyi liselere yerleşebilirsiniz.' };
-    if (puan >= 400) return { renk: 'blue', mesaj: 'Çok iyi! İyi liselere yerleşme şansınız yüksek.' };
-    if (puan >= 350) return { renk: 'yellow', mesaj: 'İyi! Orta düzey liselere yerleşebilirsiniz.' };
-    if (puan >= 300) return { renk: 'orange', mesaj: 'Gelişim gerekli. Temel liselere odaklanın.' };
-    return { renk: 'red', mesaj: 'Daha çok çalışmanız gerekiyor.' };
-  };
-
-  const onerisi = getLiseOnerisi(studentPuan);
-
-  // Helper: String veya number puan alanını number'a çevir
-  const parsePuan = (value: any): number => {
-    if (typeof value === 'number') return value > 0 ? value : 0;
-    if (typeof value === 'string' && value.trim() !== '') {
-      const parsed = parseFloat(value);
-      return isNaN(parsed) ? 0 : parsed;
-    }
-    return 0;
-  };
 
   // Van ili lise veritabanı
   const vanLgsSchools = [
@@ -5160,23 +5143,120 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
     { name: "Çaldıran Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 197.30, district: "Çaldıran" }
   ];
 
-  // Puan aralıklarını hesapla (ortalama için)
-  const highRange = { min: studentPuan - 20, max: studentPuan + 20 };
-  const mediumRange = { min: studentPuan + 21, max: studentPuan + 40 };
-  const lowRange = { min: studentPuan + 41, max: studentPuan + 60 };
+  // Helper: Liseleri kategorize et
+  const categorizeSchools = (baseScore: number) => {
+    const highRange = { min: baseScore - 20, max: baseScore + 20 };
+    const mediumRange = { min: baseScore + 21, max: baseScore + 40 };
+    const lowRange = { min: baseScore + 41, max: baseScore + 60 };
 
-  // Liseleri kategorize et
-  const highProbabilitySchools = vanLgsSchools.filter(school => 
-    school.score >= highRange.min && school.score <= highRange.max
-  );
+    const highProbabilitySchools = vanLgsSchools.filter(school => 
+      school.score >= highRange.min && school.score <= highRange.max
+    );
+    
+    const mediumProbabilitySchools = vanLgsSchools.filter(school => 
+      school.score >= mediumRange.min && school.score <= mediumRange.max
+    );
+    
+    const lowProbabilitySchools = vanLgsSchools.filter(school => 
+      school.score >= lowRange.min && school.score <= lowRange.max
+    );
+
+    return { highRange, mediumRange, lowRange, highProbabilitySchools, mediumProbabilitySchools, lowProbabilitySchools };
+  };
+
+  // Ortalama puana göre kategorize et
+  const averageData = averagePuan > 0 ? categorizeSchools(averagePuan) : null;
   
-  const mediumProbabilitySchools = vanLgsSchools.filter(school => 
-    school.score >= mediumRange.min && school.score <= mediumRange.max
-  );
-  
-  const lowProbabilitySchools = vanLgsSchools.filter(school => 
-    school.score >= lowRange.min && school.score <= lowRange.max
-  );
+  // En yüksek puana göre kategorize et
+  const highestData = studentPuan > 0 ? categorizeSchools(studentPuan) : null;
+
+  // Liseleri gösteren bileşen
+  const LiseListesi = ({ data, title, puanLabel }: { data: any, title: string, puanLabel: string }) => {
+    if (!data) return null;
+
+    const { highRange, mediumRange, lowRange, highProbabilitySchools, mediumProbabilitySchools, lowProbabilitySchools } = data;
+
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-xl font-semibold text-gray-800 mb-6">{title}</h3>
+        
+        {/* Puan Bilgisi */}
+        <div className="grid grid-cols-1 gap-4 mb-6">
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+            <div className="text-sm text-blue-700 mb-1">{puanLabel}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {Math.round(averagePuan || studentPuan)} puan
+            </div>
+          </div>
+        </div>
+
+        {/* Puan Aralıklarına Göre Lise Önerileri */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Yüksek İhtimal -20 ile +20 arası */}
+            <div className="border-2 border-green-200 bg-green-50 rounded-lg p-4">
+              <h5 className="text-sm font-semibold text-green-800 mb-2 flex items-center">
+                ✅ Yüksek İhtimal
+              </h5>
+              <div className="text-xs text-green-700 mb-3">
+                {Math.round(highRange.min)}-{Math.round(highRange.max)} puan aralığı
+              </div>
+              <div className="space-y-2">
+                {highProbabilitySchools.length > 0 ? highProbabilitySchools.slice(0, 4).map(school => (
+                  <div key={school.name} className="bg-white p-2 rounded border">
+                    <div className="text-sm font-medium text-gray-900">{school.name}</div>
+                    <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
+                  </div>
+                )) : (
+                  <div className="text-xs text-green-600">Bu aralıkta okul bulunmuyor</div>
+                )}
+              </div>
+            </div>
+
+            {/* Orta İhtimal +21 ile +40 arası */}
+            <div className="border-2 border-yellow-200 bg-yellow-50 rounded-lg p-4">
+              <h5 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center">
+                ⚠️ Orta İhtimal
+              </h5>
+              <div className="text-xs text-yellow-700 mb-3">
+                {Math.round(mediumRange.min)}-{Math.round(mediumRange.max)} puan aralığı
+              </div>
+              <div className="space-y-2">
+                {mediumProbabilitySchools.length > 0 ? mediumProbabilitySchools.slice(0, 4).map(school => (
+                  <div key={school.name} className="bg-white p-2 rounded border">
+                    <div className="text-sm font-medium text-gray-900">{school.name}</div>
+                    <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
+                  </div>
+                )) : (
+                  <div className="text-xs text-yellow-600">Bu aralıkta okul bulunmuyor</div>
+                )}
+              </div>
+            </div>
+
+            {/* Düşük İhtimal +41 ile +60 arası */}
+            <div className="border-2 border-red-200 bg-red-50 rounded-lg p-4">
+              <h5 className="text-sm font-semibold text-red-800 mb-2 flex items-center">
+                🔥 Düşük İhtimal
+              </h5>
+              <div className="text-xs text-red-700 mb-3">
+                {Math.round(lowRange.min)}-{Math.round(lowRange.max)} puan aralığı
+              </div>
+              <div className="space-y-2">
+                {lowProbabilitySchools.length > 0 ? lowProbabilitySchools.slice(0, 4).map(school => (
+                  <div key={school.name} className="bg-white p-2 rounded border">
+                    <div className="text-sm font-medium text-gray-900">{school.name}</div>
+                    <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
+                  </div>
+                )) : (
+                  <div className="text-xs text-red-600">Bu aralıkta okul bulunmuyor</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-8">
@@ -5188,11 +5268,11 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
         </p>
       </div>
 
-      {/* Öğrenci Seçimi ve Puan */}
+      {/* Öğrenci Seçimi ve Puanlar */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 className="text-xl font-semibold text-gray-800 mb-6">👨‍🎓 Öğrenci Seçimi</h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Öğrenci Seçin
@@ -5213,102 +5293,50 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Öğrenci Puanı
+              Ortalama Puan
             </label>
-            <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
-              <span className="text-lg font-bold text-gray-800">
-                {studentPuan > 0 ? `${studentPuan} puan` : 'Puan bulunamadı'}
+            <div className="px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <span className="text-lg font-bold text-blue-800">
+                {averagePuan > 0 ? `${averagePuan} puan` : '-'}
               </span>
-              <span className="text-sm text-gray-500 ml-2">(En yüksek deneme puanı)</span>
+              <span className="text-sm text-blue-600 ml-2 block">(Denemelerin ortalaması)</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              En Yüksek Puan
+            </label>
+            <div className="px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
+              <span className="text-lg font-bold text-green-800">
+                {studentPuan > 0 ? `${studentPuan} puan` : '-'}
+              </span>
+              <span className="text-sm text-green-600 ml-2 block">(En başarılı deneme)</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Ortalama Puan Analizi - En Yüksek Puana Göre */}
+      {/* Bölüm 1: Ortalama Puana Göre Lise Önerileri */}
+      {selectedStudent && averagePuan > 0 && (
+        <LiseListesi 
+          data={averageData} 
+          title="📊 Ortalama Puana Göre Lise Önerileri" 
+          puanLabel="📈 Öğrencinin Ortalama Deneme Puanı"
+        />
+      )}
+
+      {/* Bölüm 2: En Yüksek Puana Göre Lise Önerileri */}
       {selectedStudent && studentPuan > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-6">📊 En Yüksek Puana Göre Lise Önerileri</h3>
-          
-          {/* En Yüksek Puan */}
-          <div className="grid grid-cols-1 gap-4 mb-6">
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
-              <div className="text-sm text-green-700 mb-1">📊 Öğrencinin En Yüksek Deneme Puanı</div>
-              <div className="text-2xl font-bold text-green-600">
-                {Math.round(studentPuan)} puan
-              </div>
-            </div>
-          </div>
-
-          {/* Puan Aralıklarına Göre Lise Önerileri */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Yüksek İhtimal -20 ile +20 arası */}
-              <div className="border-2 border-green-200 bg-green-50 rounded-lg p-4">
-                <h5 className="text-sm font-semibold text-green-800 mb-2 flex items-center">
-                  ✅ Yüksek İhtimal
-                </h5>
-                <div className="text-xs text-green-700 mb-3">
-                  {Math.round(highRange.min)}-{Math.round(highRange.max)} puan aralığı
-                </div>
-                <div className="space-y-2">
-                  {highProbabilitySchools.length > 0 ? highProbabilitySchools.slice(0, 4).map(school => (
-                    <div key={school.name} className="bg-white p-2 rounded border">
-                      <div className="text-sm font-medium text-gray-900">{school.name}</div>
-                      <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
-                    </div>
-                  )) : (
-                    <div className="text-xs text-green-600">Bu aralıkta okul bulunmuyor</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Orta İhtimal +21 ile +40 arası */}
-              <div className="border-2 border-yellow-200 bg-yellow-50 rounded-lg p-4">
-                <h5 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center">
-                  ⚠️ Orta İhtimal
-                </h5>
-                <div className="text-xs text-yellow-700 mb-3">
-                  {Math.round(mediumRange.min)}-{Math.round(mediumRange.max)} puan aralığı
-                </div>
-                <div className="space-y-2">
-                  {mediumProbabilitySchools.length > 0 ? mediumProbabilitySchools.slice(0, 4).map(school => (
-                    <div key={school.name} className="bg-white p-2 rounded border">
-                      <div className="text-sm font-medium text-gray-900">{school.name}</div>
-                      <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
-                    </div>
-                  )) : (
-                    <div className="text-xs text-yellow-600">Bu aralıkta okul bulunmuyor</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Düşük İhtimal +41 ile +60 arası */}
-              <div className="border-2 border-red-200 bg-red-50 rounded-lg p-4">
-                <h5 className="text-sm font-semibold text-red-800 mb-2 flex items-center">
-                  🔥 Düşük İhtimal
-                </h5>
-                <div className="text-xs text-red-700 mb-3">
-                  {Math.round(lowRange.min)}-{Math.round(lowRange.max)} puan aralığı
-                </div>
-                <div className="space-y-2">
-                  {lowProbabilitySchools.length > 0 ? lowProbabilitySchools.slice(0, 4).map(school => (
-                    <div key={school.name} className="bg-white p-2 rounded border">
-                      <div className="text-sm font-medium text-gray-900">{school.name}</div>
-                      <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
-                    </div>
-                  )) : (
-                    <div className="text-xs text-red-600">Bu aralıkta okul bulunmuyor</div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <LiseListesi 
+          data={highestData} 
+          title="🏆 En Yüksek Puana Göre Lise Önerileri" 
+          puanLabel="📊 Öğrencinin En Yüksek Deneme Puanı"
+        />
       )}
 
       {/* Tavsiye */}
-      {selectedStudent && studentPuan > 0 && (
+      {selectedStudent && (averagePuan > 0 || studentPuan > 0) && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-6">💡 Tavsiyeler</h3>
           
@@ -5316,9 +5344,9 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
             <div className="p-4 bg-blue-50 rounded-lg">
               <h4 className="font-semibold text-blue-800 mb-2">📚 Çalışma Tavsiyesi</h4>
               <p className="text-blue-700">
-                {studentPuan >= 400 ? 'Mükemmel! Bu performansı sürdürmek için düzenli tekrar yapın.' :
-                 studentPuan >= 350 ? 'İyi gidiyorsunuz! Zayıf derslerinize daha çok odaklanın.' :
-                 studentPuan >= 300 ? 'Hedeflerinize ulaşmak için günde en az 3 saat çalışın.' :
+                {(averagePuan || studentPuan) >= 400 ? 'Mükemmel! Bu performansı sürdürmek için düzenli tekrar yapın.' :
+                 (averagePuan || studentPuan) >= 350 ? 'İyi gidiyorsunuz! Zayıf derslerinize daha çok odaklanın.' :
+                 (averagePuan || studentPuan) >= 300 ? 'Hedeflerinize ulaşmak için günde en az 3 saat çalışın.' :
                  'Temel konuları tekrar ederek başlayın. Günde en az 4 saat çalışmalısınız.'}
               </p>
             </div>
@@ -5326,9 +5354,9 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
             <div className="p-4 bg-purple-50 rounded-lg">
               <h4 className="font-semibold text-purple-800 mb-2">🎯 Strateji</h4>
               <p className="text-purple-700">
-                {studentPuan >= 400 ? 'En iyi liseleri hedefleyin. Matematik ve fen odaklı çalışın.' :
-                 studentPuan >= 350 ? 'Orta düzey liselere odaklanın. Türkçe ve sosyal geliştirin.' :
-                 studentPuan >= 300 ? 'Temel liseleri hedefleyin. Tüm derslerde denge kurun.' :
+                {(averagePuan || studentPuan) >= 400 ? 'En iyi liseleri hedefleyin. Matematik ve fen odaklı çalışın.' :
+                 (averagePuan || studentPuan) >= 350 ? 'Orta düzey liselere odaklanın. Türkçe ve sosyal geliştirin.' :
+                 (averagePuan || studentPuan) >= 300 ? 'Temel liseleri hedefleyin. Tüm derslerde denge kurun.' :
                  'Temel konularda eksiklerinizi kapatın. Sınav stratejisi geliştirin.'}
               </p>
             </div>
