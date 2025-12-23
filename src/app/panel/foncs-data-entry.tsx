@@ -5117,13 +5117,74 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
 
   const onerisi = getLiseOnerisi(studentPuan);
 
+  // Helper: String veya number puan alanını number'a çevir
+  const parsePuan = (value: any): number => {
+    if (typeof value === 'number') return value > 0 ? value : 0;
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return 0;
+  };
+
+  // Van ili lise veritabanı
+  const vanLgsSchools = [
+    { name: "Van Türk Telekom Fen Lisesi", type: "Fen Lisesi", score: 460.91, district: "Edremit" },
+    { name: "İpekyolu Borsa İstanbul Fen Lisesi", type: "Fen Lisesi", score: 441.61, district: "İpekyolu" },
+    { name: "Tuşba TOBB Fen Lisesi", type: "Fen Lisesi", score: 422.90, district: "Tuşba" },
+    { name: "Niyazi Türkmenoğlu Anadolu Lisesi", type: "Anadolu Lisesi", score: 416.75, district: "İpekyolu" },
+    { name: "Erciş Fen Lisesi", type: "Fen Lisesi", score: 402.18, district: "Erciş" },
+    { name: "Kazım Karabekir Anadolu Lisesi", type: "Anadolu Lisesi", score: 400.23, district: "İpekyolu" },
+    { name: "Türkiye Yardımsevenler Derneği Anadolu Lisesi", type: "Anadolu Lisesi", score: 387.01, district: "Edremit" },
+    { name: "Van Atatürk Anadolu Lisesi", type: "Anadolu Lisesi", score: 379.46, district: "İpekyolu" },
+    { name: "Abdurrahman Gazi Borsa İstanbul Anadolu Lisesi", type: "Anadolu Lisesi", score: 367.20, district: "Tuşba" },
+    { name: "Muradiye Alpaslan Fen Lisesi", type: "Fen Lisesi", score: 366.59, district: "Muradiye" },
+    { name: "Erciş Sosyal Bilimler Lisesi", type: "Sosyal Bilimler Lisesi", score: 366.09, district: "Erciş" },
+    { name: "Van Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 360.29, district: "İpekyolu" },
+    { name: "Van-Borsa İstanbul Mesleki ve Teknik Anadolu Lisesi", type: "Mesleki ve Teknik Anadolu Lisesi", score: 349.74, district: "Edremit" },
+    { name: "Sevim Kürüm Anadolu Lisesi", type: "Anadolu Lisesi", score: 349.08, district: "Erciş" },
+    { name: "İskele Kız Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 325.31, district: "İpekyolu" },
+    { name: "Edremit Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 312.80, district: "Edremit" },
+    { name: "Mehmet Erdemoğlu Mesleki ve Teknik Anadolu Lisesi", type: "Mesleki ve Teknik Anadolu Lisesi", score: 305.71, district: "İpekyolu" },
+    { name: "Şehit Polis Halil Hamuryen Kız Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 308.52, district: "Erciş" },
+    { name: "Tevfik İleri Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 294.42, district: "Erciş" },
+    { name: "Erciş Mesleki ve Teknik Anadolu Lisesi", type: "Mesleki ve Teknik Anadolu Lisesi", score: 293.47, district: "Erciş" },
+    { name: "Mizancı Murat Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 293.21, district: "Edremit" },
+    { name: "Gevaş Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 267.96, district: "Gevaş" },
+    { name: "Hüseyin Çelik Kız Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 263.42, district: "Tuşba" },
+    { name: "Özalp Kız Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 255.88, district: "Özalp" },
+    { name: "Tuşba Şehit Ferhat Arslan Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 251.82, district: "Tuşba" },
+    { name: "Şehit Haluk Varlı Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 221.47, district: "Gürpınar" },
+    { name: "Muradiye Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 208.61, district: "Muradiye" },
+    { name: "Başkale Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 199.41, district: "Başkale" },
+    { name: "Çaldıran Anadolu İmam Hatip Lisesi", type: "Anadolu İmam Hatip Lisesi", score: 197.30, district: "Çaldıran" }
+  ];
+
+  // Puan aralıklarını hesapla (ortalama için)
+  const highRange = { min: studentPuan - 20, max: studentPuan + 20 };
+  const mediumRange = { min: studentPuan + 21, max: studentPuan + 40 };
+  const lowRange = { min: studentPuan + 41, max: studentPuan + 60 };
+
+  // Liseleri kategorize et
+  const highProbabilitySchools = vanLgsSchools.filter(school => 
+    school.score >= highRange.min && school.score <= highRange.max
+  );
+  
+  const mediumProbabilitySchools = vanLgsSchools.filter(school => 
+    school.score >= mediumRange.min && school.score <= mediumRange.max
+  );
+  
+  const lowProbabilitySchools = vanLgsSchools.filter(school => 
+    school.score >= lowRange.min && school.score <= lowRange.max
+  );
+
   return (
     <div className="space-y-8">
       {/* Başlık */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 text-white">
         <h2 className="text-3xl font-bold mb-4">🎯 Puan Bazlı Lise Tavsiyesi</h2>
         <p className="text-purple-100 text-lg">
-          Puanınıza göre size uygun lise önerileri
+          Öğrencinin puanına göre uygun lise önerileri
         </p>
       </div>
 
@@ -5164,55 +5225,83 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
         </div>
       </div>
 
-      {/* Puan Analizi */}
+      {/* Ortalama Puan Analizi - En Yüksek Puana Göre */}
       {selectedStudent && studentPuan > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-6">📊 Puan Analizi</h3>
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">📊 En Yüksek Puana Göre Lise Önerileri</h3>
           
-          <div className={`p-6 rounded-lg border-l-4 ${
-            onerisi.renk === 'green' ? 'bg-green-50 border-green-500' :
-            onerisi.renk === 'blue' ? 'bg-blue-50 border-blue-500' :
-            onerisi.renk === 'yellow' ? 'bg-yellow-50 border-yellow-500' :
-            onerisi.renk === 'orange' ? 'bg-orange-50 border-orange-500' :
-            'bg-red-50 border-red-500'
-          }`}>
-            <h4 className={`text-lg font-semibold mb-2 ${
-              onerisi.renk === 'green' ? 'text-green-800' :
-              onerisi.renk === 'blue' ? 'text-blue-800' :
-              onerisi.renk === 'yellow' ? 'text-yellow-800' :
-              onerisi.renk === 'orange' ? 'text-orange-800' :
-              'text-red-800'
-            }`}>
-              Puanınız: {studentPuan}
-            </h4>
-            <p className={`${
-              onerisi.renk === 'green' ? 'text-green-700' :
-              onerisi.renk === 'blue' ? 'text-blue-700' :
-              onerisi.renk === 'yellow' ? 'text-yellow-700' :
-              onerisi.renk === 'orange' ? 'text-orange-700' :
-              'text-red-700'
-            }`}>
-              {onerisi.mesaj}
-            </p>
+          {/* En Yüksek Puan */}
+          <div className="grid grid-cols-1 gap-4 mb-6">
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+              <div className="text-sm text-green-700 mb-1">📊 Öğrencinin En Yüksek Deneme Puanı</div>
+              <div className="text-2xl font-bold text-green-600">
+                {Math.round(studentPuan)} puan
+              </div>
+            </div>
           </div>
 
-          {/* Puan Aralığı Bilgisi */}
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-green-50 p-3 rounded-lg text-center">
-              <div className="text-green-800 font-semibold">450+</div>
-              <div className="text-green-600 text-sm">Mükemmel</div>
-            </div>
-            <div className="bg-blue-50 p-3 rounded-lg text-center">
-              <div className="text-blue-800 font-semibold">400-449</div>
-              <div className="text-blue-600 text-sm">Çok İyi</div>
-            </div>
-            <div className="bg-yellow-50 p-3 rounded-lg text-center">
-              <div className="text-yellow-800 font-semibold">350-399</div>
-              <div className="text-yellow-600 text-sm">İyi</div>
-            </div>
-            <div className="bg-orange-50 p-3 rounded-lg text-center">
-              <div className="text-orange-800 font-semibold">300-349</div>
-              <div className="text-orange-600 text-sm">Gelişim</div>
+          {/* Puan Aralıklarına Göre Lise Önerileri */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Yüksek İhtimal -20 ile +20 arası */}
+              <div className="border-2 border-green-200 bg-green-50 rounded-lg p-4">
+                <h5 className="text-sm font-semibold text-green-800 mb-2 flex items-center">
+                  ✅ Yüksek İhtimal
+                </h5>
+                <div className="text-xs text-green-700 mb-3">
+                  {Math.round(highRange.min)}-{Math.round(highRange.max)} puan aralığı
+                </div>
+                <div className="space-y-2">
+                  {highProbabilitySchools.length > 0 ? highProbabilitySchools.slice(0, 4).map(school => (
+                    <div key={school.name} className="bg-white p-2 rounded border">
+                      <div className="text-sm font-medium text-gray-900">{school.name}</div>
+                      <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
+                    </div>
+                  )) : (
+                    <div className="text-xs text-green-600">Bu aralıkta okul bulunmuyor</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Orta İhtimal +21 ile +40 arası */}
+              <div className="border-2 border-yellow-200 bg-yellow-50 rounded-lg p-4">
+                <h5 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center">
+                  ⚠️ Orta İhtimal
+                </h5>
+                <div className="text-xs text-yellow-700 mb-3">
+                  {Math.round(mediumRange.min)}-{Math.round(mediumRange.max)} puan aralığı
+                </div>
+                <div className="space-y-2">
+                  {mediumProbabilitySchools.length > 0 ? mediumProbabilitySchools.slice(0, 4).map(school => (
+                    <div key={school.name} className="bg-white p-2 rounded border">
+                      <div className="text-sm font-medium text-gray-900">{school.name}</div>
+                      <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
+                    </div>
+                  )) : (
+                    <div className="text-xs text-yellow-600">Bu aralıkta okul bulunmuyor</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Düşük İhtimal +41 ile +60 arası */}
+              <div className="border-2 border-red-200 bg-red-50 rounded-lg p-4">
+                <h5 className="text-sm font-semibold text-red-800 mb-2 flex items-center">
+                  🔥 Düşük İhtimal
+                </h5>
+                <div className="text-xs text-red-700 mb-3">
+                  {Math.round(lowRange.min)}-{Math.round(lowRange.max)} puan aralığı
+                </div>
+                <div className="space-y-2">
+                  {lowProbabilitySchools.length > 0 ? lowProbabilitySchools.slice(0, 4).map(school => (
+                    <div key={school.name} className="bg-white p-2 rounded border">
+                      <div className="text-sm font-medium text-gray-900">{school.name}</div>
+                      <div className="text-xs text-gray-600">{school.type} • {school.score.toFixed(2)} taban • {school.district}</div>
+                    </div>
+                  )) : (
+                    <div className="text-xs text-red-600">Bu aralıkta okul bulunmuyor</div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
