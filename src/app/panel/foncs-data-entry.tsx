@@ -5268,7 +5268,7 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
         </p>
       </div>
 
-      {/* Öğrenci Seçimi ve Puanlar */}
+      {/* Öğrenci Seçimi */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 className="text-xl font-semibold text-gray-800 mb-6">👨‍🎓 Öğrenci Seçimi</h3>
         
@@ -5290,32 +5290,32 @@ const PuanBazliLiseTavsiyesiTab = ({ students, lgsSchools, obpSchools }: {
               ))}
             </select>
           </div>
+        </div>
+      </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ortalama Puan
-            </label>
-            <div className="px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <span className="text-lg font-bold text-blue-800">
-                {averagePuan > 0 ? `${averagePuan} puan` : '-'}
-              </span>
-              <span className="text-sm text-blue-600 ml-2 block">(Denemelerin ortalaması)</span>
+      {/* Ortalama ve En Yüksek Puan */}
+      {selectedStudent && (averagePuan > 0 || studentPuan > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+            <div className="text-sm text-blue-700 mb-1">📈 Ortalama Puan</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {Math.round(averagePuan)} puan
+            </div>
+            <div className="text-xs text-blue-600 mt-1">
+              (Denemelerin ortalaması)
             </div>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              En Yüksek Puan
-            </label>
-            <div className="px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
-              <span className="text-lg font-bold text-green-800">
-                {studentPuan > 0 ? `${studentPuan} puan` : '-'}
-              </span>
-              <span className="text-sm text-green-600 ml-2 block">(En başarılı deneme)</span>
+          <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+            <div className="text-sm text-green-700 mb-1">🏆 En Yüksek Puan</div>
+            <div className="text-2xl font-bold text-green-600">
+              {Math.round(studentPuan)} puan
+            </div>
+            <div className="text-xs text-green-600 mt-1">
+              (En başarılı deneme)
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Bölüm 1: Ortalama Puana Göre Lise Önerileri */}
       {selectedStudent && averagePuan > 0 && (
