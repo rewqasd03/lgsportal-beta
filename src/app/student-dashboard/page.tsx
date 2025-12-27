@@ -4856,22 +4856,34 @@ function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId
         const allSnapshot = await getDocs(collection(db, 'okumaSinavlari'));
         const allSinavlar = allSnapshot.docs.map(doc => doc.data());
         
-        // Sadece bu öğrencinin sınıfındaki öğrencilerin sınavlarını filtrele
-        const classSinavlar = allSinavlar.filter((sinav: any) => sinav.studentClass === studentClass);
+        console.log('🎯 DEBUG - Toplam okuma sınavı:', allSinavlar.length);
+        console.log('🎯 DEBUG - Öğrenci sınıfı:', studentClass);
+        console.log('🎯 DEBUG - Öğrenci sınavları:', sinavlarData.map((s: any) => ({ date: s.date, wpm: s.wpm, class: s.studentClass })));
         
-        // Tarihe göre grupla (sadece bu sınıf için)
+        // Sadece bu öğrencinin sınıfındaki öğrencilerin sınavlarını filtrele (boşlukları temizle ve karşılaştır)
+        const classSinavlar = allSinavlar.filter((sinav: any) => 
+          sinav.studentClass && sinav.studentClass.trim() === studentClass?.trim()
+        );
+        
+        console.log('🎯 DEBUG - Sınıf sınavları:', classSinavlar.map((s: any) => ({ date: s.date, wpm: s.wpm, class: s.studentClass })));
+        
+        // Tarihe göre grupla (sadece bu sınıf için) - wpm sayıya çevrilir
         const classDateGroups = classSinavlar.reduce((acc: { [date: string]: number[] }, sinav: any) => {
           const date = sinav.date;
+          const wpm = Number(sinav.wpm) || 0; // Sayıya çevir, NaN olursa 0 yap
           if (!acc[date]) acc[date] = [];
-          acc[date].push(sinav.wpm);
+          acc[date].push(wpm);
           return acc;
         }, {});
         
-        // Öğrencinin sınavlarını tarihe göre grupla
+        console.log('🎯 DEBUG - Tarih grupları:', classDateGroups);
+        
+        // Öğrencinin sınavlarını tarihe göre grupla - wpm sayıya çevrilir
         const studentDateGroups = sinavlarData.reduce((acc: { [date: string]: number[] }, sinav) => {
           const date = sinav.date;
+          const wpm = Number(sinav.wpm) || 0;
           if (!acc[date]) acc[date] = [];
-          acc[date].push(sinav.wpm);
+          acc[date].push(wpm);
           return acc;
         }, {});
         
