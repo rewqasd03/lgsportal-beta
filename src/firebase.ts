@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, doc, updateDoc, deleteDoc, query, where, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, doc, updateDoc, deleteDoc, query, where, orderBy, writeBatch, limit } from 'firebase/firestore';
 import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 
 // Firebase configuration
@@ -56,6 +56,27 @@ export interface Result {
   puan?: number; // Toplam puan
   totalScore?: number; // Alternatif puan alanı
   createdAt: string;
+}
+
+// 📚 OKUMA SINAVI INTERFACE
+export interface OkumaSinavi {
+  id: string;
+  class: string;        // "2-A", "3-A", "4-A"
+  date: string;        // Sınav tarihi (YYYY-MM-DD)
+  studentId: string;   // Öğrenci ID
+  studentName: string; // Öğrenci adı
+  wpm: number;         // Dakikada okunan kelime sayısı
+  createdAt: string;   // Oluşturulma tarihi
+}
+
+// Sınıf bazlı okuma sınavı özeti
+export interface OkumaSinaviSummary {
+  classId: string;
+  date: string;
+  studentCount: number;
+  averageWpm: number;
+  maxWpm: number;
+  minWpm: number;
 }
 
 // 🔥 HEATMAP PERFORMANS MATRİSİ INTERFACE'LERİ
@@ -2403,4 +2424,274 @@ export const bulkUpdateMissingTopics = async (
     console.error('Toplu eksik konu güncelleme hatası:', error);
     throw error;
   }
+}
+
+// ============================================
+// 📚 OKUMA SINAVI FONKSİYONLARI
+// ============================================
+
+// Okuma sınavı sonucu kaydet
+export const addOkumaSinavi = async (
+  classId: string,
+  date: string,
+  studentId: string,
+  studentName: string,
+  wpm: number
+): Promise<string> => {
+  try {
+    const docRef = await addDoc(collection(db, 'okumaSinavlari'), {
+      class: classId,
+      date: date,
+      studentId: studentId,
+      studentName: studentName,
+      wpm: wpm,
+      createdAt: new Date().toISOString()
+    });
+    console.log('📚 Okuma sınavı kaydedildi:', docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error('Okuma sınavı kaydetme hatası:', error);
+    throw error;
+  }
 };
+
+// Toplu okuma sınavı sonuçları kaydet
+export const addBulkOkumaSinavlari = async (
+  results: Array<{
+    classId: string;
+    date: string;
+    studentId: string;
+    studentName: string;
+    wpm: number;
+  }>
+): Promise<void> => {
+  try {
+    const batch = writeBatch(db);
+    
+    results.forEach(result => {
+      const docRef = doc(collection(db, 'okumaSinavlari'));
+      batch.set(docRef, {
+        class: result.classId,
+        date: result.date,
+        studentId: result.studentId,
+        studentName: result.studentName,
+        wpm: result.wpm,
+        createdAt: new Date().toISOString()
+      });
+    });
+
+    await batch.commit();
+    console.log('📚 Toplu okuma sınavı kaydedildi:', results.length, 'sonuç');
+  } catch (error) {
+    console.error('Toplu okuma sınavı kaydetme hatası:', error);
+    throw error;
+  }
+};
+
+// Öğrencinin okuma sınavı geçmişini getir
+export const getOkumaSinavlariByStudent = async (studentId: string): Promise<OkumaSinavi[]> => {
+  try {
+    const q = query(
+      collection(db, 'okumaSinavlari'),
+      where('studentId', '==', studentId),
+      orderBy('date', 'asc')
+    );
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as OkumaSinavi[];
+  } catch (error) {
+    console.error('Öğrenci okuma sınavları getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Sınıfın belirli tarihteki okuma sınavlarını getir
+export const getOkumaSinavlariByClassAndDate = async (
+  classId: string,
+  date: string
+): Promise<OkumaSinavi[]> => {
+  try {
+    const q = query(
+      collection(db, 'okumaSinavlari'),
+      where('class', '==', classId),
+      where('date', '==', date),
+      orderBy('studentName', 'asc')
+    );
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as OkumaSinavi[];
+  } catch (error) {
+    console.error('Sınıf okuma sınavları getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Sınıfın tüm okuma sınavlarını getir
+export const getOkumaSinavlariByClass = async (classId: string): Promise<OkumaSinavi[]> => {
+  try {
+    const q = query(
+      collection(db, 'okumaSinavlari'),
+      where('class', '==', classId),
+      orderBy('date', 'desc')
+    );
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as OkumaSinavi[];
+  } catch (error) {
+    console.error('Sınıf okuma sınavları getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Belirli tarihteki tüm sınıfların okuma sınavlarını getir
+export const getOkumaSinavlariByDate = async (date: string): Promise<OkumaSinavi[]> => {
+  try {
+    const q = query(
+      collection(db, 'okumaSinavlari'),
+      where('date', '==', date),
+      orderBy('class', 'asc'),
+      orderBy('studentName', 'asc')
+    );
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as OkumaSinavi[];
+  } catch (error) {
+    console.error('Tarihe göre okuma sınavları getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Okuma sınavı sonucu sil
+export const deleteOkumaSinavi = async (id: string): Promise<void> => {
+  try {
+    await deleteDoc(doc(db, 'okumaSinavlari', id));
+    console.log('📚 Okuma sınavı silindi:', id);
+  } catch (error) {
+    console.error('Okuma sınavı silme hatası:', error);
+    throw error;
+  }
+};
+
+// Sınıf bazlı okuma sınavı özeti getir
+export const getOkumaSinaviSummaryByClass = async (classId: string): Promise<OkumaSinaviSummary[]> => {
+  try {
+    const sinavlar = await getOkumaSinavlariByClass(classId);
+    
+    // Tarihe göre grupla
+    const dateGroups: { [date: string]: OkumaSinavi[] } = {};
+    sinavlar.forEach(sinav => {
+      if (!dateGroups[sinav.date]) {
+        dateGroups[sinav.date] = [];
+      }
+      dateGroups[sinav.date].push(sinav);
+    });
+    
+    // Her tarih için özet oluştur
+    const summaries: OkumaSinaviSummary[] = Object.entries(dateGroups).map(([date, items]) => {
+      const wpms = items.map(s => s.wpm);
+      return {
+        classId: classId,
+        date: date,
+        studentCount: items.length,
+        averageWpm: wpms.length > 0 ? wpms.reduce((a, b) => a + b, 0) / wpms.length : 0,
+        maxWpm: wpms.length > 0 ? Math.max(...wpms) : 0,
+        minWpm: wpms.length > 0 ? Math.min(...wpms) : 0
+      };
+    });
+    
+    return summaries.sort((a, b) => b.date.localeCompare(a.date));
+  } catch (error) {
+    console.error('Okuma sınavı özeti getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Tüm 2-A, 3-A, 4-A sınıflarının okuma sınavı özetlerini getir
+export const getAllOkumaSinaviSummaries = async (): Promise<OkumaSinaviSummary[]> => {
+  try {
+    const classes = ['2-A', '3-A', '4-A'];
+    const allSummaries: OkumaSinaviSummary[] = [];
+    
+    for (const classId of classes) {
+      const summaries = await getOkumaSinaviSummaryByClass(classId);
+      allSummaries.push(...summaries);
+    }
+    
+    return allSummaries.sort((a, b) => b.date.localeCompare(a.date));
+  } catch (error) {
+    console.error('Tüm okuma sınavı özetleri getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Öğrencinin son okuma sınavını getir
+export const getLastOkumaSinavi = async (studentId: string): Promise<OkumaSinavi | null> => {
+  try {
+    const q = query(
+      collection(db, 'okumaSinavlari'),
+      where('studentId', '==', studentId),
+      orderBy('date', 'desc'),
+      orderBy('createdAt', 'desc'),
+      limit(1)
+    );
+    
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    
+    const doc = snapshot.docs[0];
+    return {
+      id: doc.id,
+      ...doc.data()
+    } as OkumaSinavi;
+  } catch (error) {
+    console.error('Son okuma sınavı getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Öğrencinin okuma sınavı istatistiklerini getir
+export const getOkumaSinaviStats = async (studentId: string): Promise<{
+  totalExams: number;
+  averageWpm: number;
+  maxWpm: number;
+  minWpm: number;
+  lastExamDate: string | null;
+}> => {
+  try {
+    const sinavlar = await getOkumaSinavlariByStudent(studentId);
+    
+    if (sinavlar.length === 0) {
+      return {
+        totalExams: 0,
+        averageWpm: 0,
+        maxWpm: 0,
+        minWpm: 0,
+        lastExamDate: null
+      };
+    }
+    
+    const wpms = sinavlar.map(s => s.wpm);
+    return {
+      totalExams: sinavlar.length,
+      averageWpm: wpms.reduce((a, b) => a + b, 0) / wpms.length,
+      maxWpm: Math.max(...wpms),
+      minWpm: Math.min(...wpms),
+      lastExamDate: sinavlar[sinavlar.length - 1]?.date || null
+    };
+  } catch (error) {
+    console.error('Okuma sınavı istatistikleri getirme hatası:', error);
+    throw error;
+  }
+}

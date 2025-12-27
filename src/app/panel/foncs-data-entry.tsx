@@ -1109,7 +1109,8 @@ const TABS: Tab[] = [
   { key: "lgs-hesaplama", label: "🧮 LGS Puan Hesaplama" },
   { key: "analytics", label: "📊 Analitik & Raporlar" },
   { key: "van-taban-puan", label: "🎓 Lise Taban Puanları" },
-  { key: "puan-bazli-tavsiye", label: "🎯 Puan Bazlı Tavsiye" }
+  { key: "puan-bazli-tavsiye", label: "🎯 Puan Bazlı Tavsiye" },
+  { key: "okuma-sinavi", label: "📚 Okuma Sınavı" }
 ];
 
 // 📊 DERS RENK KODLAMASI - Görsel iyileştirme
@@ -4041,6 +4042,7 @@ export default function FoncsDataEntry() {
       case "analytics": return <AnalyticsTab students={students} results={results} exams={exams} />;
       case "van-taban-puan": return <VanTabanPuanTab lgsSchools={lgsSchools} obpSchools={obpSchools} />;
       case "puan-bazli-tavsiye": return <PuanBazliLiseTavsiyesiTab students={students} results={results} exams={exams} lgsSchools={lgsSchools} obpSchools={obpSchools} />;
+      case "okuma-sinavi": return <OkumaSinaviTab students={students} />;
       default: return <HomeTab />;
     }
   };
@@ -7479,3 +7481,462 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
 };
 
 // 📝 Ödev Takibi Tab Component
+
+
+// 📚 OKUMA SINAVI TAB COMPONENT
+const OkumaSinaviTab = ({ students }: { students: any[] }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'yeni' | 'gecmis' | 'analiz'>('yeni');
+  const [selectedSinif, setSelectedSinif] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [studentWpm, setStudentWpm] = useState<{ [studentId: string]: number }>({});
+  const [loading, setLoading] = useState(false);
+  const [savedExams, setSavedExams] = useState<any[]>([]);
+  const [examResults, setExamResults] = useState<any[]>([]);
+
+  // Sadece 2-A, 3-A, 4-A sınıfları
+  const siniflar = ['2-A', '3-A', '4-A'];
+
+  // Seçilen sınıfa ait öğrenciler
+  const filteredStudents = selectedSinif 
+    ? students.filter(s => s.class === selectedSinif).sort((a, b) => a.name.localeCompare(b.name))
+    : [];
+
+  // Geçmiş sınavları yükle
+  useEffect(() => {
+    loadSavedExams();
+  }, []);
+
+  const loadSavedExams = async () => {
+    try {
+      const { getDocs, query, collection, orderBy } = await import('firebase/firestore');
+      const { db } = await import('../../firebase');
+      
+      const q = query(
+        collection(db, 'okumaSinavlari'),
+        orderBy('date', 'desc'),
+        orderBy('class', 'asc')
+      );
+      
+      const snapshot = await getDocs(q);
+      const exams = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setSavedExams(exams);
+    } catch (error) {
+      console.error('Geçmiş sınavları yükleme hatası:', error);
+    }
+  };
+
+  // Sınav sonuçlarını yükle
+  const loadExamResults = async (classId: string, date: string) => {
+    try {
+      const { getOkumaSinavlariByClassAndDate } = await import('../../firebase');
+      const results = await getOkumaSinavlariByClassAndDate(classId, date);
+      setExamResults(results);
+      
+      // Öğrenci WPM değerlerini doldur
+      const wpmMap: { [studentId: string]: number } = {};
+      results.forEach(r => {
+        wpmMap[r.studentId] = r.wpm;
+      });
+      setStudentWpm(wpmMap);
+    } catch (error) {
+      console.error('Sınav sonuçlarını yükleme hatası:', error);
+    }
+  };
+
+  // Sınıf veya tarih değiştiğinde sonuçları yükle
+  useEffect(() => {
+    if (selectedSinif && selectedDate) {
+      loadExamResults(selectedSinif, selectedDate);
+    }
+  }, [selectedSinif, selectedDate]);
+
+  // WPM değişikliği
+  const handleWpmChange = (studentId: string, value: string) => {
+    const numValue = parseInt(value) || 0;
+    setStudentWpm(prev => ({
+      ...prev,
+      [studentId]: numValue
+    }));
+  };
+
+  // Sınavı kaydet
+  const saveExam = async () => {
+    if (!selectedSinif || !selectedDate) {
+      alert('Lütfen sınıf ve tarih seçin!');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { addBulkOkumaSinavlari } = await import('../../firebase');
+      
+      const results = filteredStudents
+        .filter(student => studentWpm[student.id] > 0)
+        .map(student => ({
+          classId: selectedSinif,
+          date: selectedDate,
+          studentId: student.id,
+          studentName: student.name,
+          wpm: studentWpm[student.id]
+        }));
+
+      if (results.length === 0) {
+        alert('Lütfen en az bir öğrenci için kelime sayısı girin!');
+        setLoading(false);
+        return;
+      }
+
+      await addBulkOkumaSinavlari(results);
+      
+      alert(`✅ ${results.length} öğrencinin okuma sınavı başarıyla kaydedildi!`);
+      
+      // Formu temizle
+      setStudentWpm({});
+      loadSavedExams();
+      loadExamResults(selectedSinif, selectedDate);
+    } catch (error) {
+      console.error('Sınav kaydetme hatası:', error);
+      alert('Sınav kaydedilirken bir hata oluştu!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sınavı sil
+  const deleteExam = async (id: string) => {
+    if (!confirm('Bu sınav sonucunu silmek istediğinize emin misiniz?')) return;
+    
+    try {
+      const { deleteOkumaSinavi } = await import('../../firebase');
+      await deleteOkumaSinavi(id);
+      loadSavedExams();
+      loadExamResults(selectedSinif, selectedDate);
+    } catch (error) {
+      console.error('Sınav silme hatası:', error);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Başlık */}
+      <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-8 text-white">
+        <h2 className="text-3xl font-bold mb-4">📚 Okuma Sınavı Yönetimi</h2>
+        <p className="text-green-100 text-lg">
+          2-A, 3-A ve 4-A sınıfları için okuma hızı takibi
+        </p>
+      </div>
+
+      {/* Alt Sekmeler */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
+        <div className="flex space-x-2">
+          {[
+            { key: 'yeni', label: '📝 Yeni Sınav' },
+            { key: 'gecmis', label: '📋 Geçmiş Sınavlar' },
+            { key: 'analiz', label: '📊 Analiz' }
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveSubTab(tab.key as any)}
+              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                activeSubTab === tab.key
+                  ? 'bg-green-500 text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* YENİ SINAV EKLE */}
+      {activeSubTab === 'yeni' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">📝 Yeni Okuma Sınavı Ekle</h3>
+          
+          {/* Sınıf ve Tarih Seçimi */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                🏫 Sınıf Seçin
+              </label>
+              <select
+                value={selectedSinif}
+                onChange={(e) => {
+                  setSelectedSinif(e.target.value);
+                  setStudentWpm({});
+                }}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="">Sınıf seçin...</option>
+                {siniflar.map(sinif => (
+                  <option key={sinif} value={sinif}>{sinif}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📅 Sınav Tarihi
+              </label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+          </div>
+
+          {/* Öğrenci Listesi */}
+          {selectedSinif && (
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-semibold text-gray-700">
+                  👨‍🎓 {selectedSinif} Sınıfı Öğrencileri
+                </h4>
+                <span className="text-sm text-gray-500">
+                  {filteredStudents.length} öğrenci
+                </span>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200 rounded-lg">
+                  <thead>
+                    <tr className="bg-green-50">
+                      <th className="border border-gray-200 p-3 text-left">Öğrenci Adı</th>
+                      <th className="border border-gray-200 p-3 text-center w-32">Okuma Hızı (kelime/dakika)</th>
+                      <th className="border border-gray-200 p-3 text-center w-24">Durum</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredStudents.map(student => {
+                      const wpm = studentWpm[student.id] || 0;
+                      const hasResult = examResults.find(r => r.studentId === student.id);
+                      
+                      return (
+                        <tr key={student.id} className="hover:bg-gray-50">
+                          <td className="border border-gray-200 p-3">
+                            <div className="font-medium text-gray-900">{student.name}</div>
+                            <div className="text-sm text-gray-500">No: {student.number}</div>
+                          </td>
+                          <td className="border border-gray-200 p-3 text-center">
+                            <input
+                              type="number"
+                              min="0"
+                              max="500"
+                              value={wpm || ''}
+                              onChange={(e) => handleWpmChange(student.id, e.target.value)}
+                              placeholder="0"
+                              className="w-24 p-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            />
+                          </td>
+                          <td className="border border-gray-200 p-3 text-center">
+                            {wpm > 0 ? (
+                              <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded text-sm">
+                                ✓ Girildi
+                              </span>
+                            ) : hasResult ? (
+                              <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-sm">
+                                ⚠ Mevcut
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-500 rounded text-sm">
+                                -
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Kaydet Butonu */}
+          {selectedSinif && filteredStudents.length > 0 && (
+            <div className="flex justify-end">
+              <button
+                onClick={saveExam}
+                disabled={loading}
+                className="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium flex items-center"
+              >
+                {loading ? '⏳ Kaydediliyor...' : '💾 Sınavı Kaydet'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* GEÇMİŞ SINAVLAR */}
+      {activeSubTab === 'gecmis' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">📋 Geçmiş Okuma Sınavları</h3>
+          
+          {savedExams.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-6xl mb-4">📝</div>
+              <h4 className="text-lg font-semibold text-gray-600 mb-2">Henüz Sınav Yok</h4>
+              <p>Yeni okuma sınavı ekleyerek başlayın.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Tarihe göre grupla */}
+              {Object.entries(savedExams.reduce((acc, exam) => {
+                const key = `${exam.date}-${exam.class}`;
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(exam);
+                return acc;
+              }, {} as any)).map(([key, exams]) => {
+                const [date, className] = key.split('-');
+                return (
+                  <div key={key} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <div>
+                        <h4 className="font-semibold text-gray-800">
+                          📅 {new Date(date).toLocaleDateString('tr-TR')} - {className}
+                        </h4>
+                        <p className="text-sm text-gray-500">
+                          {(exams as any[]).length} öğrenci sınava alındı
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-green-600">
+                          {Math.round((exams as any[]).reduce((sum, e) => sum + e.wpm, 0) / (exams as any[]).length)}
+                        </div>
+                        <div className="text-xs text-gray-500">Ortalama WPM</div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                      {(exams as any[]).map(exam => (
+                        <div key={exam.id} className="bg-gray-50 p-2 rounded text-center">
+                          <div className="font-medium text-sm text-gray-800 truncate">{exam.studentName}</div>
+                          <div className="text-lg font-bold text-green-600">{exam.wpm}</div>
+                          <button
+                            onClick={() => deleteExam(exam.id)}
+                            className="text-xs text-red-500 hover:text-red-700 mt-1"
+                          >
+                            Sil
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ANALİZ */}
+      {activeSubTab === 'analiz' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-6">📊 Sınıf Bazlı Analiz</h3>
+            
+            {/* Sınıf ortalamaları */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {siniflar.map(sinif => {
+                const sinavlar = savedExams.filter(e => e.class === sinif);
+                const wpms = sinavlar.map(e => e.wpm);
+                const average = wpms.length > 0 ? wpms.reduce((a, b) => a + b, 0) / wpms.length : 0;
+                
+                return (
+                  <div key={sinif} className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
+                    <div className="text-sm text-green-700 mb-1">{sinif} Sınıfı</div>
+                    <div className="text-3xl font-bold text-green-600">
+                      {average > 0 ? Math.round(average) : '-'}
+                    </div>
+                    <div className="text-xs text-green-600">Ortalama WPM</div>
+                    <div className="text-xs text-gray-500 mt-2">
+                      {sinavlar.length} sınav kaydı
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-6">🏆 En İyi Performanslar</h3>
+            
+            {/* En yüksek WPM'ler */}
+            <div className="space-y-2">
+              {savedExams
+                .sort((a, b) => b.wpm - a.wpm)
+                .slice(0, 10)
+                .map((exam, index) => (
+                  <div key={exam.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <span className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm ${
+                        index === 0 ? 'bg-yellow-400 text-white' :
+                        index === 1 ? 'bg-gray-300 text-gray-700' :
+                        index === 2 ? 'bg-orange-300 text-white' :
+                        'bg-gray-200 text-gray-600'
+                      }`}>
+                        {index + 1}
+                      </span>
+                      <div>
+                        <div className="font-medium text-gray-900">{exam.studentName}</div>
+                        <div className="text-sm text-gray-500">{exam.class} - {new Date(exam.date).toLocaleDateString('tr-TR')}</div>
+                      </div>
+                    </div>
+                    <div className="text-2xl font-bold text-green-600">{exam.wpm}</div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Yardım Bilgileri */}
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+          <span className="text-green-600 mr-3">💡</span>
+          Nasıl Kullanılır?
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-green-800">
+          <div className="flex items-start">
+            <span className="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+            <div>
+              <p className="font-medium">Yeni Sınav Ekle</p>
+              <p className="text-sm">Sınıf ve tarih seçip öğrencilerin okuma hızlarını girin.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <span className="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+            <div>
+              <p className="font-medium">Kaydet</p>
+              <p className="text-sm">Tüm verileri kaydedip geçmişe aktarın.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <span className="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
+            <div>
+              <p className="font-medium">Geçmiş İzle</p>
+              <p className="text-sm">Geçmiş sınavları görüntüleyin ve karşılaştırın.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <span className="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
+            <div>
+              <p className="font-medium">Analiz Et</p>
+              <p className="text-sm">Sınıf bazlı istatistikleri inceleyin.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
