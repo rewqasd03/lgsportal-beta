@@ -687,7 +687,7 @@ function StudentDashboardContent() {
                       {tab === 8 && '📖 Kitap Sınavı'}
                       {tab === 9 && '🎓 Lise Taban Puanları'}
                       {tab === 10 && '📝 Ödev Takibi'}
-                      {tab === 11 && '📚 Okuma Sınavlarım'}
+                      {(tab === 11 && (reportData?.student?.class === '2-A' || reportData?.student?.class === '3-A' || reportData?.student?.class === '4-A')) && '📚 Okuma Sınavlarım'}
                     </button>
                   ))}
                 </nav>
@@ -2446,8 +2446,8 @@ function StudentDashboardContent() {
               <OdevTakibiTab reportData={reportData} />
             )}
 
-            {/* Tab 11: Okuma Sınavları */}
-            {activeTab === 11 && (
+            {/* Tab 11: Okuma Sınavları - Sadece 2-A, 3-A, 4-A */}
+            {(reportData?.student?.class === '2-A' || reportData?.student?.class === '3-A' || reportData?.student?.class === '4-A') && activeTab === 11 && (
               <OkumaSinavlariTab studentId={studentId} studentName={reportData?.student?.name} />
             )}
 
