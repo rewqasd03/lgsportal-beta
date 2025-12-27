@@ -7492,6 +7492,8 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
   const [loading, setLoading] = useState(false);
   const [savedExams, setSavedExams] = useState<any[]>([]);
   const [examResults, setExamResults] = useState<any[]>([]);
+  const [selectedFilterSinif, setSelectedFilterSinif] = useState<string>('');
+  const [selectedFilterStudent, setSelectedFilterStudent] = useState<string>('');
 
   // Sadece 2-A, 3-A, 4-A sınıfları
   const siniflar = ['2-A', '3-A', '4-A'];
@@ -7500,6 +7502,13 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
   const filteredStudents = selectedSinif 
     ? students.filter(s => s.class === selectedSinif).sort((a, b) => a.name.localeCompare(b.name))
     : [];
+
+  // Filtrelenmiş sınavlar (Geçmiş Sınavlar sekmesi için)
+  const filteredExams = savedExams.filter(exam => {
+    const matchSinif = !selectedFilterSinif || exam.class === selectedFilterSinif;
+    const matchStudent = !selectedFilterStudent || exam.studentName === selectedFilterStudent;
+    return matchSinif && matchStudent;
+  });
 
   // Geçmiş sınavları yükle
   useEffect(() => {
@@ -7796,7 +7805,48 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
             </button>
           </div>
           
-          {savedExams.length === 0 ? (
+          {/* Filtreler */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                🏫 Sınıf Filtresi
+              </label>
+              <select
+                value={selectedFilterSinif}
+                onChange={(e) => {
+                  setSelectedFilterSinif(e.target.value);
+                  setSelectedFilterStudent('');
+                }}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="">Tüm Sınıflar</option>
+                {siniflar.map(sinif => (
+                  <option key={sinif} value={sinif}>{sinif}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                👤 Öğrenci Filtresi
+              </label>
+              <select
+                value={selectedFilterStudent}
+                onChange={(e) => setSelectedFilterStudent(e.target.value)}
+                disabled={!selectedFilterSinif}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
+              >
+                <option value="">Tüm Öğrenciler</option>
+                {selectedFilterSinif && students
+                  .filter(s => s.class === selectedFilterSinif)
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map(student => (
+                    <option key={student.id} value={student.name}>{student.name}</option>
+                  ))}
+              </select>
+            </div>
+          </div>
+          
+          {filteredExams.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <div className="text-6xl mb-4">📝</div>
               <h4 className="text-lg font-semibold text-gray-600 mb-2">Henüz Sınav Yok</h4>
@@ -7805,7 +7855,7 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
           ) : (
             <div className="space-y-4">
               {/* Tarihe göre grupla */}
-              {Object.entries(savedExams.reduce((acc, exam) => {
+              {Object.entries(filteredExams.reduce((acc, exam) => {
                 const key = `${exam.date}-${exam.class}`;
                 if (!acc[key]) acc[key] = [];
                 acc[key].push(exam);
@@ -7827,7 +7877,7 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
                         <div className="text-2xl font-bold text-green-600">
                           {Math.round((exams as any[]).reduce((sum, e) => sum + e.wpm, 0) / (exams as any[]).length)}
                         </div>
-                        <div className="text-xs text-gray-500">Ortalama WPM</div>
+                        <div className="text-xs text-gray-500">Ortalama D/K</div>
                       </div>
                     </div>
                     
@@ -7880,7 +7930,7 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
                     <div className="text-3xl font-bold text-green-600">
                       {average > 0 ? Math.round(average) : '-'}
                     </div>
-                    <div className="text-xs text-green-600">Ortalama WPM</div>
+                    <div className="text-xs text-green-600">Ortalama D/K</div>
                     <div className="text-xs text-gray-500 mt-2">
                       {sinavlar.length} sınav kaydı
                     </div>
