@@ -7515,8 +7515,15 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
   const chartData = useMemo(() => {
     if (!selectedFilterSinif) return [];
     
+    console.log('🎯 DEBUG - Grafik hesaplanıyor...');
+    console.log('🎯 DEBUG - Seçilen sınıf:', selectedFilterSinif);
+    console.log('🎯 DEBUG - Toplam sınav:', savedExams.length);
+    
     // Seçilen sınıfın sınavlarını tarihe göre grupla
     const classExams = savedExams.filter(e => e.class === selectedFilterSinif);
+    console.log('🎯 DEBUG - Sınıf sınavları sayısı:', classExams.length);
+    console.log('🎯 DEBUG - Sınıf sınavları örnek:', classExams.slice(0, 3));
+    
     const dateGroups = classExams.reduce((acc, exam) => {
       const date = exam.date;
       if (!acc[date]) acc[date] = { exams: [], studentExams: [] };
@@ -7527,16 +7534,20 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
       return acc;
     }, {} as any);
     
+    console.log('🎯 DEBUG - Tarih grupları:', Object.keys(dateGroups));
+    
     // Tarihe göre sırala
     const sortedDates = Object.keys(dateGroups).sort();
     
-    return sortedDates.map(date => {
+    const result = sortedDates.map(date => {
       const group = dateGroups[date];
-      const classWpmSum = group.exams.reduce((sum: number, e: any) => sum + e.wpm, 0);
+      const classWpmSum = group.exams.reduce((sum: number, e: any) => sum + (Number(e.wpm) || 0), 0);
       const classAvg = group.exams.length > 0 ? classWpmSum / group.exams.length : 0;
       const studentWpm = group.studentExams.length > 0 
-        ? group.studentExams.reduce((sum: number, e: any) => sum + e.wpm, 0) / group.studentExams.length 
+        ? group.studentExams.reduce((sum: number, e: any) => sum + (Number(e.wpm) || 0), 0) / group.studentExams.length 
         : null;
+      
+      console.log(`🎯 DEBUG - ${date}: Toplam WPM=${classWpmSum}, Sayı=${group.exams.length}, Ortalama=${classAvg}`);
       
       return {
         date,
@@ -7544,6 +7555,9 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
         ogrenci: studentWpm !== null ? Math.round(studentWpm) : null
       };
     });
+    
+    console.log('🎯 DEBUG - Grafik verileri:', result);
+    return result;
   }, [savedExams, selectedFilterSinif, selectedFilterStudent]);
 
   // Sınıf genel ortalaması
@@ -7582,17 +7596,18 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
       const snapshot = await getDocs(q);
       const exams = snapshot.docs.map(doc => {
         const data = doc.data();
+        console.log('🎯 DEBUG - Firestore verisi:', doc.id, data);
         return {
           id: doc.id,
           ...data,
           // Tarihi düzgün formatla
-          date: data.date || '',
-          class: data.class || ''
+          date: data.date || data.date || '',
+          class: data.class || data.classId || ''
         };
       });
       
       console.log('📚 Yüklenen sınav sayısı:', exams.length);
-      console.log('📚 Örnek sınav verisi:', exams[0]);
+      console.log('📚 Sınıf alanları:', exams.map(e => ({ id: e.id, class: e.class, date: e.date })));
       setSavedExams(exams);
     } catch (error) {
       console.error('Geçmiş sınavları yükleme hatası:', error);
