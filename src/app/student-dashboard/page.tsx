@@ -687,6 +687,7 @@ function StudentDashboardContent() {
                       {tab === 8 && '📖 Kitap Sınavı'}
                       {tab === 9 && '🎓 Lise Taban Puanları'}
                       {tab === 10 && '📝 Ödev Takibi'}
+                      {tab === 11 && '📚 Okuma Sınavlarım'}
                     </button>
                   ))}
                 </nav>
@@ -2443,6 +2444,11 @@ function StudentDashboardContent() {
             {/* Tab 10: Ödev Takibi */}
             {activeTab === 10 && reportData && (
               <OdevTakibiTab reportData={reportData} />
+            )}
+
+            {/* Tab 11: Okuma Sınavları */}
+            {activeTab === 11 && (
+              <OkumaSinavlariTab studentId={studentId} studentName={reportData?.student?.name} />
             )}
 
 
@@ -4785,6 +4791,224 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+// 📚 Okuma Sınavları Tab Komponenti
+function OkumaSinavlariTab({ studentId, studentName }: { studentId: string; studentName?: string }) {
+  const [sinavlar, setSinavlar] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalExams: 0,
+    averageWpm: 0,
+    maxWpm: 0,
+    minWpm: 0,
+    lastExamDate: null as string | null
+  });
+
+  // Okuma sınavlarını yükle
+  useEffect(() => {
+    if (studentId) {
+      loadOkumaSinavlari();
+    }
+  }, [studentId]);
+
+  const loadOkumaSinavlari = async () => {
+    setLoading(true);
+    try {
+      const { getOkumaSinavlariByStudent, getOkumaSinaviStats } = await import('../../firebase');
+      
+      const [sinavlarData, statsData] = await Promise.all([
+        getOkumaSinavlariByStudent(studentId),
+        getOkumaSinaviStats(studentId)
+      ]);
+      
+      setSinavlar(sinavlarData);
+      setStats(statsData);
+    } catch (error) {
+      console.error('Okuma sınavları yükleme hatası:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Grafik için veriler
+  const chartData = sinavlar.map((sinav, index) => ({
+    date: new Date(sinav.date).toLocaleDateString('tr-TR'),
+    wpm: sinav.wpm,
+    index: index + 1
+  }));
+
+  // İlerleme durumu
+  const getProgressStatus = () => {
+    if (stats.totalExams === 0) return { text: 'Henüz sınav yok', color: 'text-gray-500' };
+    if (stats.averageWpm < 50) return { text: 'Çok yavaş okuyorsun', color: 'text-red-500' };
+    if (stats.averageWpm < 80) return { text: 'Geliştirmelisin', color: 'text-yellow-500' };
+    if (stats.averageWpm < 120) return { text: 'İyi gidiyorsun', color: 'text-blue-500' };
+    return { text: 'Mükemmel!', color: 'text-green-500' };
+  };
+
+  const progressStatus = getProgressStatus();
+
+  return (
+    <div className="space-y-6">
+      {/* Başlık */}
+      <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
+        <h2 className="text-2xl font-bold mb-2">📚 Okuma Sınavlarım</h2>
+        <p className="text-green-100">Okuma hızınızı takip edin ve gelişiminizi görün</p>
+      </div>
+
+      {/* İstatistik Kartları */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl shadow p-4 text-center">
+          <div className="text-3xl font-bold text-green-600">{stats.totalExams}</div>
+          <div className="text-sm text-gray-600">Toplam Sınav</div>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4 text-center">
+          <div className="text-3xl font-bold text-blue-600">{Math.round(stats.averageWpm)}</div>
+          <div className="text-sm text-gray-600">Ort. Kelime/Dakika</div>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4 text-center">
+          <div className="text-3xl font-bold text-purple-600">{stats.maxWpm}</div>
+          <div className="text-sm text-gray-600">En Yüksek</div>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4 text-center">
+          <div className="text-3xl font-bold text-orange-600">{stats.minWpm}</div>
+          <div className="text-sm text-gray-600">En Düşük</div>
+        </div>
+      </div>
+
+      {/* İlerleme Durumu */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm text-gray-600 mb-1">Okuma Hızı Seviyen</div>
+            <div className={`text-xl font-bold ${progressStatus.color}`}>
+              {progressStatus.text}
+            </div>
+          </div>
+          {stats.lastExamDate && (
+            <div className="text-right">
+              <div className="text-sm text-gray-500">Son Sınav</div>
+              <div className="font-medium text-gray-800">
+                {new Date(stats.lastExamDate).toLocaleDateString('tr-TR')}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Grafik */}
+      {chartData.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">📈 Gelişim Grafiğiniz</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Line 
+                  type="monotone" 
+                  dataKey="wpm" 
+                  stroke="#10b981" 
+                  strokeWidth={3}
+                  dot={{ fill: '#10b981', r: 6 }}
+                  activeDot={{ r: 8 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Sınav Geçmişi */}
+      <div className="bg-white rounded-xl shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">📋 Sınav Geçmişiniz</h3>
+        
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-4"></div>
+            <p className="text-gray-500">Yükleniyor...</p>
+          </div>
+        ) : sinavlar.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📚</div>
+            <h4 className="text-lg font-semibold text-gray-600 mb-2">Henüz Okuma Sınavı Yok</h4>
+            <p className="text-gray-500">Öğretmenleriniz okuma sınavı eklediğinde burada görünecek.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sinavlar
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              .map((sinav, index) => {
+                const prevWpm = index < sinavlar.length - 1 ? sinavlar[index + 1].wpm : sinav.wpm;
+                const diff = sinav.wpm - prevWpm;
+                const isImprovement = diff > 0;
+                const isSame = diff === 0;
+
+                return (
+                  <div 
+                    key={sinav.id} 
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <span className="text-green-600 font-bold">{sinav.wpm}</span>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {new Date(sinav.date).toLocaleDateString('tr-TR')}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Sınav #{sinavlar.length - index}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {!isSame && (
+                        <span className={`text-sm font-medium ${
+                          isImprovement ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {isImprovement ? '↑' : '↓'} {Math.abs(diff)} kelime/dakika
+                        </span>
+                      )}
+                      {isSame && (
+                        <span className="text-sm text-gray-400">— aynı</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        )}
+      </div>
+
+      {/* Öneriler */}
+      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200">
+        <h3 className="text-lg font-semibold text-yellow-900 mb-4">💡 Okuma Hızınızı Artırmak İçin</h3>
+        <ul className="space-y-2 text-yellow-800">
+          <li className="flex items-start">
+            <span className="mr-2">•</span>
+            <span>Her gün en az 15 dakika sessizce okuma yapın</span>
+          </li>
+          <li className="flex items-start">
+            <span className="mr-2">•</span>
+            <span>Okurken parmağınızı satırların üzerinde tutarak takip edin</span>
+          </li>
+          <li className="flex items-start">
+            <span className="mr-2">•</span>
+            <span>Zor kelimelerde durarak anlamaya çalışın</span>
+          </li>
+          <li className="flex items-start">
+            <span className="mr-2">•</span>
+            <span>Düzenli olarak hızlı okuma egzersizleri yapın</span>
+          </li>
+        </ul>
+      </div>
     </div>
   );
 }
