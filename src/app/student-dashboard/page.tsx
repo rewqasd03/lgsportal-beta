@@ -4971,46 +4971,91 @@ function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId
 
       {/* Grafik */}
       {chartData.length > 0 && (
-        <div className="bg-white rounded-xl shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">📈 Gelişim Grafiğiniz</h3>
-          <div className="h-64">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">📈 Gelişim Grafiğiniz</h3>
+          
+          {/* Grafik */}
+          <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="ogrenci" 
-                  name="Sizin D/K" 
-                  stroke="#10b981" 
-                  strokeWidth={3}
-                  dot={{ fill: '#10b981', r: 6 }}
-                  activeDot={{ r: 8 }}
+              <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="date" 
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => new Date(value).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
                 />
+                <YAxis 
+                  tick={{ fontSize: 12 }}
+                  label={{ value: 'D/K', angle: -90, position: 'insideLeft', fill: '#6b7280' }}
+                />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  labelFormatter={(value) => new Date(value).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                />
+                <Legend />
                 <Line 
                   type="monotone" 
                   dataKey="sinifOrtalamasi" 
                   name="Sınıf Ortalaması" 
+                  stroke="#10b981" 
+                  strokeWidth={3}
+                  dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="ogrenci" 
+                  name="Sizin D/K" 
                   stroke="#3b82f6" 
                   strokeWidth={3}
-                  strokeDasharray="5 5"
-                  dot={{ fill: '#3b82f6', r: 4 }}
+                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex gap-4 mt-4 justify-center">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Sizin D/K</span>
+          
+          {/* Grafik Açıklaması */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                <span className="font-medium text-green-800">Sınıf Ortalaması</span>
+              </div>
+              <p className="text-sm text-green-700">
+                Sınıfınızın her sınav tarihindeki ortalama D/K değerini gösterir.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">O Tarihteki Sınıf Ortalaması</span>
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                <span className="font-medium text-blue-800">Sizin D/K</span>
+              </div>
+              <p className="text-sm text-blue-700">
+                Zaman içindeki D/K gelişiminizi gösterir.
+              </p>
+            </div>
+          </div>
+          
+          {/* Özet İstatistikler */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="text-sm text-gray-600 mb-1">Sınıf Genel Ortalaması</div>
+              <div className="text-2xl font-bold text-green-600">
+                {Math.round(stats.classAverageWpm)}
+              </div>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="text-sm text-gray-600 mb-1">Sizin Genel Ortalamanız</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {Math.round(stats.averageWpm)}
+              </div>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="text-sm text-gray-600 mb-1">Gelişim Farkı</div>
+              <div className={`text-2xl font-bold ${stats.averageWpm >= stats.classAverageWpm ? 'text-green-600' : 'text-red-600'}`}>
+                {stats.averageWpm >= stats.classAverageWpm ? '+' : ''}{Math.round(stats.averageWpm - stats.classAverageWpm)}
+              </div>
             </div>
           </div>
         </div>
