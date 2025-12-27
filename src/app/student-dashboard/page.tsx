@@ -687,9 +687,21 @@ function StudentDashboardContent() {
                       {tab === 8 && '📖 Kitap Sınavı'}
                       {tab === 9 && '🎓 Lise Taban Puanları'}
                       {tab === 10 && '📝 Ödev Takibi'}
-                      {(tab === 11 && (reportData?.student?.class === '2-A' || reportData?.student?.class === '3-A' || reportData?.student?.class === '4-A')) && '📚 Okuma Sınavlarım'}
                     </button>
                   ))}
+                  {/* Okuma Sınavları - Sadece 2-A, 3-A, 4-A */}
+                  {(reportData?.student?.class === '2-A' || reportData?.student?.class === '3-A' || reportData?.student?.class === '4-A') && (
+                    <button
+                      onClick={() => setActiveTab(11)}
+                      className={`py-2 px-0.5 border-b-2 font-medium text-xs whitespace-nowrap ${
+                        activeTab === 11
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      📚 Okuma Sınavlarım
+                    </button>
+                  )}
                 </nav>
               </div>
             </div>
