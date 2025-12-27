@@ -1133,7 +1133,7 @@ const COURSES = {
     { key: "din", label: "Din Kültürü ve Ahlak Bilgisi", grades: ["4", "5"], color: COURSE_COLORS.din },
     { key: "ingilizce", label: "İngilizce", grades: ["2", "3", "4", "5"], color: COURSE_COLORS.ingilizce },
     { key: "matematik", label: "Matematik", grades: ["2", "3", "4", "5"], color: COURSE_COLORS.matematik },
-    { key: "fen", label: "Fen Bilimleri", grades: ["2", "3", "4", "5"], color: COURSE_COLORS.fen },
+    { key: "fen", label: "Fen Bilimleri", grades: ["3", "4", "5"], color: COURSE_COLORS.fen },
     { key: "hayat", label: "Hayat Bilgisi", grades: ["2", "3"], color: "#F59E0B" }
   ],
   middle: [ // Ortaokul (6,7,8. Sınıf)
