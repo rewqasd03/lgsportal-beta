@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense, useRef } from 'react';
+import { useState, useEffect, Suspense, useRef, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
@@ -2460,7 +2460,7 @@ function StudentDashboardContent() {
 
             {/* Tab 11: Okuma Sınavları - Sadece 2-A, 3-A, 4-A */}
             {(reportData?.student?.class === '2-A' || reportData?.student?.class === '3-A' || reportData?.student?.class === '4-A') && activeTab === 11 && (
-              <OkumaSinavlariTab studentId={studentId} studentName={reportData?.student?.name} />
+              <OkumaSinavlariTab studentId={studentId} studentName={reportData?.student?.name} studentClass={reportData?.student?.class} />
             )}
 
 
@@ -4808,7 +4808,7 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
 }
 
 // 📚 Okuma Sınavları Tab Komponenti
-function OkumaSinavlariTab({ studentId, studentName }: { studentId: string; studentName?: string }) {
+function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId: string; studentName?: string; studentClass?: string }) {
   const [sinavlar, setSinavlar] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -4816,7 +4816,8 @@ function OkumaSinavlariTab({ studentId, studentName }: { studentId: string; stud
     averageWpm: 0,
     maxWpm: 0,
     minWpm: 0,
-    lastExamDate: null as string | null
+    lastExamDate: null as string | null,
+    classAverageWpm: 0
   });
 
   // Okuma sınavlarını yükle
@@ -4837,7 +4838,16 @@ function OkumaSinavlariTab({ studentId, studentName }: { studentId: string; stud
       ]);
       
       setSinavlar(sinavlarData);
-      setStats(statsData);
+      
+      // Sınıf ortalamasını hesapla
+      const classAvg = sinavlarData.length > 0 
+        ? sinavlarData.reduce((acc, s) => acc + s.wpm, 0) / sinavlarData.length 
+        : 0;
+      
+      setStats({
+        ...statsData,
+        classAverageWpm: classAvg
+      });
     } catch (error) {
       console.error('Okuma sınavları yükleme hatası:', error);
     } finally {
@@ -4845,23 +4855,37 @@ function OkumaSinavlariTab({ studentId, studentName }: { studentId: string; stud
     }
   };
 
-  // Grafik için veriler
-  const chartData = sinavlar.map((sinav, index) => ({
-    date: new Date(sinav.date).toLocaleDateString('tr-TR'),
-    wpm: sinav.wpm,
-    index: index + 1
-  }));
-
-  // İlerleme durumu
-  const getProgressStatus = () => {
-    if (stats.totalExams === 0) return { text: 'Henüz sınav yok', color: 'text-gray-500' };
-    if (stats.averageWpm < 50) return { text: 'Çok yavaş okuyorsun', color: 'text-red-500' };
-    if (stats.averageWpm < 80) return { text: 'Geliştirmelisin', color: 'text-yellow-500' };
-    if (stats.averageWpm < 120) return { text: 'İyi gidiyorsun', color: 'text-blue-500' };
-    return { text: 'Mükemmel!', color: 'text-green-500' };
-  };
-
-  const progressStatus = getProgressStatus();
+  // Grafik için veriler - sınıf ortalaması ile birlikte
+  const chartData = useMemo(() => {
+    if (sinavlar.length === 0) return [];
+    
+    // Tarihe göre grupla
+    const dateGroups = sinavlar.reduce((acc, sinav) => {
+      const date = sinav.date;
+      if (!acc[date]) acc[date] = { studentWpm: [], classWpm: [] };
+      acc[date].studentWpm.push(sinav.wpm);
+      return acc;
+    }, {} as any);
+    
+    // Sınıf ortalamasını hesapla (tüm öğrencilerin ortalaması)
+    const allWpm = sinavlar.map(s => s.wpm);
+    const overallClassAvg = allWpm.length > 0 ? allWpm.reduce((a, b) => a + b, 0) / allWpm.length : 0;
+    
+    return Object.entries(dateGroups)
+      .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
+      .map(([date, group]: [string, any]) => {
+        const studentAvg = group.studentWpm.length > 0 
+          ? group.studentWpm.reduce((a: number, b: number) => a + b, 0) / group.studentWpm.length 
+          : 0;
+        
+        return {
+          date: new Date(date).toLocaleDateString('tr-TR'),
+          dateRaw: date,
+          ogrenci: Math.round(studentAvg),
+          sinifOrtalamasi: Math.round(overallClassAvg)
+        };
+      });
+  }, [sinavlar]);
 
   return (
     <div className="space-y-6">
@@ -4872,7 +4896,7 @@ function OkumaSinavlariTab({ studentId, studentName }: { studentId: string; stud
       </div>
 
       {/* İstatistik Kartları */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-white rounded-xl shadow p-4 text-center">
           <div className="text-3xl font-bold text-green-600">{stats.totalExams}</div>
           <div className="text-sm text-gray-600">Toplam Sınav</div>
@@ -4889,15 +4913,19 @@ function OkumaSinavlariTab({ studentId, studentName }: { studentId: string; stud
           <div className="text-3xl font-bold text-orange-600">{stats.minWpm}</div>
           <div className="text-sm text-gray-600">En Düşük</div>
         </div>
+        <div className="bg-white rounded-xl shadow p-4 text-center">
+          <div className="text-3xl font-bold text-emerald-600">{Math.round(stats.classAverageWpm || Math.round(sinavlar.reduce((acc, s) => acc + s.wpm, 0) / (sinavlar.length || 1)))}</div>
+          <div className="text-sm text-gray-600">Sınıf Ortalaması</div>
+        </div>
       </div>
 
-      {/* İlerleme Durumu */}
+      {/* Ortalama Puan */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-sm text-gray-600 mb-1">Okuma Hızı Seviyen</div>
-            <div className={`text-xl font-bold ${progressStatus.color}`}>
-              {progressStatus.text}
+            <div className="text-sm text-gray-600 mb-1">Sınıf Ortalaması</div>
+            <div className="text-xl font-bold text-blue-600">
+              {sinavlar.length > 0 ? Math.round(sinavlar.reduce((acc, s) => acc + s.wpm, 0) / sinavlar.length) : 0} D/K
             </div>
           </div>
           {stats.lastExamDate && (
@@ -4922,16 +4950,38 @@ function OkumaSinavlariTab({ studentId, studentName }: { studentId: string; stud
                 <XAxis dataKey="date" />
                 <YAxis />
                 <Tooltip />
+                <Legend />
                 <Line 
                   type="monotone" 
-                  dataKey="wpm" 
+                  dataKey="ogrenci" 
+                  name="Sizin D/K" 
                   stroke="#10b981" 
                   strokeWidth={3}
                   dot={{ fill: '#10b981', r: 6 }}
                   activeDot={{ r: 8 }}
                 />
+                <Line 
+                  type="monotone" 
+                  dataKey="sinifOrtalamasi" 
+                  name="Sınıf Ortalaması" 
+                  stroke="#3b82f6" 
+                  strokeWidth={3}
+                  strokeDasharray="5 5"
+                  dot={{ fill: '#3b82f6', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
               </LineChart>
             </ResponsiveContainer>
+          </div>
+          <div className="flex gap-4 mt-4 justify-center">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+              <span className="text-sm text-gray-600">Sizin D/K</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+              <span className="text-sm text-gray-600">Sınıf Ortalaması</span>
+            </div>
           </div>
         </div>
       )}
