@@ -2491,17 +2491,18 @@ export const addBulkOkumaSinavlari = async (
 // Öğrencinin okuma sınavı geçmişini getir
 export const getOkumaSinavlariByStudent = async (studentId: string): Promise<OkumaSinavi[]> => {
   try {
-    const q = query(
-      collection(db, 'okumaSinavlari'),
-      where('studentId', '==', studentId),
-      orderBy('date', 'asc')
-    );
+    // Önce tüm okuma sınavlarını getir, sonra filtrele (index gerektirmez)
+    const snapshot = await getDocs(collection(db, 'okumaSinavlari'));
     
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
+    const allExams = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as OkumaSinavi[];
+    
+    // Öğrenci ID'sine ve tarihe göre filtrele ve sırala
+    return allExams
+      .filter(exam => exam.studentId === studentId)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   } catch (error) {
     console.error('Öğrenci okuma sınavları getirme hatası:', error);
     throw error;
