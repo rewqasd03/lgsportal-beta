@@ -7513,15 +7513,23 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
       
       const q = query(
         collection(db, 'okumaSinavlari'),
-        orderBy('date', 'desc'),
-        orderBy('class', 'asc')
+        orderBy('date', 'desc')
       );
       
       const snapshot = await getDocs(q);
-      const exams = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const exams = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Tarihi düzgün formatla
+          date: data.date || '',
+          class: data.class || ''
+        };
+      });
+      
+      console.log('📚 Yüklenen sınav sayısı:', exams.length);
+      console.log('📚 Örnek sınav verisi:', exams[0]);
       setSavedExams(exams);
     } catch (error) {
       console.error('Geçmiş sınavları yükleme hatası:', error);
@@ -7540,7 +7548,7 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
       results.forEach(r => {
         wpmMap[r.studentId] = r.wpm;
       });
-      setStudentWpm(wpmMap);
+      setStudentWpm(prev => ({ ...prev, ...wpmMap }));
     } catch (error) {
       console.error('Sınav sonuçlarını yükleme hatası:', error);
     }
@@ -7778,7 +7786,15 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
       {/* GEÇMİŞ SINAVLAR */}
       {activeSubTab === 'gecmis' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-6">📋 Geçmiş Okuma Sınavları</h3>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-semibold text-gray-800">📋 Geçmiş Okuma Sınavları</h3>
+            <button
+              onClick={() => loadSavedExams()}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+            >
+              🔄 Yenile
+            </button>
+          </div>
           
           {savedExams.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
@@ -7841,7 +7857,15 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
       {activeSubTab === 'analiz' && (
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6">📊 Sınıf Bazlı Analiz</h3>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-800">📊 Sınıf Bazlı Analiz</h3>
+              <button
+                onClick={() => loadSavedExams()}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+              >
+                🔄 Yenile
+              </button>
+            </div>
             
             {/* Sınıf ortalamaları */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

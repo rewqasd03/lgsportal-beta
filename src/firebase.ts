@@ -2514,18 +2514,20 @@ export const getOkumaSinavlariByClassAndDate = async (
   date: string
 ): Promise<OkumaSinavi[]> => {
   try {
+    // Önce tüm sınavları getir, sonra client-side filter yap
     const q = query(
       collection(db, 'okumaSinavlari'),
-      where('class', '==', classId),
-      where('date', '==', date),
-      orderBy('studentName', 'asc')
+      where('class', '==', classId)
     );
     
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
+    const allExams = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as OkumaSinavi[];
+    
+    // Tarihe göre filtrele
+    return allExams.filter(exam => exam.date === date);
   } catch (error) {
     console.error('Sınıf okuma sınavları getirme hatası:', error);
     throw error;
