@@ -7486,7 +7486,7 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
 // 📚 OKUMA SINAVI TAB COMPONENT
 const OkumaSinaviTab = ({ students }: { students: any[] }) => {
   const [activeSubTab, setActiveSubTab] = useState<'yeni' | 'gecmis' | 'analiz'>('yeni');
-  const [analysisView, setAnalysisView] = useState<'performans' | 'ortalama'>('performans');
+  const [analysisView, setAnalysisView] = useState<'performans' | 'ortalama' | 'grafik'>('performans');
   const [selectedSinif, setSelectedSinif] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [studentWpm, setStudentWpm] = useState<{ [studentId: string]: number }>({});
@@ -7510,6 +7510,59 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
     const matchStudent = !selectedFilterStudent || exam.studentName === selectedFilterStudent;
     return matchSinif && matchStudent;
   });
+
+  // Grafik verileri - tarihe göre gruplandırılmış
+  const chartData = useMemo(() => {
+    if (!selectedFilterSinif) return [];
+    
+    // Seçilen sınıfın sınavlarını tarihe göre grupla
+    const classExams = savedExams.filter(e => e.class === selectedFilterSinif);
+    const dateGroups = classExams.reduce((acc, exam) => {
+      const date = exam.date;
+      if (!acc[date]) acc[date] = { exams: [], studentExams: [] };
+      acc[date].exams.push(exam);
+      if (selectedFilterStudent && exam.studentName === selectedFilterStudent) {
+        acc[date].studentExams.push(exam);
+      }
+      return acc;
+    }, {} as any);
+    
+    // Tarihe göre sırala
+    const sortedDates = Object.keys(dateGroups).sort();
+    
+    return sortedDates.map(date => {
+      const group = dateGroups[date];
+      const classWpmSum = group.exams.reduce((sum: number, e: any) => sum + e.wpm, 0);
+      const classAvg = group.exams.length > 0 ? classWpmSum / group.exams.length : 0;
+      const studentWpm = group.studentExams.length > 0 
+        ? group.studentExams.reduce((sum: number, e: any) => sum + e.wpm, 0) / group.studentExams.length 
+        : null;
+      
+      return {
+        date,
+        sinifOrtalamasi: Math.round(classAvg),
+        ogrenci: studentWpm !== null ? Math.round(studentWpm) : null
+      };
+    });
+  }, [savedExams, selectedFilterSinif, selectedFilterStudent]);
+
+  // Sınıf genel ortalaması
+  const classOverallAverage = useMemo(() => {
+    if (!selectedFilterSinif) return 0;
+    const classExams = savedExams.filter(e => e.class === selectedFilterSinif);
+    if (classExams.length === 0) return 0;
+    const sum = classExams.reduce((acc, e) => acc + e.wpm, 0);
+    return sum / classExams.length;
+  }, [savedExams, selectedFilterSinif]);
+
+  // Öğrenci genel ortalaması
+  const studentOverallAverage = useMemo(() => {
+    if (!selectedFilterStudent) return 0;
+    const studentExams = savedExams.filter(e => e.studentName === selectedFilterStudent);
+    if (studentExams.length === 0) return 0;
+    const sum = studentExams.reduce((acc, e) => acc + e.wpm, 0);
+    return sum / studentExams.length;
+  }, [savedExams, selectedFilterStudent]);
 
   // Geçmiş sınavları yükle
   useEffect(() => {
@@ -7907,10 +7960,47 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
       {/* ANALİZ */}
       {activeSubTab === 'analiz' && (
         <div className="space-y-6">
+          {/* Sınıf Ortalamaları - Üstte Göster */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">📈 Sınıf Bazlı Genel Ortalamalar</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {siniflar.map(sinif => {
+                const sinavlar = savedExams.filter(e => e.class === sinif);
+                const wpms = sinavlar.map(e => e.wpm);
+                const average = wpms.length > 0 ? wpms.reduce((a, b) => a + b, 0) / wpms.length : 0;
+                const filteredSinavlar = selectedFilterSinif ? sinavlar : sinavlar;
+                const filteredWpms = filteredSinavlar.map(e => e.wpm);
+                const filteredAverage = filteredWpms.length > 0 ? filteredWpms.reduce((a, b) => a + b, 0) / filteredWpms.length : 0;
+                
+                return (
+                  <div key={sinif} className={`p-4 rounded-lg border ${
+                    selectedFilterSinif === sinif 
+                      ? 'bg-green-100 border-green-300' 
+                      : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'
+                  }`}>
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="text-sm font-medium text-green-700">{sinif} Sınıfı</div>
+                      {selectedFilterSinif === sinif && (
+                        <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">Filtrelenmiş</span>
+                      )}
+                    </div>
+                    <div className="text-3xl font-bold text-green-600">
+                      {selectedFilterSinif ? (filteredAverage > 0 ? Math.round(filteredAverage) : '-') : (average > 0 ? Math.round(average) : '-')}
+                    </div>
+                    <div className="text-xs text-green-600">Ortalama D/K</div>
+                    <div className="text-xs text-gray-500 mt-2">
+                      {selectedFilterSinif ? filteredWpms.length : sinavlar.length} sınav kaydı
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
           {/* Görünüm Seçimi */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => setAnalysisView('performans')}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
@@ -7930,6 +8020,16 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
                   }`}
                 >
                   📊 Ortalama D/K Tablosu
+                </button>
+                <button
+                  onClick={() => setAnalysisView('grafik')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    analysisView === 'grafik'
+                      ? 'bg-green-500 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  📈 Gelişim Grafiği
                 </button>
               </div>
               
@@ -7964,7 +8064,7 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                👤 Öğrenci Filtresi
+                👤 Öğrenci Filtresi (Grafik için gerekli)
               </label>
               <select
                 value={selectedFilterStudent}
@@ -7972,7 +8072,7 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
                 disabled={!selectedFilterSinif}
                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
               >
-                <option value="">Tüm Öğrenciler</option>
+                <option value="">Öğrenci seçin...</option>
                 {selectedFilterSinif && students
                   .filter(s => s.class === selectedFilterSinif)
                   .sort((a, b) => a.name.localeCompare(b.name))
@@ -8107,6 +8207,122 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
                       })()}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* GELİŞİM GRAFİĞİ GÖRÜNÜMÜ */}
+          {analysisView === 'grafik' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h3 className="text-xl font-semibold text-gray-800 mb-6">📈 Gelişim Grafiği</h3>
+              
+              {!selectedFilterSinif ? (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-6xl mb-4">📈</div>
+                  <h4 className="text-lg font-semibold text-gray-600 mb-2">Sınıf Seçin</h4>
+                  <p>Grafiği görüntülemek için lütfen bir sınıf seçin.</p>
+                </div>
+              ) : filteredExams.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-6xl mb-4">📊</div>
+                  <h4 className="text-lg font-semibold text-gray-600 mb-2">Veri Yok</h4>
+                  <p>Seçilen sınıf için sınav verisi bulunamadı.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Grafik */}
+                  <div className="h-96">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 12 }}
+                          tickFormatter={(value) => new Date(value).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 12 }}
+                          label={{ value: 'D/K', angle: -90, position: 'insideLeft', fill: '#6b7280' }}
+                        />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                          labelFormatter={(value) => new Date(value).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="sinifOrtalamasi" 
+                          name="Sınıf Ortalaması" 
+                          stroke="#10b981" 
+                          strokeWidth={3}
+                          dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                          activeDot={{ r: 6 }}
+                        />
+                        {selectedFilterStudent && (
+                          <Line 
+                            type="monotone" 
+                            dataKey="ogrenci" 
+                            name={selectedFilterStudent} 
+                            stroke="#3b82f6" 
+                            strokeWidth={3}
+                            dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                            activeDot={{ r: 6 }}
+                          />
+                        )}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Grafik Açıklaması */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                        <span className="font-medium text-green-800">Sınıf Ortalaması</span>
+                      </div>
+                      <p className="text-sm text-green-700">
+                        Seçilen sınıfın her sınav tarihindeki ortalama D/K değerini gösterir.
+                      </p>
+                    </div>
+                    {selectedFilterStudent && (
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                          <span className="font-medium text-blue-800">{selectedFilterStudent}</span>
+                        </div>
+                        <p className="text-sm text-blue-700">
+                          Seçilen öğrencinin zaman içindeki D/K gelişimini gösterir.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Özet İstatistikler */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="text-sm text-gray-600 mb-1">Sınıf Genel Ortalaması</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {Math.round(classOverallAverage)}
+                      </div>
+                    </div>
+                    {selectedFilterStudent && (
+                      <>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="text-sm text-gray-600 mb-1">Öğrenci Genel Ortalaması</div>
+                          <div className="text-2xl font-bold text-blue-600">
+                            {Math.round(studentOverallAverage)}
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="text-sm text-gray-600 mb-1">Gelişim Farkı</div>
+                          <div className={`text-2xl font-bold ${studentOverallAverage >= classOverallAverage ? 'text-green-600' : 'text-red-600'}`}>
+                            {studentOverallAverage >= classOverallAverage ? '+' : ''}{Math.round(studentOverallAverage - classOverallAverage)}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
