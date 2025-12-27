@@ -4811,6 +4811,7 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
 function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId: string; studentName?: string; studentClass?: string }) {
   const [sinavlar, setSinavlar] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState<any[]>([]);
   const [stats, setStats] = useState({
     totalExams: 0,
     averageWpm: 0,
@@ -4831,11 +4832,11 @@ function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId
     setLoading(true);
     try {
       const { getOkumaSinavlariByStudent, getOkumaSinaviStats } = await import('../../firebase');
+      const { getDocs, collection } = await import('firebase/firestore');
+      const { db } = await import('../../firebase');
       
-      const [sinavlarData, statsData] = await Promise.all([
-        getOkumaSinavlariByStudent(studentId),
-        getOkumaSinaviStats(studentId)
-      ]);
+      const sinavlarData = await getOkumaSinavlariByStudent(studentId);
+      const statsData = await getOkumaSinaviStats(studentId);
       
       setSinavlar(sinavlarData);
       
@@ -4848,44 +4849,61 @@ function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId
         ...statsData,
         classAverageWpm: classAvg
       });
+      
+      // Grafik verilerini hesapla
+      if (sinavlarData.length > 0) {
+        // Önce tüm sınavları alalım (sınıf ortalaması için)
+        const allSnapshot = await getDocs(collection(db, 'okumaSinavlari'));
+        const allSinavlar = allSnapshot.docs.map(doc => doc.data());
+        
+        // Sadece bu öğrencinin sınıfındaki öğrencilerin sınavlarını filtrele
+        const classSinavlar = allSinavlar.filter((sinav: any) => sinav.studentClass === studentClass);
+        
+        // Tarihe göre grupla (sadece bu sınıf için)
+        const classDateGroups = classSinavlar.reduce((acc: { [date: string]: number[] }, sinav: any) => {
+          const date = sinav.date;
+          if (!acc[date]) acc[date] = [];
+          acc[date].push(sinav.wpm);
+          return acc;
+        }, {});
+        
+        // Öğrencinin sınavlarını tarihe göre grupla
+        const studentDateGroups = sinavlarData.reduce((acc: { [date: string]: number[] }, sinav) => {
+          const date = sinav.date;
+          if (!acc[date]) acc[date] = [];
+          acc[date].push(sinav.wpm);
+          return acc;
+        }, {});
+        
+        const chartDataResult = Object.entries(studentDateGroups)
+          .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
+          .map(([date, wpms]: [string, number[]]) => {
+            const studentAvg = wpms.length > 0 
+              ? wpms.reduce((a, b) => a + b, 0) / wpms.length 
+              : 0;
+            
+            // O tarihteki tüm sınıfın ortalaması
+            const classWpmList = classDateGroups[date] || [];
+            const classAvg = classWpmList.length > 0 
+              ? classWpmList.reduce((a, b) => a + b, 0) / classWpmList.length 
+              : studentAvg;
+            
+            return {
+              date: new Date(date).toLocaleDateString('tr-TR'),
+              dateRaw: date,
+              ogrenci: Math.round(studentAvg),
+              sinifOrtalamasi: Math.round(classAvg)
+            };
+          });
+        
+        setChartData(chartDataResult);
+      }
     } catch (error) {
       console.error('Okuma sınavları yükleme hatası:', error);
     } finally {
       setLoading(false);
     }
   };
-
-  // Grafik için veriler - sınıf ortalaması ile birlikte
-  const chartData = useMemo(() => {
-    if (sinavlar.length === 0) return [];
-    
-    // Tarihe göre grupla
-    const dateGroups = sinavlar.reduce((acc, sinav) => {
-      const date = sinav.date;
-      if (!acc[date]) acc[date] = { studentWpm: [], classWpm: [] };
-      acc[date].studentWpm.push(sinav.wpm);
-      return acc;
-    }, {} as any);
-    
-    // Sınıf ortalamasını hesapla (tüm öğrencilerin ortalaması)
-    const allWpm = sinavlar.map(s => s.wpm);
-    const overallClassAvg = allWpm.length > 0 ? allWpm.reduce((a, b) => a + b, 0) / allWpm.length : 0;
-    
-    return Object.entries(dateGroups)
-      .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
-      .map(([date, group]: [string, any]) => {
-        const studentAvg = group.studentWpm.length > 0 
-          ? group.studentWpm.reduce((a: number, b: number) => a + b, 0) / group.studentWpm.length 
-          : 0;
-        
-        return {
-          date: new Date(date).toLocaleDateString('tr-TR'),
-          dateRaw: date,
-          ogrenci: Math.round(studentAvg),
-          sinifOrtalamasi: Math.round(overallClassAvg)
-        };
-      });
-  }, [sinavlar]);
 
   return (
     <div className="space-y-6">
@@ -4914,7 +4932,7 @@ function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId
           <div className="text-sm text-gray-600">En Düşük</div>
         </div>
         <div className="bg-white rounded-xl shadow p-4 text-center">
-          <div className="text-3xl font-bold text-emerald-600">{Math.round(stats.classAverageWpm || Math.round(sinavlar.reduce((acc, s) => acc + s.wpm, 0) / (sinavlar.length || 1)))}</div>
+          <div className="text-3xl font-bold text-emerald-600">{Math.round(stats.classAverageWpm)}</div>
           <div className="text-sm text-gray-600">Sınıf Ortalaması</div>
         </div>
       </div>
@@ -4925,7 +4943,7 @@ function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId
           <div>
             <div className="text-sm text-gray-600 mb-1">Sınıf Ortalaması</div>
             <div className="text-xl font-bold text-blue-600">
-              {sinavlar.length > 0 ? Math.round(sinavlar.reduce((acc, s) => acc + s.wpm, 0) / sinavlar.length) : 0} D/K
+              {stats.classAverageWpm > 0 ? Math.round(stats.classAverageWpm) : 0} D/K
             </div>
           </div>
           {stats.lastExamDate && (
@@ -4980,7 +4998,7 @@ function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Sınıf Ortalaması</span>
+              <span className="text-sm text-gray-600">O Tarihteki Sınıf Ortalaması</span>
             </div>
           </div>
         </div>
