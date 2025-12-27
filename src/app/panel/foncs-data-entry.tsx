@@ -7593,10 +7593,12 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
       
       alert(`✅ ${results.length} öğrencinin okuma sınavı başarıyla kaydedildi!`);
       
-      // Formu temizle
+      // Formu temizle ve verileri yenile
       setStudentWpm({});
-      loadSavedExams();
-      loadExamResults(selectedSinif, selectedDate);
+      
+      // Verileri yeniden yükle
+      await loadSavedExams();
+      await loadExamResults(selectedSinif, selectedDate);
     } catch (error) {
       console.error('Sınav kaydetme hatası:', error);
       alert('Sınav kaydedilirken bir hata oluştu!');
