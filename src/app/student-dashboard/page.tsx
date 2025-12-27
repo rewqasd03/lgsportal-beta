@@ -4894,14 +4894,16 @@ function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId
               ? wpms.reduce((a, b) => a + b, 0) / wpms.length 
               : 0;
             
-            // O tarihteki tüm sınıfın ortalaması
+            // O tarihteki tüm sınıfın ortalaması (raw date ile ara!)
             const classWpmList = classDateGroups[date] || [];
             const classAvg = classWpmList.length > 0 
               ? classWpmList.reduce((a, b) => a + b, 0) / classWpmList.length 
               : studentAvg;
             
+            console.log(`🎯 DEBUG - Tarih=${date}, Sınıf WPM Listesi=${classWpmList}, Sınıf Ortalaması=${classAvg}, Öğrenci Ortalaması=${studentAvg}`);
+            
             return {
-              date: new Date(date).toLocaleDateString('tr-TR'),
+              date: date, // Raw date kullan (XAxis formatla)
               dateRaw: date,
               ogrenci: Math.round(studentAvg),
               sinifOrtalamasi: Math.round(classAvg)
