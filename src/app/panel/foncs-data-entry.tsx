@@ -7486,6 +7486,7 @@ const DenemeDegerlendirmeTab = ({ students, onDataUpdate }: {
 // 📚 OKUMA SINAVI TAB COMPONENT
 const OkumaSinaviTab = ({ students }: { students: any[] }) => {
   const [activeSubTab, setActiveSubTab] = useState<'yeni' | 'gecmis' | 'analiz'>('yeni');
+  const [analysisView, setAnalysisView] = useState<'performans' | 'ortalama'>('performans');
   const [selectedSinif, setSelectedSinif] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [studentWpm, setStudentWpm] = useState<{ [studentId: string]: number }>({});
@@ -7906,9 +7907,32 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
       {/* ANALİZ */}
       {activeSubTab === 'analiz' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-800">📊 Sınıf Bazlı Analiz</h3>
+          {/* Görünüm Seçimi */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setAnalysisView('performans')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    analysisView === 'performans'
+                      ? 'bg-green-500 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  🏆 En İyi Performanslar
+                </button>
+                <button
+                  onClick={() => setAnalysisView('ortalama')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    analysisView === 'ortalama'
+                      ? 'bg-green-500 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  📊 Ortalama D/K Tablosu
+                </button>
+              </div>
+              
               <button
                 onClick={() => loadSavedExams()}
                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
@@ -7916,59 +7940,177 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
                 🔄 Yenile
               </button>
             </div>
-            
-            {/* Sınıf ortalamaları */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              {siniflar.map(sinif => {
-                const sinavlar = savedExams.filter(e => e.class === sinif);
-                const wpms = sinavlar.map(e => e.wpm);
-                const average = wpms.length > 0 ? wpms.reduce((a, b) => a + b, 0) / wpms.length : 0;
-                
-                return (
-                  <div key={sinif} className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
-                    <div className="text-sm text-green-700 mb-1">{sinif} Sınıfı</div>
-                    <div className="text-3xl font-bold text-green-600">
-                      {average > 0 ? Math.round(average) : '-'}
-                    </div>
-                    <div className="text-xs text-green-600">Ortalama D/K</div>
-                    <div className="text-xs text-gray-500 mt-2">
-                      {sinavlar.length} sınav kaydı
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6">🏆 En İyi Performanslar</h3>
-            
-            {/* En yüksek WPM'ler */}
-            <div className="space-y-2">
-              {savedExams
-                .sort((a, b) => b.wpm - a.wpm)
-                .slice(0, 10)
-                .map((exam, index) => (
-                  <div key={exam.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <span className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm ${
-                        index === 0 ? 'bg-yellow-400 text-white' :
-                        index === 1 ? 'bg-gray-300 text-gray-700' :
-                        index === 2 ? 'bg-orange-300 text-white' :
-                        'bg-gray-200 text-gray-600'
-                      }`}>
-                        {index + 1}
-                      </span>
-                      <div>
-                        <div className="font-medium text-gray-900">{exam.studentName}</div>
-                        <div className="text-sm text-gray-500">{exam.class} - {new Date(exam.date).toLocaleDateString('tr-TR')}</div>
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-green-600">{exam.wpm}</div>
-                  </div>
+          
+          {/* Filtreler */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                🏫 Sınıf Filtresi
+              </label>
+              <select
+                value={selectedFilterSinif}
+                onChange={(e) => {
+                  setSelectedFilterSinif(e.target.value);
+                  setSelectedFilterStudent('');
+                }}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="">Tüm Sınıflar</option>
+                {siniflar.map(sinif => (
+                  <option key={sinif} value={sinif}>{sinif}</option>
                 ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                👤 Öğrenci Filtresi
+              </label>
+              <select
+                value={selectedFilterStudent}
+                onChange={(e) => setSelectedFilterStudent(e.target.value)}
+                disabled={!selectedFilterSinif}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
+              >
+                <option value="">Tüm Öğrenciler</option>
+                {selectedFilterSinif && students
+                  .filter(s => s.class === selectedFilterSinif)
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map(student => (
+                    <option key={student.id} value={student.name}>{student.name}</option>
+                  ))}
+              </select>
             </div>
           </div>
+          
+          {/* EN İYİ PERFORMANSLAR GÖRÜNÜMÜ */}
+          {analysisView === 'performans' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h3 className="text-xl font-semibold text-gray-800 mb-6">🏆 En İyi Performanslar</h3>
+              
+              {filteredExams.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-6xl mb-4">📊</div>
+                  <h4 className="text-lg font-semibold text-gray-600 mb-2">Veri Yok</h4>
+                  <p>Filtrelere uygun sınav verisi bulunamadı.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredExams
+                    .sort((a, b) => b.wpm - a.wpm)
+                    .slice(0, 20)
+                    .map((exam, index) => (
+                      <div key={exam.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <span className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm ${
+                            index === 0 ? 'bg-yellow-400 text-white' :
+                            index === 1 ? 'bg-gray-300 text-gray-700' :
+                            index === 2 ? 'bg-orange-300 text-white' :
+                            'bg-gray-200 text-gray-600'
+                          }`}>
+                            {index + 1}
+                          </span>
+                          <div>
+                            <div className="font-medium text-gray-900">{exam.studentName}</div>
+                            <div className="text-sm text-gray-500">{exam.class} - {new Date(exam.date).toLocaleDateString('tr-TR')}</div>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold text-green-600">{exam.wpm} D/K</div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* ORTALAMA D/K TABLOSU GÖRÜNÜMÜ */}
+          {analysisView === 'ortalama' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h3 className="text-xl font-semibold text-gray-800 mb-6">📊 Ortalama D/K Tablosu</h3>
+              
+              {filteredExams.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-6xl mb-4">📊</div>
+                  <h4 className="text-lg font-semibold text-gray-600 mb-2">Veri Yok</h4>
+                  <p>Filtrelere uygun sınav verisi bulunamadı.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-green-50">
+                        <th className="border border-gray-200 p-3 text-left">Sıra</th>
+                        <th className="border border-gray-200 p-3 text-left">Öğrenci Adı</th>
+                        <th className="border border-gray-200 p-3 text-center">Sınıf</th>
+                        <th className="border border-gray-200 p-3 text-center">Sınav Sayısı</th>
+                        <th className="border border-gray-200 p-3 text-center">Ortalama D/K</th>
+                        <th className="border border-gray-200 p-3 text-center">En Yüksek</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        // Öğrenci bazlı istatistikler
+                        const studentStats = filteredExams.reduce((acc, exam) => {
+                          const key = exam.studentName;
+                          if (!acc[key]) {
+                            acc[key] = {
+                              name: exam.studentName,
+                              class: exam.class,
+                              exams: [],
+                              wpmSum: 0,
+                              count: 0,
+                              maxWpm: 0
+                            };
+                          }
+                          acc[key].exams.push(exam);
+                          acc[key].wpmSum += exam.wpm;
+                          acc[key].count += 1;
+                          acc[key].maxWpm = Math.max(acc[key].maxWpm, exam.wpm);
+                          return acc;
+                        }, {} as any);
+                        
+                        // Ortalamaya göre sırala
+                        const sortedStats = Object.values(studentStats)
+                          .map((s: any) => ({
+                            ...s,
+                            average: s.count > 0 ? s.wpmSum / s.count : 0
+                          }))
+                          .sort((a: any, b: any) => b.average - a.average);
+                        
+                        return sortedStats.map((stat: any, index: number) => (
+                          <tr key={stat.name} className="hover:bg-gray-50">
+                            <td className="border border-gray-200 p-3">
+                              <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                                index === 0 ? 'bg-yellow-400 text-white' :
+                                index === 1 ? 'bg-gray-300 text-gray-700' :
+                                index === 2 ? 'bg-orange-300 text-white' :
+                                'bg-gray-100 text-gray-600'
+                              }`}>
+                                {index + 1}
+                              </span>
+                            </td>
+                            <td className="border border-gray-200 p-3 font-medium text-gray-900">{stat.name}</td>
+                            <td className="border border-gray-200 p-3 text-center text-gray-600">{stat.class}</td>
+                            <td className="border border-gray-200 p-3 text-center">
+                              <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm">
+                                {stat.count}
+                              </span>
+                            </td>
+                            <td className="border border-gray-200 p-3 text-center">
+                              <span className="text-lg font-bold text-green-600">{Math.round(stat.average)}</span>
+                            </td>
+                            <td className="border border-gray-200 p-3 text-center">
+                              <span className="text-green-600 font-medium">{stat.maxWpm}</span>
+                            </td>
+                          </tr>
+                        ));
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
