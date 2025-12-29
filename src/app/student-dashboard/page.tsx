@@ -1981,9 +1981,10 @@ function StudentDashboardContent() {
                               <th className="px-1.5 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Öğrenci</th>
                               <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Puan</th>
                               <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Net</th>
-                              {['turkce', 'sosyal', 'din', 'ingilizce', 'matematik', 'fen'].map(subject => (
+                              {getNetSubjectsByClass(studentClass).map(subject => (
                                 <th key={subject} className="px-1 py-1 text-center text-[10px] font-medium text-gray-500 uppercase">
                                   {subject === 'turkce' ? 'TR' : 
+                                   subject === 'hayat' ? 'HAY' :
                                    subject === 'sosyal' ? 'SOS' :
                                    subject === 'din' ? 'DİN' :
                                    subject === 'ingilizce' ? 'İNG' :
@@ -2022,7 +2023,7 @@ function StudentDashboardContent() {
                                     {student.totalNet.toFixed(1)}
                                   </span>
                                 </td>
-                                {['turkce', 'sosyal', 'din', 'ingilizce', 'matematik', 'fen'].map(subject => (
+                                {getNetSubjectsByClass(studentClass).map(subject => (
                                   <td key={subject} className="px-1 py-1 text-center">
                                     <span className="text-xs text-gray-600">
                                       {(student.nets[subject] || 0).toFixed(1)}
