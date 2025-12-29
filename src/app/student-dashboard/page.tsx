@@ -150,6 +150,8 @@ function StudentDashboardContent() {
 
       const studentData = { ...studentSnapshot.data(), id: studentSnapshot.id } as Student;
       console.log('Öğrenci verisi alındı:', studentData);
+      console.log('🎯 DEBUG - Öğrenci Sınıfı:', studentData.class);
+      console.log('🎯 DEBUG - Sınıf Tipi:', typeof studentData.class);
 
       // Tüm sınavları al
       const examsQuery = query(collection(db, 'exams'), orderBy('date', 'asc'));
@@ -211,6 +213,7 @@ function StudentDashboardContent() {
       // Sınıfının katıldığı denemeleri bul (sadece mevcut exam kayıtları olan)
       const classResults = resultsData.filter(r => {
         const student = studentsData.find(s => s.id === r.studentId);
+        console.log(`🎯 DEBUG - Öğrenci ID: ${r.studentId}, Sınıfı: ${student?.class}, Aranan Sınıf: ${studentData.class}, Eşleşme: ${student?.class === studentData.class}`);
         return student && student.class === studentData.class;
       });
       
@@ -218,6 +221,9 @@ function StudentDashboardContent() {
       const classExamIds = new Set(classResults.map(r => r.examId).filter(examId => 
         examsData.find(e => e.id === examId)
       ));
+      
+      console.log('🎯 DEBUG - Sınıf ID\'leri:', Array.from(classExamIds));
+      console.log('🎯 DEBUG - Sınıf Sonuç Sayısı:', classResults.length);
       
       const validStudentExamIds = validStudentResults.map(r => r.examId);
       
@@ -312,8 +318,13 @@ function StudentDashboardContent() {
         let generalAverageNet = classAverage; // Varsayılan olarak sınıf ortalaması
         let generalAverageScoreNet = classAverageScore; // Varsayılan olarak sınıf ortalama puanı
         
+        console.log(`🎯 DEBUG - Exam: ${exam.title}, generalAverages mevcut mu?:`, exam.generalAverages ? 'Evet' : 'Hayır');
+        console.log(`🎯 DEBUG - studentData.class: "${studentData.class}"`);
+        console.log(`🎯 DEBUG - generalAverages keys:`, exam.generalAverages ? Object.keys(exam.generalAverages) : 'Yok');
+        
         if (exam.generalAverages && exam.generalAverages[studentData.class]) {
           const classAverages = exam.generalAverages[studentData.class];
+          console.log(`🎯 DEBUG - classAverages bulundu:`, classAverages);
           
           // Genel net ortalaması: ders bazlı netlerin toplamı
           const dersNets = [
@@ -325,12 +336,17 @@ function StudentDashboardContent() {
             (classAverages?.ingilizce) || 0
           ];
           
+          console.log(`🎯 DEBUG - dersNets:`, dersNets);
+          console.log(`🎯 DEBUG - toplam net:`, dersNets.reduce((sum, net) => sum + net, 0));
+          
           generalAverageNet = dersNets.reduce((sum, net) => sum + net, 0);
           
           // Genel puan ortalaması
           if (classAverages.generalScore) {
             generalAverageScoreNet = classAverages.generalScore;
           }
+        } else {
+          console.log(`🎯 DEBUG - classAverages BULUNAMADI! studentData.class = "${studentData.class}"`);
         }
 
         examResults.push({
