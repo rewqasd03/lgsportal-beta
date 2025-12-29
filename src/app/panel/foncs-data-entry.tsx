@@ -4,6 +4,47 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts';
 
 import { getStudents, getExams, getResults, addStudent, addExam, addResult, deleteStudent, deleteExam, deleteResult, updateStudent, updateResult, updateExam, saveStudentTargets, getAllTargets, getStudentScoreTarget, mapDashboardKeysToPanel, mapPanelKeysToDashboard, db, doc, getDoc, incrementStudentViewCount, generateStudentPin, assignPinsToAllStudents, createMissingTopic, getMissingTopicsByClass, Student, Exam, Result } from "../../firebase";
+
+// İlkokul Sınıf Bazlı Ders Konfigürasyonu
+const SUBJECTS_CONFIG = {
+  '2-A': [
+    { key: 'turkce', name: 'Türkçe', color: '#10B981' },
+    { key: 'matematik', name: 'Matematik', color: '#F59E0B' },
+    { key: 'hayat', name: 'Hayat Bilgisi', color: '#8B5CF6' },
+    { key: 'ingilizce', name: 'İngilizce', color: '#EF4444' },
+  ],
+  '3-A': [
+    { key: 'turkce', name: 'Türkçe', color: '#10B981' },
+    { key: 'matematik', name: 'Matematik', color: '#F59E0B' },
+    { key: 'hayat', name: 'Hayat Bilgisi', color: '#8B5CF6' },
+    { key: 'ingilizce', name: 'İngilizce', color: '#EF4444' },
+    { key: 'fen', name: 'Fen Bilimleri', color: '#3B82F6' },
+  ],
+  '4-A': [
+    { key: 'turkce', name: 'Türkçe', color: '#10B981' },
+    { key: 'matematik', name: 'Matematik', color: '#F59E0B' },
+    { key: 'sosyal', name: 'Sosyal Bilgiler', color: '#8B5CF6' },
+    { key: 'ingilizce', name: 'İngilizce', color: '#EF4444' },
+    { key: 'din', name: 'Din Kültürü', color: '#F97316' },
+    { key: 'fen', name: 'Fen Bilimleri', color: '#3B82F6' },
+  ]
+};
+
+// Sınıfa göre dersleri getiren yardımcı fonksiyon
+const getSubjectsByClass = (studentClass: string) => {
+  return SUBJECTS_CONFIG[studentClass as keyof typeof SUBJECTS_CONFIG] || SUBJECTS_CONFIG['4-A'];
+};
+
+// 8-A sınıfı için LGS dersleri (ortaokul)
+const lgsSubjects = [
+  { key: 'turkce', label: 'Türkçe', target: 0 },
+  { key: 'sosyal', label: 'Sosyal Bilgiler', target: 0 },
+  { key: 'din', label: 'Din Kültürü', target: 0 },
+  { key: 'ingilizce', label: 'İngilizce', target: 0 },
+  { key: 'matematik', label: 'Matematik', target: 0 },
+  { key: 'fen', label: 'Fen Bilimleri', target: 0 }
+];
+
 import AnalyticsTab from "../../components/AnalyticsTab";
 // PDF İçe Aktarım Tab Component
 const PDFImportTab = ({ students, exams, onDataUpdate }: { 
@@ -2958,21 +2999,18 @@ export default function FoncsDataEntry() {
     const [studentScoreTarget, setStudentScoreTarget] = useState<number>(0);
     const [loading, setLoading] = useState(false);
 
-    // LGS Dersleri için varsayılan hedefler (0 olarak değiştirildi)
-    const lgsSubjects = [
-      { key: 'turkce', label: 'Türkçe', target: 0 },
-      { key: 'sosyal', label: 'Sosyal Bilgiler', target: 0 },
-      { key: 'din', label: 'Din Kültürü', target: 0 },
-      { key: 'ingilizce', label: 'İngilizce', target: 0 },
-      { key: 'matematik', label: 'Matematik', target: 0 },
-      { key: 'fen', label: 'Fen Bilimleri', target: 0 }
-    ];
+    // Seçilen öğrencinin sınıfına göre dinamik dersleri al
+    const selectedStudentData = students.find(s => s.id === selectedStudent);
+    const dynamicSubjects = useMemo(() => {
+      if (!selectedStudentData) return [];
+      return getSubjectsByClass(selectedStudentData.class);
+    }, [selectedStudentData]);
 
     // Öğrencinin mevcut ortalamalarını hesapla
     const getStudentCurrentAverages = () => {
       
       if (!selectedStudent || results.length === 0) {
-        return lgsSubjects.reduce((acc, subject) => {
+        return dynamicSubjects.reduce((acc, subject) => {
           acc[subject.key] = 0;
           return acc;
         }, {} as {[key: string]: number});
@@ -2982,7 +3020,7 @@ export default function FoncsDataEntry() {
       const studentResults = results.filter(r => r.studentId === selectedStudent);
       
       if (studentResults.length === 0) {
-        return lgsSubjects.reduce((acc, subject) => {
+        return dynamicSubjects.reduce((acc, subject) => {
           acc[subject.key] = 0;
           return acc;
         }, {} as {[key: string]: number});
@@ -2996,7 +3034,7 @@ export default function FoncsDataEntry() {
       // Her ders için ortalama hesapla
       const averages: {[key: string]: number} = {};
       
-      lgsSubjects.forEach(subject => {
+      dynamicSubjects.forEach(subject => {
 
         const subjectScores: number[] = [];
         
@@ -3045,7 +3083,7 @@ export default function FoncsDataEntry() {
       
       if (!selectedStudent || results.length === 0) {
 
-        return lgsSubjects.reduce((acc, subject) => {
+        return dynamicSubjects.reduce((acc, subject) => {
           acc[subject.key] = 0;
           return acc;
         }, {} as {[key: string]: number});
@@ -3056,7 +3094,7 @@ export default function FoncsDataEntry() {
       
       if (studentResults.length === 0) {
 
-        return lgsSubjects.reduce((acc, subject) => {
+        return dynamicSubjects.reduce((acc, subject) => {
           acc[subject.key] = 0;
           return acc;
         }, {} as {[key: string]: number});
@@ -3068,7 +3106,7 @@ export default function FoncsDataEntry() {
       
       const lastNets: {[key: string]: number} = {};
       
-      lgsSubjects.forEach(subject => {
+      dynamicSubjects.forEach(subject => {
 
         
         if (lastResult.scores && lastResult.scores[subject.key]) {
@@ -3106,8 +3144,8 @@ export default function FoncsDataEntry() {
               
               const formData: {[subject: string]: number} = {};
               
-              lgsSubjects.forEach(subject => {
-                formData[subject.key] = panelTargets[subject.key] || subject.target;
+              dynamicSubjects.forEach(subject => {
+                formData[subject.key] = panelTargets[subject.key] || 0;
               });
               
               console.log('📊 Fresh hedefler yüklendi - Panel:', formData);
@@ -3118,8 +3156,8 @@ export default function FoncsDataEntry() {
             } else {
               // Hedef bulunamadı, varsayılan değerlerle başla
               const formData: {[subject: string]: number} = {};
-              lgsSubjects.forEach(subject => {
-                formData[subject.key] = subject.target;
+              dynamicSubjects.forEach(subject => {
+                formData[subject.key] = 0;
               });
               setStudentTargetForm(formData);
               setStudentScoreTarget(0);
@@ -3130,8 +3168,8 @@ export default function FoncsDataEntry() {
             console.error('Fresh target load error:', error);
             // Hata durumunda varsayılan değerlerle devam et
             const formData: {[subject: string]: number} = {};
-            lgsSubjects.forEach(subject => {
-              formData[subject.key] = subject.target;
+            dynamicSubjects.forEach(subject => {
+              formData[subject.key] = 0;
             });
             setStudentTargetForm(formData);
             setStudentScoreTarget(450);
@@ -3304,13 +3342,13 @@ export default function FoncsDataEntry() {
               </h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {lgsSubjects.map((subject) => (
+                {dynamicSubjects.map((subject) => (
                   <div key={subject.key} className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200 min-h-[280px] flex flex-col">
                     <h4 className="font-semibold text-gray-800 mb-3 flex items-center text-sm">
-                      <span className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold mr-2">
-                        {subject.label.charAt(0)}
+                      <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-2" style={{ backgroundColor: `${subject.color}20`, color: subject.color }}>
+                        {subject.name.charAt(0)}
                       </span>
-                      {subject.label}
+                      {subject.name}
                     </h4>
                     
                     <div className="space-y-3 flex-grow">
@@ -3340,18 +3378,18 @@ export default function FoncsDataEntry() {
                           <div className="flex justify-between">
                             <span className="text-xs text-purple-600">Belirlenen:</span>
                             <span className="text-xs font-bold text-purple-700">
-                              {studentTargetForm[subject.key]?.toFixed(1) || subject.target}
+                              {studentTargetForm[subject.key]?.toFixed(1) || 0}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-xs text-purple-600">Fark:</span>
                             <span className={`text-xs font-bold ${
-                              (studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0) >= 0 
+                              (studentTargetForm[subject.key] || 0) - (currentAverages[subject.key] || 0) >= 0 
                                 ? 'text-green-600' 
                                 : 'text-red-600'
                             }`}>
-                              {((studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0)) >= 0 ? '+' : ''}
-                              {((studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0)).toFixed(1)}
+                              {((studentTargetForm[subject.key] || 0) - (currentAverages[subject.key] || 0)) >= 0 ? '+' : ''}
+                              {((studentTargetForm[subject.key] || 0) - (currentAverages[subject.key] || 0)).toFixed(1)}
                             </span>
                           </div>
                         </div>
@@ -3366,19 +3404,19 @@ export default function FoncsDataEntry() {
                           type="number" 
                           min="0" 
                           step="0.5"
-                          value={studentTargetForm[subject.key] || subject.target}
+                          value={studentTargetForm[subject.key] || ''}
                           onChange={(e) => updateTarget(subject.key, Number(e.target.value))}
                           className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-semibold"
-                          placeholder={`Varsayılan: ${subject.target}`}
+                          placeholder="0"
                         />
                       </div>
                       
                       {/* Gelişim */}
                       <div className="text-center">
                         <span className="text-xs text-gray-500">Artış:</span>
-                        <span className={`ml-1 font-bold text-xs ${(studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {((studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0)) >= 0 ? '+' : ''}
-                          {((studentTargetForm[subject.key] || subject.target) - (currentAverages[subject.key] || 0)).toFixed(1)} net
+                        <span className={`ml-1 font-bold text-xs ${(studentTargetForm[subject.key] || 0) - (currentAverages[subject.key] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {((studentTargetForm[subject.key] || 0) - (currentAverages[subject.key] || 0)) >= 0 ? '+' : ''}
+                          {((studentTargetForm[subject.key] || 0) - (currentAverages[subject.key] || 0)).toFixed(1)} net
                         </span>
                       </div>
                       
@@ -3387,7 +3425,7 @@ export default function FoncsDataEntry() {
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div 
                             className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300" 
-                            style={{ width: `${Math.min(100, ((studentTargetForm[subject.key] || subject.target) / 20) * 100)}%` }}
+                            style={{ width: `${Math.min(100, ((studentTargetForm[subject.key] || 0) / 20) * 100)}%` }}
                           ></div>
                         </div>
                       </div>
