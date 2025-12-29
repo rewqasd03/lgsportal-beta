@@ -20,6 +20,46 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// İlkokul Sınıf Bazlı Ders Konfigürasyonu
+// 2-A: Türkçe, Matematik, Hayat Bilgisi, İngilizce
+// 3-A: Türkçe, Matematik, Hayat Bilgisi, İngilizce, Fen Bilimleri
+// 4-A: Türkçe, Matematik, Sosyal Bilgiler, İngilizce, Din Kültürü, Fen Bilimleri
+
+const SUBJECTS_CONFIG = {
+  '2-A': [
+    { key: 'turkce', name: 'Türkçe', color: '#10B981', emoji: '📖', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
+    { key: 'matematik', name: 'Matematik', color: '#F59E0B', emoji: '🔢', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', textColor: 'text-yellow-800' },
+    { key: 'hayat', name: 'Hayat Bilgisi', color: '#8B5CF6', emoji: '🌱', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', textColor: 'text-purple-800' },
+    { key: 'ingilizce', name: 'İngilizce', color: '#EF4444', emoji: '🗣️', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' },
+  ],
+  '3-A': [
+    { key: 'turkce', name: 'Türkçe', color: '#10B981', emoji: '📖', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
+    { key: 'matematik', name: 'Matematik', color: '#F59E0B', emoji: '🔢', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', textColor: 'text-yellow-800' },
+    { key: 'hayat', name: 'Hayat Bilgisi', color: '#8B5CF6', emoji: '🌱', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', textColor: 'text-purple-800' },
+    { key: 'ingilizce', name: 'İngilizce', color: '#EF4444', emoji: '🗣️', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' },
+    { key: 'fen', name: 'Fen Bilimleri', color: '#3B82F6', emoji: '🔬', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
+  ],
+  '4-A': [
+    { key: 'turkce', name: 'Türkçe', color: '#10B981', emoji: '📖', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
+    { key: 'matematik', name: 'Matematik', color: '#F59E0B', emoji: '🔢', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', textColor: 'text-yellow-800' },
+    { key: 'sosyal', name: 'Sosyal Bilgiler', color: '#8B5CF6', emoji: '🌍', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', textColor: 'text-purple-800' },
+    { key: 'ingilizce', name: 'İngilizce', color: '#EF4444', emoji: '🗣️', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' },
+    { key: 'din', name: 'Din Kültürü', color: '#F97316', emoji: '🕌', bgColor: 'bg-orange-50', borderColor: 'border-orange-200', textColor: 'text-orange-800' },
+    { key: 'fen', name: 'Fen Bilimleri', color: '#3B82F6', emoji: '🔬', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
+  ]
+};
+
+// Sınıfa göre dersleri getiren yardımcı fonksiyon
+const getSubjectsByClass = (studentClass: string) => {
+  return SUBJECTS_CONFIG[studentClass] || SUBJECTS_CONFIG['4-A']; // Varsayılan 4-A
+};
+
+// Sınıfa göre net hesaplaması için ders listesi
+const getNetSubjectsByClass = (studentClass: string) => {
+  const subjects = getSubjectsByClass(studentClass);
+  return subjects.map(s => s.key);
+};
+
 interface ReportData {
   student: Student;
   examResults: {
@@ -598,14 +638,9 @@ function StudentDashboardContent() {
     genel: item.generalAverageScore
   }));
 
-  const subjects = [
-    { name: 'Türkçe', color: COLORS[0], key: 'turkce' },
-    { name: 'Sosyal Bilgiler', color: COLORS[1], key: 'sosyal' },
-    { name: 'Din Kültürü', color: COLORS[2], key: 'din' },
-    { name: 'İngilizce', color: COLORS[3], key: 'ingilizce' },
-    { name: 'Matematik', color: COLORS[4], key: 'matematik' },
-    { name: 'Fen Bilimleri', color: COLORS[5], key: 'fen' },
-  ];
+  // Öğrencinin sınıfına göre dersleri getir
+  const studentClass = reportData?.student?.class || '4-A';
+  const subjects = getSubjectsByClass(studentClass);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1035,7 +1070,7 @@ function StudentDashboardContent() {
                                   const studentResult = examResult?.studentResults[0];
                                   const scores = studentResult?.scores || {};
                                   const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
-                                  const totalCorrect = subjects.reduce((sum, subject) => {
+                                  const totalCorrect = getNetSubjectsByClass(studentClass).reduce((sum, subject) => {
                                     const subjectScore = scores[subject];
                                     return sum + (subjectScore?.D ? parseInt(subjectScore.D) : 0);
                                   }, 0);
@@ -1047,8 +1082,7 @@ function StudentDashboardContent() {
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
                                   const scores = studentResult?.scores || {};
-                                  const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
-                                  const totalWrong = subjects.reduce((sum, subject) => {
+                                  const totalWrong = getNetSubjectsByClass(studentClass).reduce((sum, subject) => {
                                     const subjectScore = scores[subject];
                                     return sum + (subjectScore?.Y ? parseInt(subjectScore.Y) : 0);
                                   }, 0);
@@ -1060,8 +1094,7 @@ function StudentDashboardContent() {
                                   const examResult = reportData.examResults[index];
                                   const studentResult = examResult?.studentResults[0];
                                   const scores = studentResult?.scores || {};
-                                  const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
-                                  const totalEmpty = subjects.reduce((sum, subject) => {
+                                  const totalEmpty = getNetSubjectsByClass(studentClass).reduce((sum, subject) => {
                                     const subjectScore = scores[subject];
                                     return sum + (subjectScore?.B ? parseInt(subjectScore.B) : 0);
                                   }, 0);
@@ -1323,7 +1356,7 @@ function StudentDashboardContent() {
                           
                           // Firebase'den gerçek doğru/yanlış/boş sayılarını al
                           const scores = studentResult?.scores || {};
-                          const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
+                          const subjects = getNetSubjectsByClass(studentClass);
                           const totalCorrect = subjects.reduce((sum, subject) => {
                             const subjectScore = scores[subject];
                             return sum + (subjectScore?.D ? parseInt(subjectScore.D) : 0);
@@ -1384,8 +1417,7 @@ function StudentDashboardContent() {
                               <td className="px-2 py-2 text-center text-red-600">
                                 {(() => {
                                   const scores = studentResult?.scores || {};
-                                  const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
-                                  const totalWrong = subjects.reduce((sum, subject) => {
+                                  const totalWrong = getNetSubjectsByClass(studentClass).reduce((sum, subject) => {
                                     const subjectScore = scores[subject];
                                     return sum + (subjectScore?.Y ? parseInt(subjectScore.Y) : 0);
                                   }, 0);
@@ -1395,8 +1427,7 @@ function StudentDashboardContent() {
                               <td className="px-2 py-2 text-center text-gray-500">
                                 {(() => {
                                   const scores = studentResult?.scores || {};
-                                  const subjects = ['turkce', 'matematik', 'fen', 'sosyal', 'din', 'ingilizce'];
-                                  const totalEmpty = subjects.reduce((sum, subject) => {
+                                  const totalEmpty = getNetSubjectsByClass(studentClass).reduce((sum, subject) => {
                                     const subjectScore = scores[subject];
                                     return sum + (subjectScore?.B ? parseInt(subjectScore.B) : 0);
                                   }, 0);
@@ -1862,15 +1893,8 @@ function StudentDashboardContent() {
                   const studentResult = selectedExamResult.studentResults[0];
                   if (!studentResult) return null;
 
-                  // Ders listesi ve emoji'ler
-                  const subjects = [
-                    { key: 'turkce', name: 'Türkçe', emoji: '📖' },
-                    { key: 'matematik', name: 'Matematik', emoji: '🔢' },
-                    { key: 'fen', name: 'Fen', emoji: '🔬' },
-                    { key: 'sosyal', name: 'Sosyal', emoji: '🌍' },
-                    { key: 'din', name: 'Din Kültürü', emoji: '🕌' },
-                    { key: 'ingilizce', name: 'İngilizce', emoji: '🗣️' },
-                  ];
+                  // Ders listesi - sınıfa göre dinamik
+                  const subjects = getSubjectsByClass(studentClass);
 
                   // Skorları al (D/Y/B/Net)
                   const getScore = (subject: string) => {
@@ -2245,14 +2269,7 @@ function StudentDashboardContent() {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {(() => {
-                          const subjects = [
-                            { key: 'turkce', name: 'Türkçe' },
-                            { key: 'sosyal', name: 'Sosyal Bilgiler' },
-                            { key: 'din', name: 'Din Kültürü' },
-                            { key: 'ingilizce', name: 'İngilizce' },
-                            { key: 'matematik', name: 'Matematik' },
-                            { key: 'fen', name: 'Fen Bilimleri' }
-                          ];
+                          const subjects = getSubjectsByClass(studentClass);
                           
                           const sonDeneme = reportData.examResults[reportData.examResults.length - 1]?.studentResults[0];
                           const nets = sonDeneme?.nets || {};
@@ -2521,14 +2538,16 @@ function LGSHesaplamaTab() {
     din: 10,
     ingilizce: 10
   };
-
+  
+  // Ders isimleri mapping'i (Hayat Bilgisi dahil)
   const subjectNames = {
     turkce: 'Türkçe',
     matematik: 'Matematik',
     fen: 'Fen Bilimleri',
     sosyal: 'Sosyal Bilgiler',
     din: 'Din Kültürü ve Ahlak Bilgisi',
-    ingilizce: 'İngilizce'
+    ingilizce: 'İngilizce',
+    hayat: 'Hayat Bilgisi'
   };
 
   const handleScoreChange = (subject, field, value) => {
@@ -4549,6 +4568,10 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
   const [odevler, setOdevler] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  
+  // Öğrenci sınıfını al
+  const studentClass = reportData?.student?.class || '4-A';
+  const dersler = getSubjectsByClass(studentClass);
 
   // Firebase fonksiyonlarını import et
   useEffect(() => {
@@ -4579,16 +4602,6 @@ function OdevTakibiTab({ reportData }: { reportData: ReportData }) {
       setLoading(false);
     }
   };
-
-  // Dersler listesi ve renkler
-  const dersler = [
-    { key: 'turkce', label: '📖 Türkçe', color: '#10B981', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
-    { key: 'sosyal', label: '🌍 Sosyal Bilgiler', color: '#8B5CF6', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', textColor: 'text-purple-800' },
-    { key: 'din', label: '🕌 Din Kültürü', color: '#F97316', bgColor: 'bg-orange-50', borderColor: 'border-orange-200', textColor: 'text-orange-800' },
-    { key: 'ingilizce', label: '🗣️ İngilizce', color: '#EF4444', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' },
-    { key: 'matematik', label: '🔢 Matematik', color: '#F59E0B', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', textColor: 'text-yellow-800' },
-    { key: 'fen', label: '🔬 Fen Bilimleri', color: '#3B82F6', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
-  ];
 
   // Türkçe gün ismi fonksiyonu
   const getTurkishDayName = (dateString: string) => {
