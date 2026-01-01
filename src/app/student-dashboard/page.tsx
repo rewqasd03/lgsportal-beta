@@ -165,16 +165,22 @@ function StudentDashboardContent() {
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
-        compress: true, // PDF sıkıştırma etkinleştir
+        compress: true,
       });
       
       const pageWidth = 210;
       const pageHeight = 297;
       const margin = 10;
       const contentWidth = pageWidth - (margin * 2);
+      const contentStartY = margin + 25; // Başlık ve bilgiler için alan
+      const maxContentHeight = pageHeight - margin - 10; // Sayfa sonu boşluğu
       
       // Grafik içeren sekmeler (daha uzun bekleme süresi gerekiyor)
       const chartTabs = [1, 2, 3, 5, 6];
+      // Uzun içerikli sekmeler (içerik bölme gerekebilir)
+      const longContentTabs = [5, 6];
+      
+      let totalPagesGenerated = 0;
       
       // Her seçili sekme için ayrı sayfa oluştur
       for (let i = 0; i < selectedTabs.length; i++) {
@@ -183,11 +189,14 @@ function StudentDashboardContent() {
         // Önce o sekmeye geç
         if (activeTab !== tab) {
           setActiveTab(tab);
-          // Grafik içeren sekmeler için daha uzun bekleme (1500ms)
-          // Diğer sekmeler için standart bekleme (800ms)
-          const waitTime = chartTabs.includes(tab) ? 1500 : 800;
+          // Grafik içeren sekmeler için çok uzun bekleme (2500ms)
+          // Animasyonların tamamen bitmesi için
+          const waitTime = chartTabs.includes(tab) ? 2500 : 1000;
           await new Promise(resolve => setTimeout(resolve, waitTime));
         }
+        
+        // Ekstra bekleme - sayfanın tamamen stabilize olması için
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Sekme içeriğini bul
         const tabContent = pdfContentRef.current;
@@ -212,9 +221,10 @@ function StudentDashboardContent() {
         
         const title = toAscii(tabTitles[tab] || 'Rapor');
         
-        // İçeriği yakala - düşük scale ile küçük dosya boyutu
+        // Düşük scale ile çok küçük dosya boyutu (0.5 = %50 küçültme)
+        // Çok büyük içerikler için 0.25 bile kullanılabilir
         const canvas = await html2canvas(tabContent, {
-          scale: 1, // Dosya boyutunu azaltmak için 1'e düşürüldü (önceki: 1.5)
+          scale: 0.5, // Önceki: 1, Bu değişiklik dosya boyutunu 4 kat azaltır
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
@@ -222,65 +232,127 @@ function StudentDashboardContent() {
           windowHeight: tabContent.scrollHeight || 2000,
         });
         
-        // JPEG formatında sıkıştırarak kaydet (PNG'den çok daha küçük)
-        const imgData = canvas.toDataURL('image/jpeg', 0.75); // %75 kalite
+        // Düşük JPEG kalitesi ile daha küçük dosya (0.5 = %50 sıkıştırma)
+        const imgData = canvas.toDataURL('image/jpeg', 0.5);
         const imgHeight = (canvas.height * contentWidth) / canvas.width;
         
-        // Eğer ilk sayfa değilse yeni sayfa ekle
-        if (i > 0) {
-          pdf.addPage();
-        }
-        
-        // Başlık ekle
-        pdf.setFontSize(16);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(title, pageWidth / 2, margin + 8, { align: 'center' });
-        
-        // Öğrenci bilgisi
-        if (reportData?.student) {
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          const studentInfo = toAscii(`${reportData.student.name} - ${reportData.student.class}`);
-          pdf.text(studentInfo, pageWidth / 2, margin + 14, { align: 'center' });
-        }
-        
-        // Tarih
-        pdf.setFontSize(9);
-        pdf.setTextColor(100);
-        const dateStr = toAscii(new Date().toLocaleDateString('tr-TR'));
-        pdf.text(dateStr, pageWidth / 2, margin + 19, { align: 'center' });
-        pdf.setTextColor(0);
-        
-        // İçerik başlangıç pozisyonu
-        const contentStartY = margin + 25;
-        const maxContentHeight = pageHeight - margin - 10; // Sayfa sonundan margin kadar boşluk
-        
-        // İçerik sayfaya sığarsa tek sayfa, sığmazsa çoklu sayfa
+        // İçerik bir sayfaya sığarsa tek parça ekle
         if (imgHeight <= maxContentHeight - contentStartY) {
-          // Tek sayfa - sığdır
+          if (i > 0) {
+            pdf.addPage();
+          }
+          
+          // Başlık ekle
+          pdf.setFontSize(16);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(title, pageWidth / 2, margin + 8, { align: 'center' });
+          
+          if (reportData?.student) {
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'normal');
+            const studentInfo = toAscii(`${reportData.student.name} - ${reportData.student.class}`);
+            pdf.text(studentInfo, pageWidth / 2, margin + 14, { align: 'center' });
+          }
+          
+          pdf.setFontSize(9);
+          pdf.setTextColor(100);
+          const dateStr = toAscii(new Date().toLocaleDateString('tr-TR'));
+          pdf.text(dateStr, pageWidth / 2, margin + 19, { align: 'center' });
+          pdf.setTextColor(0);
+          
+          // İçerik ekle
           pdf.addImage(imgData, 'JPEG', margin, contentStartY, contentWidth, imgHeight);
+          
+          // Sayfa numarası
+          pdf.setFontSize(8);
+          pdf.setTextColor(150);
+          const pageNumText = toAscii(`Sayfa ${totalPagesGenerated + 1}/${selectedTabs.length}`);
+          pdf.text(pageNumText, pageWidth / 2, pageHeight - 5, { align: 'center' });
+          pdf.setTextColor(0);
+          
+          totalPagesGenerated++;
         } else {
-          // Çoklu sayfa - içeriği böl
-          // Önce tam sayfayı ekle
-          pdf.addImage(imgData, 'JPEG', margin, contentStartY, contentWidth, imgHeight);
+          // İçerik çok uzun - sayfaya böl
+          // Canvas yüksekliğini pixel cinsinden hesapla
+          const canvasHeight = canvas.height;
+          const canvasWidth = canvas.width;
+          
+          // Bir A4 sayfasına sığacak yükseklik (pixel cinsinden)
+          // PDF yüksekliği = imgHeight, contentWidth ile orantılı
+          const pageImgHeight = maxContentHeight - contentStartY;
+          const pageCanvasHeight = Math.floor(pageImgHeight * canvasWidth / contentWidth);
+          
+          // Toplam kaç sayfa gerekiyor
+          const numPages = Math.ceil(canvasHeight / pageCanvasHeight);
+          
+          console.log(`Tab ${tab}: Canvas yüksekliği=${canvasHeight}px, Her sayfa=${pageCanvasHeight}px, Toplam sayfa=${numPages}`);
+          
+          for (let pageIdx = 0; pageIdx < numPages; pageIdx++) {
+            if (pageIdx > 0 || i > 0) {
+              pdf.addPage();
+            }
+            
+            // Başlık ekle
+            pdf.setFontSize(16);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(title, pageWidth / 2, margin + 8, { align: 'center' });
+            
+            if (reportData?.student) {
+              pdf.setFontSize(10);
+              pdf.setFont('helvetica', 'normal');
+              const studentInfo = toAscii(`${reportData.student.name} - ${reportData.student.class}`);
+              pdf.text(studentInfo, pageWidth / 2, margin + 14, { align: 'center' });
+            }
+            
+            pdf.setFontSize(9);
+            pdf.setTextColor(100);
+            const dateStr = toAscii(new Date().toLocaleDateString('tr-TR'));
+            pdf.text(dateStr, pageWidth / 2, margin + 19, { align: 'center' });
+            pdf.setTextColor(0);
+            
+            // Bu sayfa için canvas bölgesini al
+            const startY = pageIdx * pageCanvasHeight;
+            const endY = Math.min(startY + pageCanvasHeight, canvasHeight);
+            const sliceHeight = endY - startY;
+            
+            // Canvas'tan sadece bu bölgeyi al
+            const sliceCanvas = document.createElement('canvas');
+            sliceCanvas.width = canvasWidth;
+            sliceCanvas.height = sliceHeight;
+            const sliceCtx = sliceCanvas.getContext('2d');
+            
+            if (sliceCtx) {
+              sliceCtx.fillStyle = '#ffffff';
+              sliceCtx.fillRect(0, 0, canvasWidth, sliceHeight);
+              sliceCtx.drawImage(canvas, 0, startY, canvasWidth, sliceHeight, 0, 0, canvasWidth, sliceHeight);
+            }
+            
+            const sliceImgData = sliceCanvas.toDataURL('image/jpeg', 0.5);
+            const sliceImgHeight = (sliceHeight * contentWidth) / canvasWidth;
+            
+            // İçerik ekle
+            pdf.addImage(sliceImgData, 'JPEG', margin, contentStartY, contentWidth, sliceImgHeight);
+            
+            // Sayfa numarası
+            pdf.setFontSize(8);
+            pdf.setTextColor(150);
+            const pageNumText = toAscii(`Sayfa ${totalPagesGenerated + 1}/${selectedTabs.length}+`);
+            pdf.text(pageNumText, pageWidth / 2, pageHeight - 5, { align: 'center' });
+            pdf.setTextColor(0);
+            
+            totalPagesGenerated++;
+          }
         }
-        
-        // Sayfa numarası
-        pdf.setFontSize(8);
-        pdf.setTextColor(150);
-        const pageNumText = toAscii(`Sayfa ${i + 1}/${selectedTabs.length}`);
-        pdf.text(pageNumText, pageWidth / 2, pageHeight - 5, { align: 'center' });
-        pdf.setTextColor(0);
         
         // İlerleme mesajı
-        const progressText = toAscii(`Sayfa ${i + 1}/${selectedTabs.length} hazirlaniyor...`);
+        const progressText = toAscii(`Sayfa ${i + 1}/${selectedTabs.length} hazır (toplam ${totalPagesGenerated} sayfa)...`);
         setPdfMessage(progressText);
       }
       
       const date = new Date().toISOString().split('T')[0];
       pdf.save(`LGS-Portal-Rapor-${date}.pdf`);
       
-      setPdfMessage('PDF başarıyla indirildi! ✅');
+      setPdfMessage(`PDF başarıyla indirildi! (${totalPagesGenerated} sayfa) ✅`);
     } catch (error) {
       console.error('PDF hatası:', error);
       setPdfMessage('PDF oluşturulurken hata oluştu! ❌');
@@ -1014,6 +1086,7 @@ function StudentDashboardContent() {
                       <Legend />
                       {/* @ts-ignore */}
                       <Line 
+                        isAnimationActive={false}
                         type="monotone" 
                         dataKey="öğrenci" 
                         stroke="#3B82F6" 
@@ -1023,6 +1096,7 @@ function StudentDashboardContent() {
                       />
                       {/* @ts-ignore */}
                       <Line 
+                        isAnimationActive={false}
                         type="monotone" 
                         dataKey="sınıf" 
                         stroke="#10B981" 
@@ -1032,6 +1106,7 @@ function StudentDashboardContent() {
                       />
                       {/* @ts-ignore */}
                       <Line 
+                        isAnimationActive={false}
                         type="monotone" 
                         dataKey="genel" 
                         stroke="#F59E0B" 
@@ -1071,6 +1146,7 @@ function StudentDashboardContent() {
                       <Legend />
                       {/* @ts-ignore */}
                       <Line 
+                        isAnimationActive={false}
                         type="monotone" 
                         dataKey="öğrenci" 
                         stroke="#8B5CF6" 
@@ -1080,6 +1156,7 @@ function StudentDashboardContent() {
                       />
                       {/* @ts-ignore */}
                       <Line 
+                        isAnimationActive={false}
                         type="monotone" 
                         dataKey="sınıf" 
                         stroke="#10B981" 
@@ -1089,6 +1166,7 @@ function StudentDashboardContent() {
                       />
                       {/* @ts-ignore */}
                       <Line 
+                        isAnimationActive={false}
                         type="monotone" 
                         dataKey="genel" 
                         stroke="#F59E0B" 
@@ -1137,6 +1215,7 @@ function StudentDashboardContent() {
                           <Legend />
                           {/* @ts-ignore */}
                           <Line 
+                            isAnimationActive={false}
                             type="monotone" 
                             dataKey="öğrenci" 
                             stroke="#3B82F6" 
@@ -1146,6 +1225,7 @@ function StudentDashboardContent() {
                           />
                           {/* @ts-ignore */}
                           <Line 
+                            isAnimationActive={false}
                             type="monotone" 
                             dataKey="sınıf" 
                             stroke="#10B981" 
@@ -1155,6 +1235,7 @@ function StudentDashboardContent() {
                           />
                           {/* @ts-ignore */}
                           <Line 
+                            isAnimationActive={false}
                             type="monotone" 
                             dataKey="genel" 
                             stroke="#F59E0B" 
@@ -1438,6 +1519,7 @@ function StudentDashboardContent() {
                           />
                           <Legend />
                           <Line 
+                            isAnimationActive={false}
                             type="monotone" 
                             dataKey="öğrenci" 
                             stroke="#8B5CF6" 
@@ -1446,6 +1528,7 @@ function StudentDashboardContent() {
                             name="Öğrenci Puanı"
                           />
                           <Line 
+                            isAnimationActive={false}
                             type="monotone" 
                             dataKey="sınıf" 
                             stroke="#10B981" 
@@ -1454,6 +1537,7 @@ function StudentDashboardContent() {
                             name="Sınıf Ortalama"
                           />
                           <Line 
+                            isAnimationActive={false}
                             type="monotone" 
                             dataKey="genel" 
                             stroke="#F59E0B" 
@@ -2392,6 +2476,7 @@ function StudentDashboardContent() {
                               />
                               <Legend />
                               <Line 
+                                isAnimationActive={false}
                                 type="monotone" 
                                 dataKey="öğrenci" 
                                 stroke={subject.color} 
@@ -2400,6 +2485,7 @@ function StudentDashboardContent() {
                                 name="Öğrenci"
                               />
                               <Line 
+                                isAnimationActive={false}
                                 type="monotone" 
                                 dataKey="sınıf" 
                                 stroke="#10B981" 
@@ -2408,6 +2494,7 @@ function StudentDashboardContent() {
                                 name={`${subject.name} Sınıf Ort.`}
                               />
                               <Line 
+                                isAnimationActive={false}
                                 type="monotone" 
                                 dataKey="genel" 
                                 stroke="#F59E0B" 
@@ -5330,6 +5417,7 @@ function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId
                 />
                 <Legend />
                 <Line 
+                  isAnimationActive={false}
                   type="monotone" 
                   dataKey="sinifOrtalamasi" 
                   name="Sınıf Ortalaması" 
@@ -5339,6 +5427,7 @@ function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId
                   activeDot={{ r: 6 }}
                 />
                 <Line 
+                  isAnimationActive={false}
                   type="monotone" 
                   dataKey="ogrenci" 
                   name="Sizin D/K" 
