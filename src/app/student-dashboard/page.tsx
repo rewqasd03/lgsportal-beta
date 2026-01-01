@@ -2511,7 +2511,7 @@ function StudentDashboardContent() {
               <span className="text-sm font-medium text-gray-900">LGS Portalı</span>
             </div>
             <p className="text-xs text-gray-500">
-              © {new Date().getFullYear()} LGS Portalı | Developed by Murat UYSAL
+              © 2025 LGS Portalı | Developed by Murat UYSAL
             </p>
           </div>
         </div>
