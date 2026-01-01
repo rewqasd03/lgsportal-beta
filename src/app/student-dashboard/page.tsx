@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
 import { Student, Exam, Result, getStudentTargets, getStudentScoreTarget, incrementStudentViewCount } from '../../firebase';
-import PdfDownloadButton from '../../components/PdfDownloadButton';
 import { initializeApp } from 'firebase/app';
 
 const firebaseConfig = {
@@ -91,9 +90,6 @@ function StudentDashboardContent() {
   const [allStudentsData, setAllStudentsData] = useState<Student[]>([]);
   const [evaluationText, setEvaluationText] = useState<string>('');
   
-  // PDF İndirme için ref
-  const contentRef = useRef<HTMLDivElement>(null);
-  
   // Aktif sekmeye göre dosya adı oluştur
   const getPdfFileName = () => {
     const tabNames: {[key: number]: string} = {
@@ -107,7 +103,8 @@ function StudentDashboardContent() {
       8: 'Degerlendirmeler',
       9: 'Kitap-Sinavlari',
       10: 'Okuma-Sinavlari',
-      11: 'Okuma-Sinavlarim'
+      11: 'PDF-Indir',
+      12: 'Okuma-Sinavlarim'
     };
     const date = new Date().toISOString().split('T')[0];
     return `LGS-Portal-${tabNames[activeTab] || 'Rapor'}-${date}`;
@@ -736,12 +733,12 @@ function StudentDashboardContent() {
             <p className="text-gray-600">İlk sınavınızı verdikten sonra burada detaylı raporunuzu görüntüleyebilirsiniz.</p>
           </div>
         ) : (
-          <div ref={contentRef}>
+          <div>
             {/* Tab Navigation */}
             <div className="mb-6">
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((tab) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -761,32 +758,11 @@ function StudentDashboardContent() {
                       {tab === 8 && '📖 Kitap Sınavı'}
                       {tab === 9 && '🎓 Lise Taban Puanları'}
                       {tab === 10 && '📝 Ödev Takibi'}
+                      {tab === 11 && '📄 PDF İndir'}
                     </button>
                   ))}
-                  {/* Okuma Sınavları - Sadece 2-A, 3-A, 4-A */}
-                  {(reportData?.student?.class === '2-A' || reportData?.student?.class === '3-A' || reportData?.student?.class === '4-A') && (
-                    <button
-                      onClick={() => setActiveTab(11)}
-                      className={`py-2 px-0.5 border-b-2 font-medium text-xs whitespace-nowrap ${
-                        activeTab === 11
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      📚 Okuma Sınavlarım
-                    </button>
-                  )}
                 </nav>
               </div>
-            </div>
-
-            {/* PDF İndirme Butonu */}
-            <div className="flex justify-end mb-4">
-              <PdfDownloadButton
-                targetRef={contentRef}
-                fileName={getPdfFileName()}
-                label="📄 PDF İndir"
-              />
             </div>
 
             {/* Tab Content */}
@@ -2524,8 +2500,53 @@ function StudentDashboardContent() {
               <OdevTakibiTab reportData={reportData} />
             )}
 
-            {/* Tab 11: Okuma Sınavları - Sadece 2-A, 3-A, 4-A */}
-            {(reportData?.student?.class === '2-A' || reportData?.student?.class === '3-A' || reportData?.student?.class === '4-A') && activeTab === 11 && (
+            {/* Tab 11: PDF İndir */}
+            {activeTab === 11 && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 text-white">
+                  <h2 className="text-2xl font-bold mb-2">📄 PDF Rapor İndir</h2>
+                  <p className="text-blue-100">Aktif sekmenin içeriğini PDF olarak indirebilirsiniz</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[
+                    { tab: 1, icon: '📊', title: 'Genel Görünüm', desc: 'Tüm sınav sonuçlarınızın özeti' },
+                    { tab: 2, icon: '📈', title: 'Net Gelişim Trendi', desc: 'Zaman içindeki net gelişiminiz' },
+                    { tab: 3, icon: '📊', title: 'Puan Gelişim Trendi', desc: 'Zaman içindeki puan gelişiminiz' },
+                    { tab: 4, icon: '📚', title: 'Denemeler', desc: 'Tüm denemelerin detaylı listesi' },
+                    { tab: 5, icon: '🎯', title: 'Ders Bazında Gelişim', desc: 'Her dersteki performansınız' },
+                    { tab: 6, icon: '🎯', title: 'Hedef Takibi', desc: 'Hedeflerinize ulaşma durumunuz' },
+                    { tab: 7, icon: '🧮', title: 'LGS Puan Hesaplama', desc: 'Puan hesaplama aracı' },
+                    { tab: 8, icon: '📖', title: 'Kitap Sınavı', desc: 'Kitap sınavı sonuçlarınız' },
+                    { tab: 9, icon: '🎓', title: 'Lise Taban Puanları', desc: 'Lise taban puanları listesi' },
+                    { tab: 10, icon: '📝', title: 'Ödev Takibi', desc: 'Ödevlerinizin durumu' },
+                  ].map((item) => (
+                    <button
+                      key={item.tab}
+                      onClick={() => setActiveTab(item.tab)}
+                      className="bg-white rounded-xl shadow-md p-6 text-left hover:shadow-lg transition-shadow border border-gray-100"
+                    >
+                      <div className="text-3xl mb-3">{item.icon}</div>
+                      <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
+                      <p className="text-sm text-gray-500">{item.desc}</p>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                  <h3 className="font-semibold text-yellow-800 mb-2">💡 Nasıl Kullanılır?</h3>
+                  <ol className="text-sm text-yellow-700 space-y-2 list-decimal list-inside">
+                    <li>Yukarıdaki listeden indirmek istediğiniz rapor türünü seçin</li>
+                    <li>Sistem otomatik olarak o sekmeye geçecek</li>
+                    <li>Sekmenin içeriği yüklendikten sonra sayfayı yenileyin veya farklı sekmeye geçip geri dönün</li>
+                    <li>Tarayıcınızın "Farklı Kaydet" veya "Yazdır" özelliğini kullanarak PDF olarak kaydedin</li>
+                  </ol>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 12: Okuma Sınavları - Sadece 2-A, 3-A, 4-A */}
+            {(reportData?.student?.class === '2-A' || reportData?.student?.class === '3-A' || reportData?.student?.class === '4-A') && activeTab === 12 && (
               <OkumaSinavlariTab studentId={studentId} studentName={reportData?.student?.name} studentClass={reportData?.student?.class} />
             )}
 
