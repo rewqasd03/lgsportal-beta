@@ -144,53 +144,134 @@ function StudentDashboardContent() {
     setPdfMessage('PDF hazırlanıyor...');
     
     try {
-      // Önce seçili sekmelere geç ve içerikleri yükle
-      for (const tab of selectedTabs) {
-        if (tab !== activeTab) {
-          setActiveTab(tab);
-        }
-      }
-      
-      // Kısa bir süre bekle (içerikler yüklensin)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // PDF oluştur
-      const element = pdfContentRef.current;
-      if (!element) {
-        throw new Error('PDF içeriği bulunamadı');
-      }
-      
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
       });
       
-      const imgWidth = 210;
+      const pageWidth = 210;
       const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const margin = 10;
+      const contentWidth = pageWidth - (margin * 2);
       
-      let heightLeft = imgHeight;
-      let position = 0;
-      
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      // Her seçili sekme için ayrı sayfa oluştur
+      for (let i = 0; i < selectedTabs.length; i++) {
+        const tab = selectedTabs[i];
+        
+        // Önce o sekmeye geç
+        if (activeTab !== tab) {
+          setActiveTab(tab);
+          // İçerik yüklenmesi için bekle
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+        
+        // Sekme içeriğini bul
+        const tabContent = pdfContentRef.current;
+        if (!tabContent) {
+          console.error(`Tab ${tab} içeriği bulunamadı`);
+          continue;
+        }
+        
+        // Sayfa başlığı ekle
+        const tabTitles: {[key: number]: string} = {
+          1: '📊 Genel Görünüm',
+          2: '📈 Net Gelişim Trendi',
+          3: '📊 Puan Gelişim Trendi',
+          4: '📚 Denemeler',
+          5: '🎯 Ders Bazında Gelişim',
+          6: '🎯 Hedef Takibi & Lise Tercih Önerileri',
+          7: '🧮 LGS Puan Hesaplama',
+          8: '📖 Kitap Sınavı',
+          9: '🎓 Lise Taban Puanları',
+          10: '📝 Ödev Takibi',
+        };
+        
+        const title = tabTitles[tab] || 'Rapor';
+        
+        // İçeriği yakala
+        const canvas = await html2canvas(tabContent, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          windowWidth: tabContent.scrollWidth || 1200,
+          windowHeight: tabContent.scrollHeight || 2000,
+        });
+        
+        // Resmi PDF'e ekle
+        const imgData = canvas.toDataURL('image/png');
+        const imgHeight = (canvas.height * contentWidth) / canvas.width;
+        
+        // Eğer ilk sayfa değilse yeni sayfa ekle
+        if (i > 0) {
+          pdf.addPage();
+        }
+        
+        // Başlık ekle
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(title, pageWidth / 2, margin + 8, { align: 'center' });
+        
+        // Öğrenci bilgisi
+        if (reportData?.student) {
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`${reportData.student.name} - ${reportData.student.class}`, pageWidth / 2, margin + 14, { align: 'center' });
+        }
+        
+        // Tarih
+        pdf.setFontSize(9);
+        pdf.setTextColor(100);
+        pdf.text(new Date().toLocaleDateString('tr-TR'), pageWidth / 2, margin + 19, { align: 'center' });
+        pdf.setTextColor(0);
+        
+        // İçerik resmini ekle
+        const contentStartY = margin + 25;
+        
+        // İçerik sayfaya sığarsa tek sayfa, sığmazsa çoklu sayfa
+        if (imgHeight <= (pageHeight - contentStartY - margin)) {
+          // Tek sayfa
+          pdf.addImage(imgData, 'PNG', margin, contentStartY, contentWidth, imgHeight);
+        } else {
+          // Çoklu sayfa - içeriği böl
+          let remainingHeight = imgHeight;
+          let yPosition = contentStartY;
+          const pageContentHeight = pageHeight - contentStartY - margin;
+          
+          while (remainingHeight > 0) {
+            // Mevcut sayfaya sığan kısmı ekle
+            const sliceHeight = Math.min(remainingHeight, pageContentHeight);
+            const sliceCanvas = document.createElement('canvas');
+            sliceCanvas.width = canvas.width;
+            sliceCanvas.height = (sliceHeight * canvas.width) / contentWidth;
+            const sliceCtx = sliceCanvas.getContext('2d');
+            
+            if (sliceCtx) {
+              sliceCtx.fillStyle = '#ffffff';
+              sliceCtx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+              sliceCtx.drawImage(canvas, 0, (imgHeight - remainingHeight) * (canvas.width / contentWidth), canvas.width, sliceCanvas.height, 0, 0, sliceCanvas.width, sliceCanvas.height);
+              
+              pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, yPosition, contentWidth, sliceHeight);
+            }
+            
+            remainingHeight -= sliceHeight;
+            yPosition = margin;
+            
+            if (remainingHeight > 0) {
+              pdf.addPage();
+            }
+          }
+        }
+        
+        // Sayfa numarası
+        pdf.setFontSize(8);
+        pdf.setTextColor(150);
+        pdf.text(`Sayfa ${i + 1}/${selectedTabs.length}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
+        pdf.setTextColor(0);
+        
+        // İlerleme mesajı
+        setPdfMessage(`Sayfa ${i + 1}/${selectedTabs.length} hazırlanıyor...`);
       }
       
       const date = new Date().toISOString().split('T')[0];
