@@ -355,7 +355,7 @@ export default function HomePage() {
             LGS Portalı
           </h1>
           <p className="text-center text-xs text-gray-600 leading-relaxed max-w-lg mx-auto mb-6">
-            Öğrenciler başarılarını takip edebilir, öğretmenler sınıf performanslarını anlık olarak görebilir.
+            LGS Portalı, öğrencilerin sınav sonuçlarını ve gelişimlerini anlık olarak takip etmelerini sağlarken, öğretmenlere sınıf performanslarını detaylı analizlerle izleme imkanı sunar. Bireysel hedef belirleme, karşılaştırmalı raporlama ve görsel istatistik araçları ile eğitim süreçlerinizi daha verimli hale getirin.
           </p>
         </div>
 
