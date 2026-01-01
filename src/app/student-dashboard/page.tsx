@@ -736,7 +736,7 @@ function StudentDashboardContent() {
             <p className="text-gray-600">İlk sınavınızı verdikten sonra burada detaylı raporunuzu görüntüleyebilirsiniz.</p>
           </div>
         ) : (
-          <>
+          <div ref={contentRef}>
             {/* Tab Navigation */}
             <div className="mb-6">
               <div className="border-b border-gray-200">
@@ -2520,8 +2520,7 @@ function StudentDashboardContent() {
               <OkumaSinavlariTab studentId={studentId} studentName={reportData?.student?.name} studentClass={reportData?.student?.class} />
             )}
 
-
-          </>
+          </div>
         )}
       </div>
       
