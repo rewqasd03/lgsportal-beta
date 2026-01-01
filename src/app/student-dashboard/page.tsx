@@ -165,12 +165,16 @@ function StudentDashboardContent() {
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
+        compress: true, // PDF sıkıştırma etkinleştir
       });
       
       const pageWidth = 210;
       const pageHeight = 297;
       const margin = 10;
       const contentWidth = pageWidth - (margin * 2);
+      
+      // Grafik içeren sekmeler (daha uzun bekleme süresi gerekiyor)
+      const chartTabs = [1, 2, 3, 5, 6];
       
       // Her seçili sekme için ayrı sayfa oluştur
       for (let i = 0; i < selectedTabs.length; i++) {
@@ -179,8 +183,10 @@ function StudentDashboardContent() {
         // Önce o sekmeye geç
         if (activeTab !== tab) {
           setActiveTab(tab);
-          // İçerik yüklenmesi için bekle
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Grafik içeren sekmeler için daha uzun bekleme (1500ms)
+          // Diğer sekmeler için standart bekleme (800ms)
+          const waitTime = chartTabs.includes(tab) ? 1500 : 800;
+          await new Promise(resolve => setTimeout(resolve, waitTime));
         }
         
         // Sekme içeriğini bul
@@ -206,9 +212,9 @@ function StudentDashboardContent() {
         
         const title = toAscii(tabTitles[tab] || 'Rapor');
         
-        // İçeriği yakala
+        // İçeriği yakala - düşük scale ile küçük dosya boyutu
         const canvas = await html2canvas(tabContent, {
-          scale: 1.5,
+          scale: 1, // Dosya boyutunu azaltmak için 1'e düşürüldü (önceki: 1.5)
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
@@ -216,8 +222,8 @@ function StudentDashboardContent() {
           windowHeight: tabContent.scrollHeight || 2000,
         });
         
-        // Resmi PDF'e ekle
-        const imgData = canvas.toDataURL('image/png');
+        // JPEG formatında sıkıştırarak kaydet (PNG'den çok daha küçük)
+        const imgData = canvas.toDataURL('image/jpeg', 0.75); // %75 kalite
         const imgHeight = (canvas.height * contentWidth) / canvas.width;
         
         // Eğer ilk sayfa değilse yeni sayfa ekle
@@ -252,11 +258,11 @@ function StudentDashboardContent() {
         // İçerik sayfaya sığarsa tek sayfa, sığmazsa çoklu sayfa
         if (imgHeight <= maxContentHeight - contentStartY) {
           // Tek sayfa - sığdır
-          pdf.addImage(imgData, 'PNG', margin, contentStartY, contentWidth, imgHeight);
+          pdf.addImage(imgData, 'JPEG', margin, contentStartY, contentWidth, imgHeight);
         } else {
           // Çoklu sayfa - içeriği böl
           // Önce tam sayfayı ekle
-          pdf.addImage(imgData, 'PNG', margin, contentStartY, contentWidth, imgHeight);
+          pdf.addImage(imgData, 'JPEG', margin, contentStartY, contentWidth, imgHeight);
         }
         
         // Sayfa numarası
