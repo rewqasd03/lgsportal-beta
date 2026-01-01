@@ -180,7 +180,7 @@ function StudentDashboardContent() {
         if (activeTab !== tab) {
           setActiveTab(tab);
           // İçerik yüklenmesi için bekle
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
         
         // Sekme içeriğini bul
@@ -208,7 +208,7 @@ function StudentDashboardContent() {
         
         // İçeriği yakala
         const canvas = await html2canvas(tabContent, {
-          scale: 2,
+          scale: 1.5,
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
