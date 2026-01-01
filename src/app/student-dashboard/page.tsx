@@ -115,6 +115,23 @@ function StudentDashboardContent() {
     return `LGS-Portal-${tabNames[activeTab] || 'Rapor'}-${date}`;
   };
   
+  // Türkçe karakterleri düzgün göstermek için dönüştürme
+  const toAscii = (str: string): string => {
+    return str
+      .replace(/ğ/g, 'g')
+      .replace(/Ğ/g, 'G')
+      .replace(/ç/g, 'c')
+      .replace(/Ç/g, 'C')
+      .replace(/ı/g, 'i')
+      .replace(/İ/g, 'I')
+      .replace(/ö/g, 'o')
+      .replace(/Ö/g, 'O')
+      .replace(/ş/g, 's')
+      .replace(/Ş/g, 'S')
+      .replace(/ü/g, 'u')
+      .replace(/Ü/g, 'U');
+  };
+  
   // Sekme seçimi toggle
   const toggleTab = (tab: number) => {
     if (selectedTabs.includes(tab)) {
@@ -175,19 +192,19 @@ function StudentDashboardContent() {
         
         // Sayfa başlığı ekle
         const tabTitles: {[key: number]: string} = {
-          1: '📊 Genel Görünüm',
-          2: '📈 Net Gelişim Trendi',
-          3: '📊 Puan Gelişim Trendi',
-          4: '📚 Denemeler',
-          5: '🎯 Ders Bazında Gelişim',
-          6: '🎯 Hedef Takibi & Lise Tercih Önerileri',
-          7: '🧮 LGS Puan Hesaplama',
-          8: '📖 Kitap Sınavı',
-          9: '🎓 Lise Taban Puanları',
-          10: '📝 Ödev Takibi',
+          1: 'Genel Gorunum',
+          2: 'Net Gelisim Trendi',
+          3: 'Puan Gelisim Trendi',
+          4: 'Denemeler',
+          5: 'Ders Bazinda Gelisim',
+          6: 'Hedef Takibi & Lise Tercih Onerileri',
+          7: 'LGS Puan Hesaplama',
+          8: 'Kitap Sinavi',
+          9: 'Lise Taban Puanlari',
+          10: 'Odev Takibi',
         };
         
-        const title = tabTitles[tab] || 'Rapor';
+        const title = toAscii(tabTitles[tab] || 'Rapor');
         
         // İçeriği yakala
         const canvas = await html2canvas(tabContent, {
@@ -217,13 +234,15 @@ function StudentDashboardContent() {
         if (reportData?.student) {
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'normal');
-          pdf.text(`${reportData.student.name} - ${reportData.student.class}`, pageWidth / 2, margin + 14, { align: 'center' });
+          const studentInfo = toAscii(`${reportData.student.name} - ${reportData.student.class}`);
+          pdf.text(studentInfo, pageWidth / 2, margin + 14, { align: 'center' });
         }
         
         // Tarih
         pdf.setFontSize(9);
         pdf.setTextColor(100);
-        pdf.text(new Date().toLocaleDateString('tr-TR'), pageWidth / 2, margin + 19, { align: 'center' });
+        const dateStr = toAscii(new Date().toLocaleDateString('tr-TR'));
+        pdf.text(dateStr, pageWidth / 2, margin + 19, { align: 'center' });
         pdf.setTextColor(0);
         
         // İçerik resmini ekle
@@ -267,11 +286,13 @@ function StudentDashboardContent() {
         // Sayfa numarası
         pdf.setFontSize(8);
         pdf.setTextColor(150);
-        pdf.text(`Sayfa ${i + 1}/${selectedTabs.length}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
+        const pageNumText = toAscii(`Sayfa ${i + 1}/${selectedTabs.length}`);
+        pdf.text(pageNumText, pageWidth / 2, pageHeight - 5, { align: 'center' });
         pdf.setTextColor(0);
         
         // İlerleme mesajı
-        setPdfMessage(`Sayfa ${i + 1}/${selectedTabs.length} hazırlanıyor...`);
+        const progressText = toAscii(`Sayfa ${i + 1}/${selectedTabs.length} hazirlaniyor...`);
+        setPdfMessage(progressText);
       }
       
       const date = new Date().toISOString().split('T')[0];
