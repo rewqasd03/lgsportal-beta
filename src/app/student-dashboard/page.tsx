@@ -6,6 +6,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
 import { Student, Exam, Result, getStudentTargets, getStudentScoreTarget, incrementStudentViewCount } from '../../firebase';
 import { initializeApp } from 'firebase/app';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBYfBhkLIfjqpnL9MxBhxW6iJeC0VAEDLk",
@@ -88,9 +90,12 @@ function StudentDashboardContent() {
   const [selectedExamId, setSelectedExamId] = useState<string>('');
   const [allResultsData, setAllResultsData] = useState<Result[]>([]);
   const [allStudentsData, setAllStudentsData] = useState<Student[]>([]);
-  const [evaluationText, setEvaluationText] = useState<string>('');
+  const [selectedTabs, setSelectedTabs] = useState<number[]>([1]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [pdfMessage, setPdfMessage] = useState<string>('');
   
-  // Aktif sekmeye göre dosya adı oluştur
+  // PDF içeriği için ref'ler
+  const pdfContentRef = useRef<HTMLDivElement>(null);
   const getPdfFileName = () => {
     const tabNames: {[key: number]: string} = {
       1: 'Sinav-Sonuclari',
@@ -108,6 +113,96 @@ function StudentDashboardContent() {
     };
     const date = new Date().toISOString().split('T')[0];
     return `LGS-Portal-${tabNames[activeTab] || 'Rapor'}-${date}`;
+  };
+  
+  // Sekme seçimi toggle
+  const toggleTab = (tab: number) => {
+    if (selectedTabs.includes(tab)) {
+      setSelectedTabs(selectedTabs.filter(t => t !== tab));
+    } else {
+      setSelectedTabs([...selectedTabs, tab].sort((a, b) => a - b));
+    }
+  };
+  
+  // Tümünü seç/deseç
+  const toggleAllTabs = () => {
+    if (selectedTabs.length >= 10) {
+      setSelectedTabs([]);
+    } else {
+      setSelectedTabs([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    }
+  };
+  
+  // PDF oluştur
+  const generatePDF = async () => {
+    if (selectedTabs.length === 0) {
+      setPdfMessage('Lütfen en az bir sayfa seçin!');
+      return;
+    }
+    
+    setIsGenerating(true);
+    setPdfMessage('PDF hazırlanıyor...');
+    
+    try {
+      // Önce seçili sekmelere geç ve içerikleri yükle
+      for (const tab of selectedTabs) {
+        if (tab !== activeTab) {
+          setActiveTab(tab);
+        }
+      }
+      
+      // Kısa bir süre bekle (içerikler yüklensin)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // PDF oluştur
+      const element = pdfContentRef.current;
+      if (!element) {
+        throw new Error('PDF içeriği bulunamadı');
+      }
+      
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      const date = new Date().toISOString().split('T')[0];
+      pdf.save(`LGS-Portal-Rapor-${date}.pdf`);
+      
+      setPdfMessage('PDF başarıyla indirildi! ✅');
+    } catch (error) {
+      console.error('PDF hatası:', error);
+      setPdfMessage('PDF oluşturulurken hata oluştu! ❌');
+    } finally {
+      setIsGenerating(false);
+    }
   };
   
   const searchParams = useSearchParams();
@@ -733,7 +828,7 @@ function StudentDashboardContent() {
             <p className="text-gray-600">İlk sınavınızı verdikten sonra burada detaylı raporunuzu görüntüleyebilirsiniz.</p>
           </div>
         ) : (
-          <div>
+          <div ref={pdfContentRef}>
             {/* Tab Navigation */}
             <div className="mb-6">
               <div className="border-b border-gray-200">
@@ -2504,43 +2599,116 @@ function StudentDashboardContent() {
             {activeTab === 11 && (
               <div className="space-y-6">
                 <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 text-white">
-                  <h2 className="text-2xl font-bold mb-2">📄 PDF Rapor İndir</h2>
-                  <p className="text-blue-100">Aktif sekmenin içeriğini PDF olarak indirebilirsiniz</p>
+                  <h2 className="text-2xl font-bold mb-2">📄 PDF Rapor Oluştur</h2>
+                  <p className="text-blue-100">İstediğiniz sayfaları seçerek tek bir PDF dosyası oluşturun</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[
-                    { tab: 1, icon: '📊', title: 'Genel Görünüm', desc: 'Tüm sınav sonuçlarınızın özeti' },
-                    { tab: 2, icon: '📈', title: 'Net Gelişim Trendi', desc: 'Zaman içindeki net gelişiminiz' },
-                    { tab: 3, icon: '📊', title: 'Puan Gelişim Trendi', desc: 'Zaman içindeki puan gelişiminiz' },
-                    { tab: 4, icon: '📚', title: 'Denemeler', desc: 'Tüm denemelerin detaylı listesi' },
-                    { tab: 5, icon: '🎯', title: 'Ders Bazında Gelişim', desc: 'Her dersteki performansınız' },
-                    { tab: 6, icon: '🎯', title: 'Hedef Takibi', desc: 'Hedeflerinize ulaşma durumunuz' },
-                    { tab: 7, icon: '🧮', title: 'LGS Puan Hesaplama', desc: 'Puan hesaplama aracı' },
-                    { tab: 8, icon: '📖', title: 'Kitap Sınavı', desc: 'Kitap sınavı sonuçlarınız' },
-                    { tab: 9, icon: '🎓', title: 'Lise Taban Puanları', desc: 'Lise taban puanları listesi' },
-                    { tab: 10, icon: '📝', title: 'Ödev Takibi', desc: 'Ödevlerinizin durumu' },
-                  ].map((item) => (
+                {/* Seçim Paneli */}
+                <div className="bg-white rounded-xl shadow-md p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-gray-900">Sayfa Seçimi</h3>
                     <button
-                      key={item.tab}
-                      onClick={() => setActiveTab(item.tab)}
-                      className="bg-white rounded-xl shadow-md p-6 text-left hover:shadow-lg transition-shadow border border-gray-100"
+                      onClick={toggleAllTabs}
+                      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                     >
-                      <div className="text-3xl mb-3">{item.icon}</div>
-                      <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                      <p className="text-sm text-gray-500">{item.desc}</p>
+                      {selectedTabs.length >= 10 ? 'Tümünü Kaldır' : 'Tümünü Seç'}
                     </button>
-                  ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[
+                      { tab: 1, icon: '📊', title: 'Genel Görünüm', desc: 'Tüm sınav sonuçlarınızın özeti' },
+                      { tab: 2, icon: '📈', title: 'Net Gelişim Trendi', desc: 'Zaman içindeki net gelişiminiz' },
+                      { tab: 3, icon: '📊', title: 'Puan Gelişim Trendi', desc: 'Zaman içindeki puan gelişiminiz' },
+                      { tab: 4, icon: '📚', title: 'Denemeler', desc: 'Tüm denemelerin detaylı listesi' },
+                      { tab: 5, icon: '🎯', title: 'Ders Bazında Gelişim', desc: 'Her dersteki performansınız' },
+                      { tab: 6, icon: '🎯', title: 'Hedef Takibi', desc: 'Hedeflerinize ulaşma durumunuz' },
+                      { tab: 7, icon: '🧮', title: 'LGS Puan Hesaplama', desc: 'Puan hesaplama aracı' },
+                      { tab: 8, icon: '📖', title: 'Kitap Sınavı', desc: 'Kitap sınavı sonuçlarınız' },
+                      { tab: 9, icon: '🎓', title: 'Lise Taban Puanları', desc: 'Lise taban puanları listesi' },
+                      { tab: 10, icon: '📝', title: 'Ödev Takibi', desc: 'Ödevlerinizin durumu' },
+                    ].map((item) => (
+                      <div
+                        key={item.tab}
+                        onClick={() => toggleTab(item.tab)}
+                        className={`cursor-pointer rounded-lg p-4 border-2 transition-all ${
+                          selectedTabs.includes(item.tab)
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedTabs.includes(item.tab)}
+                            onChange={() => toggleTab(item.tab)}
+                            className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl">{item.icon}</span>
+                              <h4 className="font-medium text-gray-900">{item.title}</h4>
+                            </div>
+                            <p className="text-sm text-gray-500 mt-1">{item.desc}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Seçilen Sayfa Sayısı */}
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
+                    <span className="text-sm text-gray-600">
+                      <strong>{selectedTabs.length}</strong> sayfa seçildi
+                    </span>
+                    <button
+                      onClick={generatePDF}
+                      disabled={isGenerating || selectedTabs.length === 0}
+                      className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium text-white transition-all ${
+                        isGenerating || selectedTabs.length === 0
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-green-600 hover:bg-green-700'
+                      }`}
+                    >
+                      {isGenerating ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          PDF Hazırlanıyor...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          PDF İndir
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Mesaj */}
+                  {pdfMessage && (
+                    <div className={`mt-4 p-3 rounded-lg text-sm font-medium ${
+                      pdfMessage.includes('hata') || pdfMessage.includes('Lütfen')
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-green-100 text-green-700'
+                    }`}>
+                      {pdfMessage}
+                    </div>
+                  )}
                 </div>
 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-                  <h3 className="font-semibold text-yellow-800 mb-2">💡 Nasıl Kullanılır?</h3>
-                  <ol className="text-sm text-yellow-700 space-y-2 list-decimal list-inside">
-                    <li>Yukarıdaki listeden indirmek istediğiniz rapor türünü seçin</li>
-                    <li>Sistem otomatik olarak o sekmeye geçecek</li>
-                    <li>Sekmenin içeriği yüklendikten sonra sayfayı yenileyin veya farklı sekmeye geçip geri dönün</li>
-                    <li>Tarayıcınızın "Farklı Kaydet" veya "Yazdır" özelliğini kullanarak PDF olarak kaydedin</li>
-                  </ol>
+                {/* Bilgilendirme */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                  <h3 className="font-semibold text-blue-800 mb-2">💡 PDF Oluşturma Hakkında</h3>
+                  <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+                    <li>Seçtiğiniz tüm sayfalar tek bir PDF dosyasında birleştirilecek</li>
+                    <li>İşlem birkaç saniye sürebilir, lütfen sabırlı olun</li>
+                    <li>PDF dosyası otomatik olarak indirilecektir</li>
+                  </ul>
                 </div>
               </div>
             )}
