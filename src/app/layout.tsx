@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     apple: "/icon-192.png"
   },
   keywords: ["eğitim", "başarı takip", "LGS", "öğrenci", "rapor", "analiz", "heatmap"],
-  authors: [{ name: "MiniMax Agent" }],
+  authors: [{ name: "Murat UYSAL" }],
   robots: "index, follow"
 };
 
