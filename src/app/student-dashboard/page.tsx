@@ -245,42 +245,18 @@ function StudentDashboardContent() {
         pdf.text(dateStr, pageWidth / 2, margin + 19, { align: 'center' });
         pdf.setTextColor(0);
         
-        // İçerik resmini ekle
+        // İçerik başlangıç pozisyonu
         const contentStartY = margin + 25;
+        const maxContentHeight = pageHeight - margin - 10; // Sayfa sonundan margin kadar boşluk
         
         // İçerik sayfaya sığarsa tek sayfa, sığmazsa çoklu sayfa
-        if (imgHeight <= (pageHeight - contentStartY - margin)) {
-          // Tek sayfa
+        if (imgHeight <= maxContentHeight - contentStartY) {
+          // Tek sayfa - sığdır
           pdf.addImage(imgData, 'PNG', margin, contentStartY, contentWidth, imgHeight);
         } else {
           // Çoklu sayfa - içeriği böl
-          let remainingHeight = imgHeight;
-          let yPosition = contentStartY;
-          const pageContentHeight = pageHeight - contentStartY - margin;
-          
-          while (remainingHeight > 0) {
-            // Mevcut sayfaya sığan kısmı ekle
-            const sliceHeight = Math.min(remainingHeight, pageContentHeight);
-            const sliceCanvas = document.createElement('canvas');
-            sliceCanvas.width = canvas.width;
-            sliceCanvas.height = (sliceHeight * canvas.width) / contentWidth;
-            const sliceCtx = sliceCanvas.getContext('2d');
-            
-            if (sliceCtx) {
-              sliceCtx.fillStyle = '#ffffff';
-              sliceCtx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
-              sliceCtx.drawImage(canvas, 0, (imgHeight - remainingHeight) * (canvas.width / contentWidth), canvas.width, sliceCanvas.height, 0, 0, sliceCanvas.width, sliceCanvas.height);
-              
-              pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, yPosition, contentWidth, sliceHeight);
-            }
-            
-            remainingHeight -= sliceHeight;
-            yPosition = margin;
-            
-            if (remainingHeight > 0) {
-              pdf.addPage();
-            }
-          }
+          // Önce tam sayfayı ekle
+          pdf.addImage(imgData, 'PNG', margin, contentStartY, contentWidth, imgHeight);
         }
         
         // Sayfa numarası
