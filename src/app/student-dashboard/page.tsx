@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
 import { Student, Exam, Result, getStudentTargets, getStudentScoreTarget, incrementStudentViewCount } from '../../firebase';
+import PdfDownloadButton from '../../components/PdfDownloadButton';
 import { initializeApp } from 'firebase/app';
 
 const firebaseConfig = {
@@ -89,6 +90,28 @@ function StudentDashboardContent() {
   const [allResultsData, setAllResultsData] = useState<Result[]>([]);
   const [allStudentsData, setAllStudentsData] = useState<Student[]>([]);
   const [evaluationText, setEvaluationText] = useState<string>('');
+  
+  // PDF İndirme için ref
+  const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Aktif sekmeye göre dosya adı oluştur
+  const getPdfFileName = () => {
+    const tabNames: {[key: number]: string} = {
+      1: 'Sinav-Sonuclari',
+      2: 'Detayli-Analiz',
+      3: 'Hedeflerim',
+      4: 'Sinav-Grafikleri',
+      5: 'Performans-Analizi',
+      6: 'Hedef-Takibi',
+      7: 'Basari-Hedeflerim',
+      8: 'Degerlendirmeler',
+      9: 'Kitap-Sinavlari',
+      10: 'Okuma-Sinavlari',
+      11: 'Okuma-Sinavlarim'
+    };
+    const date = new Date().toISOString().split('T')[0];
+    return `LGS-Portal-${tabNames[activeTab] || 'Rapor'}-${date}`;
+  };
   
   const searchParams = useSearchParams();
   const router = useRouter();
