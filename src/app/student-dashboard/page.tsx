@@ -780,6 +780,15 @@ function StudentDashboardContent() {
               </div>
             </div>
 
+            {/* PDF İndirme Butonu */}
+            <div className="flex justify-end mb-4">
+              <PdfDownloadButton
+                targetRef={contentRef}
+                fileName={getPdfFileName()}
+                label="📄 PDF İndir"
+              />
+            </div>
+
             {/* Tab Content */}
             {activeTab === 1 && (
               <div className="space-y-3">
