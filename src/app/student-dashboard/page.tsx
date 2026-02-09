@@ -6,6 +6,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
 import { Student, Exam, Result, getStudentTargets, getStudentScoreTarget, incrementStudentViewCount } from '../../firebase';
 import { initializeApp } from 'firebase/app';
+import { pdf } from '@react-pdf/renderer';
+import StudentReportPDF from './StudentReportPDF';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBYfBhkLIfjqpnL9MxBhxW6iJeC0VAEDLk",
@@ -92,7 +94,30 @@ function StudentDashboardContent() {
   // İçerik ref'i
   const contentRef = useRef<HTMLDivElement>(null);
   
-  // Tarayıcı yazdırma fonksiyonu
+  // PDF Oluşturma Fonksiyonu
+  const generatePDF = async () => {
+    if (!reportData) return;
+    
+    try {
+      // PDF blob oluştur
+      const blob = await pdf(<StudentReportPDF reportData={reportData} />).toBlob();
+      
+      // Dosyayı indir
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `LGS_Rapor_${reportData.student.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('PDF oluşturma hatası:', error);
+      alert('PDF oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
+    }
+  };
+  
+  // Tarayıcı yazdırma fonksiyonu (eski sistem - yedek olarak tutuyoruz)
   const handlePrint = () => {
     window.print();
   };
@@ -738,13 +763,13 @@ function StudentDashboardContent() {
             </div>
             <div className="flex items-center gap-2 no-print">
               <button
-                onClick={handlePrint}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                onClick={generatePDF}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Yazdır / PDF
+                PDF İndir
               </button>
               <button
                 onClick={() => router.push('/ogrenci')}
