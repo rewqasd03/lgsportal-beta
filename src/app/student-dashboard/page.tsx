@@ -815,7 +815,7 @@ function StudentDashboardContent() {
             <div className="mb-6 no-print">
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((tab) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -835,6 +835,7 @@ function StudentDashboardContent() {
                       {tab === 8 && '📖 Kitap Sınavı'}
                       {tab === 9 && '🎓 Lise Taban Puanları'}
                       {tab === 10 && '📝 Ödev Takibi'}
+                      {tab === 11 && '📄 PDF İndir'}
                     </button>
                   ))}
                 </nav>
@@ -2589,6 +2590,102 @@ function StudentDashboardContent() {
             {/* Tab 10: Ödev Takibi */}
             {activeTab === 10 && reportData && (
               <OdevTakibiTab reportData={reportData} />
+            )}
+
+            {/* Tab 11: PDF İndir */}
+            {activeTab === 11 && reportData && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 text-white">
+                  <h2 className="text-2xl font-bold mb-2">📄 PDF Rapor İndir</h2>
+                  <p className="text-blue-100">Tüm performansınızı içeren profesyonel PDF raporunu indirin</p>
+                </div>
+
+                {/* PDF Preview Card */}
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <div className="flex items-start gap-6">
+                    <div className="w-32 h-40 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200">
+                      <svg className="w-16 h-16 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Öğrenci Performans Raporu</h3>
+                      <p className="text-gray-600 mb-4">
+                        {reportData.student.name} - {reportData.student.class}
+                      </p>
+                      <div className="flex flex-wrap gap-3 mb-4">
+                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">📊 Genel Performans</span>
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">📚 Ders Bazında Analiz</span>
+                        <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">🎯 Hedef Takibi</span>
+                        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">🎓 Lise Önerileri</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={generatePDF}
+                          className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          PDF İndir
+                        </button>
+                        <span className="text-sm text-gray-500">~500KB | 1-2 saniye</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Özellikler */}
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="bg-white rounded-lg shadow p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <h4 className="font-semibold text-gray-900">Hızlı Oluşturma</h4>
+                    </div>
+                    <p className="text-sm text-gray-600">PDF 1-2 saniye içinde hazır</p>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                        </svg>
+                      </div>
+                      <h4 className="font-semibold text-gray-900">Küçük Dosya Boyutu</h4>
+                    </div>
+                    <p className="text-sm text-gray-600">~500KB (eski sistemde 196MB)</p>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <h4 className="font-semibold text-gray-900">Profesyonel Görünüm</h4>
+                    </div>
+                    <p className="text-sm text-gray-600">Düzgün sayfa düzeni ve format</p>
+                  </div>
+                </div>
+
+                {/* Bilgilendirme */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                  <h3 className="font-semibold text-blue-800 mb-2">💡 PDF İçeriği</h3>
+                  <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+                    <li>Öğrenci bilgileri ve performans özeti</li>
+                    <li>Sınıf karşılaştırması ve istatistikler</li>
+                    <li>Deneme geçmişi tablosu</li>
+                    <li>Ders bazında gelişim analizi</li>
+                    <li>Hedef takibi ve lise önerileri</li>
+                  </ul>
+                </div>
+              </div>
             )}
 
             {/* Tab 12: Okuma Sınavları - Sadece 2-A, 3-A, 4-A */}
