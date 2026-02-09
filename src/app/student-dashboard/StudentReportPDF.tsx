@@ -8,6 +8,7 @@ import {
   View,
   StyleSheet,
   Font,
+  Image,
 } from '@react-pdf/renderer';
 
 // Türkçe karakterler için Open Sans fontu kaydetme
@@ -216,10 +217,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000000',
   },
+  chartImage: {
+    width: '100%',
+    height: 250,
+    marginVertical: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
 });
 
 // Ana PDF Dokümanı
-const StudentReportPDF = ({ reportData }) => {
+const StudentReportPDF = ({ reportData, chartImage }) => {
   if (!reportData) return null;
 
   const { student, examResults } = reportData;
@@ -342,6 +351,14 @@ const StudentReportPDF = ({ reportData }) => {
             </View>
           </View>
         </View>
+
+        {/* Grafik */}
+        {chartImage && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📈 Net Gelişim Trendi</Text>
+            <Image src={chartImage} style={styles.chartImage} />
+          </View>
+        )}
 
         {/* Deneme Geçmişi */}
         <View style={styles.section}>

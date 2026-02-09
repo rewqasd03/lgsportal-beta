@@ -7,6 +7,7 @@ import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc }
 import { Student, Exam, Result, getStudentTargets, getStudentScoreTarget, incrementStudentViewCount } from '../../firebase';
 import { initializeApp } from 'firebase/app';
 import { pdf } from '@react-pdf/renderer';
+import html2canvas from 'html2canvas';
 import StudentReportPDF from './StudentReportPDF';
 
 const firebaseConfig = {
@@ -94,13 +95,50 @@ function StudentDashboardContent() {
   // İçerik ref'i
   const contentRef = useRef<HTMLDivElement>(null);
   
-  // PDF Oluşturma Fonksiyonu
+  // Chart ref'leri (PDF için resim yakalama)
+  const netChartRef = useRef<HTMLDivElement>(null);
+  const scoreChartRef = useRef<HTMLDivElement>(null);
+  
+  // PDF oluşturma state
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [pdfProgress, setPdfProgress] = useState('');
+  
+  // PDF Oluşturma Fonksiyonu (Arka planda)
   const generatePDF = async () => {
     if (!reportData) return;
     
+    setIsGeneratingPDF(true);
+    setPdfProgress('Grafikler hazırlanıyor...');
+    
     try {
+      // Chart'ları base64 resim olarak yakala
+      let chartImage = null;
+      
+      if (netChartRef.current) {
+        try {
+          const canvas = await html2canvas(netChartRef.current, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+          });
+          chartImage = canvas.toDataURL('image/png');
+        } catch (err) {
+          console.warn('Chart yakalama hatası:', err);
+        }
+      }
+      
+      setPdfProgress('PDF oluşturuluyor...');
+      
       // PDF blob oluştur
-      const blob = await pdf(<StudentReportPDF reportData={reportData} />).toBlob();
+      const blob = await pdf(
+        <StudentReportPDF 
+          reportData={reportData} 
+          chartImage={chartImage}
+        />
+      ).toBlob();
+      
+      setPdfProgress('İndirme hazırlanıyor...');
       
       // Dosyayı indir
       const url = URL.createObjectURL(blob);
@@ -111,8 +149,19 @@ function StudentDashboardContent() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      
+      setPdfProgress('Tamamlandı!');
+      
+      // 1 saniye sonra loading'i kapat
+      setTimeout(() => {
+        setIsGeneratingPDF(false);
+        setPdfProgress('');
+      }, 1000);
+      
     } catch (error) {
       console.error('PDF oluşturma hatası:', error);
+      setIsGeneratingPDF(false);
+      setPdfProgress('');
       alert('PDF oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
     }
   };
@@ -887,7 +936,8 @@ function StudentDashboardContent() {
                 {/* Ana Net Gelişim Grafiği */}
                 <div className="bg-white rounded-lg shadow p-2">
                   <h3 className="text-xs font-semibold text-gray-800 mb-2">Net Gelişim Trendi</h3>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <div ref={netChartRef}>
+                    <ResponsiveContainer width="100%" height={300}>
                     {/* @ts-ignore */}
                     <LineChart data={netChartData}>
                       {/* @ts-ignore */}
