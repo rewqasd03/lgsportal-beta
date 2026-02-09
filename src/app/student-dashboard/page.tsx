@@ -6,8 +6,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
 import { Student, Exam, Result, getStudentTargets, getStudentScoreTarget, incrementStudentViewCount } from '../../firebase';
 import { initializeApp } from 'firebase/app';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBYfBhkLIfjqpnL9MxBhxW6iJeC0VAEDLk",
@@ -90,275 +88,13 @@ function StudentDashboardContent() {
   const [selectedExamId, setSelectedExamId] = useState<string>('');
   const [allResultsData, setAllResultsData] = useState<Result[]>([]);
   const [allStudentsData, setAllStudentsData] = useState<Student[]>([]);
-  const [selectedTabs, setSelectedTabs] = useState<number[]>([1]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [pdfMessage, setPdfMessage] = useState<string>('');
   
-  // PDF içeriği için ref'ler
-  const pdfContentRef = useRef<HTMLDivElement>(null);
-  const getPdfFileName = () => {
-    const tabNames: {[key: number]: string} = {
-      1: 'Sinav-Sonuclari',
-      2: 'Detayli-Analiz',
-      3: 'Hedeflerim',
-      4: 'Sinav-Grafikleri',
-      5: 'Performans-Analizi',
-      6: 'Hedef-Takibi',
-      7: 'Basari-Hedeflerim',
-      8: 'Degerlendirmeler',
-      9: 'Kitap-Sinavlari',
-      10: 'Okuma-Sinavlari',
-      11: 'PDF-Indir',
-      12: 'Okuma-Sinavlarim'
-    };
-    const date = new Date().toISOString().split('T')[0];
-    return `LGS-Portal-${tabNames[activeTab] || 'Rapor'}-${date}`;
-  };
+  // İçerik ref'i
+  const contentRef = useRef<HTMLDivElement>(null);
   
-  // Türkçe karakterleri düzgün göstermek için dönüştürme
-  const toAscii = (str: string): string => {
-    return str
-      .replace(/ğ/g, 'g')
-      .replace(/Ğ/g, 'G')
-      .replace(/ç/g, 'c')
-      .replace(/Ç/g, 'C')
-      .replace(/ı/g, 'i')
-      .replace(/İ/g, 'I')
-      .replace(/ö/g, 'o')
-      .replace(/Ö/g, 'O')
-      .replace(/ş/g, 's')
-      .replace(/Ş/g, 'S')
-      .replace(/ü/g, 'u')
-      .replace(/Ü/g, 'U');
-  };
-  
-  // Sekme seçimi toggle
-  const toggleTab = (tab: number) => {
-    if (selectedTabs.includes(tab)) {
-      setSelectedTabs(selectedTabs.filter(t => t !== tab));
-    } else {
-      setSelectedTabs([...selectedTabs, tab].sort((a, b) => a - b));
-    }
-  };
-  
-  // Tümünü seç/deseç
-  const toggleAllTabs = () => {
-    if (selectedTabs.length >= 10) {
-      setSelectedTabs([]);
-    } else {
-      setSelectedTabs([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    }
-  };
-  
-  // PDF oluştur
-  const generatePDF = async () => {
-    if (selectedTabs.length === 0) {
-      setPdfMessage('Lütfen en az bir sayfa seçin!');
-      return;
-    }
-    
-    setIsGenerating(true);
-    setPdfMessage('PDF hazırlanıyor...');
-    
-    try {
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-        compress: true,
-      });
-      
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const margin = 10;
-      const contentWidth = pageWidth - (margin * 2);
-      const contentStartY = margin + 25; // Başlık ve bilgiler için alan
-      const maxContentHeight = pageHeight - margin - 10; // Sayfa sonu boşluğu
-      
-      // Grafik içeren sekmeler (daha uzun bekleme süresi gerekiyor)
-      const chartTabs = [1, 2, 3, 5, 6];
-      // Uzun içerikli sekmeler (içerik bölme gerekebilir)
-      const longContentTabs = [5, 6];
-      
-      let totalPagesGenerated = 0;
-      
-      // Her seçili sekme için ayrı sayfa oluştur
-      for (let i = 0; i < selectedTabs.length; i++) {
-        const tab = selectedTabs[i];
-        
-        // Önce o sekmeye geç
-        if (activeTab !== tab) {
-          setActiveTab(tab);
-          // Grafik içeren sekmeler için çok uzun bekleme (2500ms)
-          // Animasyonların tamamen bitmesi için
-          const waitTime = chartTabs.includes(tab) ? 2500 : 1000;
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-        
-        // Ekstra bekleme - sayfanın tamamen stabilize olması için
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Sekme içeriğini bul
-        const tabContent = pdfContentRef.current;
-        if (!tabContent) {
-          console.error(`Tab ${tab} içeriği bulunamadı`);
-          continue;
-        }
-        
-        // Sayfa başlığı ekle
-        const tabTitles: {[key: number]: string} = {
-          1: 'Genel Gorunum',
-          2: 'Net Gelisim Trendi',
-          3: 'Puan Gelisim Trendi',
-          4: 'Denemeler',
-          5: 'Ders Bazinda Gelisim',
-          6: 'Hedef Takibi & Lise Tercih Onerileri',
-          7: 'LGS Puan Hesaplama',
-          8: 'Kitap Sinavi',
-          9: 'Lise Taban Puanlari',
-          10: 'Odev Takibi',
-        };
-        
-        const title = toAscii(tabTitles[tab] || 'Rapor');
-        
-        // Düşük scale ile çok küçük dosya boyutu (0.5 = %50 küçültme)
-        // Çok büyük içerikler için 0.25 bile kullanılabilir
-        const canvas = await html2canvas(tabContent, {
-          scale: 0.5, // Önceki: 1, Bu değişiklik dosya boyutunu 4 kat azaltır
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          windowWidth: tabContent.scrollWidth || 1200,
-          windowHeight: tabContent.scrollHeight || 2000,
-        });
-        
-        // Düşük JPEG kalitesi ile daha küçük dosya (0.5 = %50 sıkıştırma)
-        const imgData = canvas.toDataURL('image/jpeg', 0.5);
-        const imgHeight = (canvas.height * contentWidth) / canvas.width;
-        
-        // İçerik bir sayfaya sığarsa tek parça ekle
-        if (imgHeight <= maxContentHeight - contentStartY) {
-          if (i > 0) {
-            pdf.addPage();
-          }
-          
-          // Başlık ekle
-          pdf.setFontSize(16);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text(title, pageWidth / 2, margin + 8, { align: 'center' });
-          
-          if (reportData?.student) {
-            pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'normal');
-            const studentInfo = toAscii(`${reportData.student.name} - ${reportData.student.class}`);
-            pdf.text(studentInfo, pageWidth / 2, margin + 14, { align: 'center' });
-          }
-          
-          pdf.setFontSize(9);
-          pdf.setTextColor(100);
-          const dateStr = toAscii(new Date().toLocaleDateString('tr-TR'));
-          pdf.text(dateStr, pageWidth / 2, margin + 19, { align: 'center' });
-          pdf.setTextColor(0);
-          
-          // İçerik ekle
-          pdf.addImage(imgData, 'JPEG', margin, contentStartY, contentWidth, imgHeight);
-          
-          // Sayfa numarası
-          pdf.setFontSize(8);
-          pdf.setTextColor(150);
-          const pageNumText = toAscii(`Sayfa ${totalPagesGenerated + 1}/${selectedTabs.length}`);
-          pdf.text(pageNumText, pageWidth / 2, pageHeight - 5, { align: 'center' });
-          pdf.setTextColor(0);
-          
-          totalPagesGenerated++;
-        } else {
-          // İçerik çok uzun - sayfaya böl
-          // Canvas yüksekliğini pixel cinsinden hesapla
-          const canvasHeight = canvas.height;
-          const canvasWidth = canvas.width;
-          
-          // Bir A4 sayfasına sığacak yükseklik (pixel cinsinden)
-          // PDF yüksekliği = imgHeight, contentWidth ile orantılı
-          const pageImgHeight = maxContentHeight - contentStartY;
-          const pageCanvasHeight = Math.floor(pageImgHeight * canvasWidth / contentWidth);
-          
-          // Toplam kaç sayfa gerekiyor
-          const numPages = Math.ceil(canvasHeight / pageCanvasHeight);
-          
-          console.log(`Tab ${tab}: Canvas yüksekliği=${canvasHeight}px, Her sayfa=${pageCanvasHeight}px, Toplam sayfa=${numPages}`);
-          
-          for (let pageIdx = 0; pageIdx < numPages; pageIdx++) {
-            if (pageIdx > 0 || i > 0) {
-              pdf.addPage();
-            }
-            
-            // Başlık ekle
-            pdf.setFontSize(16);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(title, pageWidth / 2, margin + 8, { align: 'center' });
-            
-            if (reportData?.student) {
-              pdf.setFontSize(10);
-              pdf.setFont('helvetica', 'normal');
-              const studentInfo = toAscii(`${reportData.student.name} - ${reportData.student.class}`);
-              pdf.text(studentInfo, pageWidth / 2, margin + 14, { align: 'center' });
-            }
-            
-            pdf.setFontSize(9);
-            pdf.setTextColor(100);
-            const dateStr = toAscii(new Date().toLocaleDateString('tr-TR'));
-            pdf.text(dateStr, pageWidth / 2, margin + 19, { align: 'center' });
-            pdf.setTextColor(0);
-            
-            // Bu sayfa için canvas bölgesini al
-            const startY = pageIdx * pageCanvasHeight;
-            const endY = Math.min(startY + pageCanvasHeight, canvasHeight);
-            const sliceHeight = endY - startY;
-            
-            // Canvas'tan sadece bu bölgeyi al
-            const sliceCanvas = document.createElement('canvas');
-            sliceCanvas.width = canvasWidth;
-            sliceCanvas.height = sliceHeight;
-            const sliceCtx = sliceCanvas.getContext('2d');
-            
-            if (sliceCtx) {
-              sliceCtx.fillStyle = '#ffffff';
-              sliceCtx.fillRect(0, 0, canvasWidth, sliceHeight);
-              sliceCtx.drawImage(canvas, 0, startY, canvasWidth, sliceHeight, 0, 0, canvasWidth, sliceHeight);
-            }
-            
-            const sliceImgData = sliceCanvas.toDataURL('image/jpeg', 0.5);
-            const sliceImgHeight = (sliceHeight * contentWidth) / canvasWidth;
-            
-            // İçerik ekle
-            pdf.addImage(sliceImgData, 'JPEG', margin, contentStartY, contentWidth, sliceImgHeight);
-            
-            // Sayfa numarası
-            pdf.setFontSize(8);
-            pdf.setTextColor(150);
-            const pageNumText = toAscii(`Sayfa ${totalPagesGenerated + 1}/${selectedTabs.length}+`);
-            pdf.text(pageNumText, pageWidth / 2, pageHeight - 5, { align: 'center' });
-            pdf.setTextColor(0);
-            
-            totalPagesGenerated++;
-          }
-        }
-        
-        // İlerleme mesajı
-        const progressText = toAscii(`Sayfa ${i + 1}/${selectedTabs.length} hazır (toplam ${totalPagesGenerated} sayfa)...`);
-        setPdfMessage(progressText);
-      }
-      
-      const date = new Date().toISOString().split('T')[0];
-      pdf.save(`LGS-Portal-Rapor-${date}.pdf`);
-      
-      setPdfMessage(`PDF başarıyla indirildi! (${totalPagesGenerated} sayfa) ✅`);
-    } catch (error) {
-      console.error('PDF hatası:', error);
-      setPdfMessage('PDF oluşturulurken hata oluştu! ❌');
-    } finally {
-      setIsGenerating(false);
-    }
+  // Tarayıcı yazdırma fonksiyonu
+  const handlePrint = () => {
+    window.print();
   };
   
   const searchParams = useSearchParams();
@@ -931,6 +667,60 @@ function StudentDashboardContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <style>{`
+        @media print {
+          @page {
+            margin: 0.5cm;
+            size: portrait;
+          }
+          
+          body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          /* Hide navigation and buttons when printing */
+          .no-print {
+            display: none !important;
+          }
+          
+          /* Ensure charts print properly */
+          .recharts-responsive-container {
+            page-break-inside: avoid;
+          }
+          
+          /* Avoid breaking inside tables */
+          table {
+            page-break-inside: avoid;
+          }
+          
+          /* Ensure content doesn't overflow */
+          .overflow-x-auto {
+            overflow: visible !important;
+          }
+          
+          /* Proper page breaks */
+          .page-break {
+            page-break-after: always;
+          }
+          
+          /* Avoid breaking inside cards */
+          .bg-white.rounded-lg, .bg-white.rounded-xl, .bg-white.rounded {
+            page-break-inside: avoid;
+          }
+          
+          /* Remove shadows for cleaner print */
+          .shadow, .shadow-md, .shadow-lg, .shadow-sm {
+            box-shadow: none !important;
+          }
+          
+          /* Minimize background colors for ink saving */
+          .bg-gray-50, .bg-blue-50, .bg-green-50, .bg-purple-50, .bg-yellow-50 {
+            background-color: transparent !important;
+          }
+        }
+      `}</style>
+      
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
@@ -946,12 +736,23 @@ function StudentDashboardContent() {
                 <p className="text-xs text-gray-600">{reportData.student.name} - {reportData.student.class}</p>
               </div>
             </div>
-            <button
-              onClick={() => router.push('/ogrenci')}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
-            >
-              ← Ana Sayfa
-            </button>
+            <div className="flex items-center gap-2 no-print">
+              <button
+                onClick={handlePrint}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Yazdır / PDF
+              </button>
+              <button
+                onClick={() => router.push('/ogrenci')}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+              >
+                ← Ana Sayfa
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -984,12 +785,12 @@ function StudentDashboardContent() {
             <p className="text-gray-600">İlk sınavınızı verdikten sonra burada detaylı raporunuzu görüntüleyebilirsiniz.</p>
           </div>
         ) : (
-          <div ref={pdfContentRef}>
+          <div ref={contentRef}>
             {/* Tab Navigation */}
-            <div className="mb-6">
+            <div className="mb-6 no-print">
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((tab) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -1009,7 +810,6 @@ function StudentDashboardContent() {
                       {tab === 8 && '📖 Kitap Sınavı'}
                       {tab === 9 && '🎓 Lise Taban Puanları'}
                       {tab === 10 && '📝 Ödev Takibi'}
-                      {tab === 11 && '📄 PDF İndir'}
                     </button>
                   ))}
                 </nav>
@@ -2764,124 +2564,6 @@ function StudentDashboardContent() {
             {/* Tab 10: Ödev Takibi */}
             {activeTab === 10 && reportData && (
               <OdevTakibiTab reportData={reportData} />
-            )}
-
-            {/* Tab 11: PDF İndir */}
-            {activeTab === 11 && (
-              <div className="space-y-6">
-                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 text-white">
-                  <h2 className="text-2xl font-bold mb-2">📄 PDF Rapor Oluştur</h2>
-                  <p className="text-blue-100">İstediğiniz sayfaları seçerek tek bir PDF dosyası oluşturun</p>
-                </div>
-
-                {/* Seçim Paneli */}
-                <div className="bg-white rounded-xl shadow-md p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-900">Sayfa Seçimi</h3>
-                    <button
-                      onClick={toggleAllTabs}
-                      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                      {selectedTabs.length >= 10 ? 'Tümünü Kaldır' : 'Tümünü Seç'}
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {[
-                      { tab: 1, icon: '📊', title: 'Genel Görünüm', desc: 'Tüm sınav sonuçlarınızın özeti' },
-                      { tab: 2, icon: '📈', title: 'Net Gelişim Trendi', desc: 'Zaman içindeki net gelişiminiz' },
-                      { tab: 3, icon: '📊', title: 'Puan Gelişim Trendi', desc: 'Zaman içindeki puan gelişiminiz' },
-                      { tab: 4, icon: '📚', title: 'Denemeler', desc: 'Tüm denemelerin detaylı listesi' },
-                      { tab: 5, icon: '🎯', title: 'Ders Bazında Gelişim', desc: 'Her dersteki performansınız' },
-                      { tab: 6, icon: '🎯', title: 'Hedef Takibi', desc: 'Hedeflerinize ulaşma durumunuz' },
-                      { tab: 7, icon: '🧮', title: 'LGS Puan Hesaplama', desc: 'Puan hesaplama aracı' },
-                      { tab: 8, icon: '📖', title: 'Kitap Sınavı', desc: 'Kitap sınavı sonuçlarınız' },
-                      { tab: 9, icon: '🎓', title: 'Lise Taban Puanları', desc: 'Lise taban puanları listesi' },
-                      { tab: 10, icon: '📝', title: 'Ödev Takibi', desc: 'Ödevlerinizin durumu' },
-                    ].map((item) => (
-                      <div
-                        key={item.tab}
-                        onClick={() => toggleTab(item.tab)}
-                        className={`cursor-pointer rounded-lg p-4 border-2 transition-all ${
-                          selectedTabs.includes(item.tab)
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <input
-                            type="checkbox"
-                            checked={selectedTabs.includes(item.tab)}
-                            onChange={() => toggleTab(item.tab)}
-                            className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                          />
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xl">{item.icon}</span>
-                              <h4 className="font-medium text-gray-900">{item.title}</h4>
-                            </div>
-                            <p className="text-sm text-gray-500 mt-1">{item.desc}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Seçilen Sayfa Sayısı */}
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
-                    <span className="text-sm text-gray-600">
-                      <strong>{selectedTabs.length}</strong> sayfa seçildi
-                    </span>
-                    <button
-                      onClick={generatePDF}
-                      disabled={isGenerating || selectedTabs.length === 0}
-                      className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium text-white transition-all ${
-                        isGenerating || selectedTabs.length === 0
-                          ? 'bg-gray-400 cursor-not-allowed'
-                          : 'bg-green-600 hover:bg-green-700'
-                      }`}
-                    >
-                      {isGenerating ? (
-                        <>
-                          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          PDF Hazırlanıyor...
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
-                          PDF İndir
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Mesaj */}
-                  {pdfMessage && (
-                    <div className={`mt-4 p-3 rounded-lg text-sm font-medium ${
-                      pdfMessage.includes('hata') || pdfMessage.includes('Lütfen')
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-green-100 text-green-700'
-                    }`}>
-                      {pdfMessage}
-                    </div>
-                  )}
-                </div>
-
-                {/* Bilgilendirme */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                  <h3 className="font-semibold text-blue-800 mb-2">💡 PDF Oluşturma Hakkında</h3>
-                  <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
-                    <li>Seçtiğiniz tüm sayfalar tek bir PDF dosyasında birleştirilecek</li>
-                    <li>İşlem birkaç saniye sürebilir, lütfen sabırlı olun</li>
-                    <li>PDF dosyası otomatik olarak indirilecektir</li>
-                  </ul>
-                </div>
-              </div>
             )}
 
             {/* Tab 12: Okuma Sınavları - Sadece 2-A, 3-A, 4-A */}
