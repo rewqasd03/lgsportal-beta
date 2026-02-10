@@ -1151,7 +1151,8 @@ const TABS: Tab[] = [
   { key: "analytics", label: "📊 Analitik & Raporlar" },
   { key: "van-taban-puan", label: "🎓 Lise Taban Puanları" },
   { key: "puan-bazli-tavsiye", label: "🎯 Puan Bazlı Tavsiye" },
-  { key: "okuma-sinavi", label: "📚 Okuma Sınavı" }
+  { key: "okuma-sinavi", label: "📚 Okuma Sınavı" },
+  { key: "brans-denemesi", label: "📝 Branş Denemesi" }
 ];
 
 // 📊 DERS RENK KODLAMASI - Görsel iyileştirme
@@ -4081,6 +4082,7 @@ export default function FoncsDataEntry() {
       case "van-taban-puan": return <VanTabanPuanTab lgsSchools={lgsSchools} obpSchools={obpSchools} />;
       case "puan-bazli-tavsiye": return <PuanBazliLiseTavsiyesiTab students={students} results={results} exams={exams} lgsSchools={lgsSchools} obpSchools={obpSchools} />;
       case "okuma-sinavi": return <OkumaSinaviTab students={students} />;
+      case "brans-denemesi": return <BransDenemesiTab students={students} />;
       default: return <HomeTab />;
     }
   };
@@ -8616,6 +8618,542 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
             <div>
               <p className="font-medium">Analiz Et</p>
               <p className="text-sm">Sınıf bazlı istatistikleri inceleyin.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 📝 BRANS DENEMESİ TAB COMPONENT
+const BransDenemesiTab = ({ students }: { students: any[] }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'ekle' | 'listele'>('ekle');
+  const [selectedDers, setSelectedDers] = useState<string>('');
+  const [soruSayisi, setSoruSayisi] = useState<number>(20);
+  const [tarih, setTarih] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedSinif, setSelectedSinif] = useState<string>('');
+  const [studentScores, setStudentScores] = useState<{ [studentId: string]: { dogru: number; yanlis: number; bos: number } }>({});
+  const [loading, setLoading] = useState(false);
+  const [savedExams, setSavedExams] = useState<any[]>([]);
+  const [examResults, setExamResults] = useState<any[]>([]);
+  const [selectedExam, setSelectedExam] = useState<any>(null);
+
+  // Ders seçenekleri (8. sınıf için LGS dersleri)
+  const dersler = [
+    { key: 'turkce', name: 'Türkçe', color: '#10B981' },
+    { key: 'matematik', name: 'Matematik', color: '#F59E0B' },
+    { key: 'fen', name: 'Fen Bilimleri', color: '#3B82F6' },
+    { key: 'sosyal', name: 'Sosyal Bilgiler', color: '#8B5CF6' },
+    { key: 'ingilizce', name: 'İngilizce', color: '#EF4444' },
+    { key: 'din', name: 'Din Kültürü', color: '#F97316' }
+  ];
+
+  // 8. sınıf seçenekleri
+  const siniflar = ['8-A', '8-B', '8-C'];
+
+  // Seçilen sınıfa ait öğrenciler (alfabetik sıralı)
+  const filteredStudents = selectedSinif
+    ? students.filter(s => s.class === selectedSinif).sort((a, b) => a.name.localeCompare(b.name))
+    : [];
+
+  // Kayıtlı denemeleri yükle
+  useEffect(() => {
+    loadSavedExams();
+  }, []);
+
+  const loadSavedExams = async () => {
+    try {
+      const { getBransDenemeleri } = await import('../../firebase');
+      const exams = await getBransDenemeleri();
+      setSavedExams(exams);
+    } catch (error) {
+      console.error('Denemeleri yükleme hatası:', error);
+    }
+  };
+
+  // Seçilen denemenin sonuçlarını yükle
+  const loadExamResults = async (examId: string) => {
+    try {
+      const { getBransDenemesiSonuclari } = await import('../../firebase');
+      const results = await getBransDenemesiSonuclari(examId);
+      setExamResults(results);
+
+      // Öğrenci skorlarını doldur
+      const scoresMap: { [studentId: string]: { dogru: number; yanlis: number; bos: number } } = {};
+      results.forEach(r => {
+        scoresMap[r.studentId] = { dogru: r.dogru, yanlis: r.yanlis, bos: r.bos };
+      });
+      setStudentScores(prev => ({ ...prev, ...scoresMap }));
+    } catch (error) {
+      console.error('Deneme sonuçlarını yükleme hatası:', error);
+    }
+  };
+
+  // Deneme seçildiğinde sonuçları yükle
+  useEffect(() => {
+    if (selectedExam) {
+      loadExamResults(selectedExam.id);
+    }
+  }, [selectedExam]);
+
+  // Skor değişikliği (net otomatik hesaplanır: Dogru - Yanlis/3)
+  const handleScoreChange = (studentId: string, field: 'dogru' | 'yanlis' | 'bos', value: string) => {
+    const numValue = parseInt(value) || 0;
+    setStudentScores(prev => ({
+      ...prev,
+      [studentId]: {
+        ...prev[studentId],
+        [field]: numValue
+      }
+    }));
+  };
+
+  // Net hesaplama fonksiyonu (3 yanlış = 1 doğruyu götürür)
+  const calculateNet = (dogru: number, yanlis: number) => {
+    const net = dogru - (yanlis / 3);
+    return Math.round(net * 10) / 10; // 1 decimal basamak
+  };
+
+  // Denemeyi kaydet
+  const saveExam = async () => {
+    if (!selectedDers || !selectedSinif || !tarih) {
+      alert('Lütfen tüm alanları doldurun!');
+      return;
+    }
+
+    const studentsWithScores = filteredStudents.filter(s => studentScores[s.id] &&
+      (studentScores[s.id].dogru > 0 || studentScores[s.id].yanlis > 0 || studentScores[s.id].bos > 0));
+
+    if (studentsWithScores.length === 0) {
+      alert('Lütfen en az bir öğrenci için skor girin!');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { addBransDenemesi, addBulkBransDenemesiSonuclari } = await import('../../firebase');
+
+      // Önce denemeyi oluştur
+      const denemeId = await addBransDenemesi({
+        ders: selectedDers,
+        soruSayisi,
+        tarih,
+        sinif: selectedSinif
+      });
+
+      // Sonra sonuçları ekle
+      const results = studentsWithScores.map(student => {
+        const scores = studentScores[student.id];
+        const net = calculateNet(scores.dogru, scores.yanlis);
+        return {
+          denemeId,
+          studentId: student.id,
+          studentName: student.name,
+          studentClass: student.class,
+          dogru: scores.dogru,
+          yanlis: scores.yanlis,
+          bos: scores.bos,
+          net,
+          tarih
+        };
+      });
+
+      await addBulkBransDenemesiSonuclari(results);
+
+      alert(`✅ ${results.length} öğrencinin branş denemesi başarıyla kaydedildi!`);
+
+      // Formu temizle
+      setSelectedDers('');
+      setSelectedSinif('');
+      setStudentScores({});
+
+      // Verileri yenile
+      await loadSavedExams();
+    } catch (error) {
+      console.error('Deneme kaydetme hatası:', error);
+      alert('Deneme kaydedilirken bir hata oluştu!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Deneme silme
+  const deleteExam = async (examId: string) => {
+    if (!confirm('Bu denemeyi ve tüm sonuçlarını silmek istediğinize emin misiniz?')) return;
+
+    try {
+      const { deleteBransDenemesi } = await import('../../firebase');
+      await deleteBransDenemesi(examId);
+      await loadSavedExams();
+      setSelectedExam(null);
+      setExamResults([]);
+    } catch (error) {
+      console.error('Deneme silme hatası:', error);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Başlık */}
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
+        <h2 className="text-3xl font-bold mb-4">📝 Branş Denemesi Yönetimi</h2>
+        <p className="text-indigo-100 text-lg">
+          8. sınıf öğrencileri için branş denemeleri oluşturun ve sonuçlarını takip edin
+        </p>
+      </div>
+
+      {/* Alt Sekmeler */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setActiveSubTab('ekle')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              activeSubTab === 'ekle'
+                ? 'bg-indigo-500 text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            ➕ Branş Denemesi Ekle
+          </button>
+          <button
+            onClick={() => setActiveSubTab('listele')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              activeSubTab === 'listele'
+                ? 'bg-indigo-500 text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            📋 Branş Denemesi Listele
+          </button>
+        </div>
+      </div>
+
+      {/* BRANŞ DENEMESİ EKLE */}
+      {activeSubTab === 'ekle' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">➕ Yeni Branş Denemesi Ekle</h3>
+
+          {/* Ders, Soru Sayısı, Tarih ve Sınıf Seçimi */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📚 Ders Seçin
+              </label>
+              <select
+                value={selectedDers}
+                onChange={(e) => setSelectedDers(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="">Ders seçin...</option>
+                {dersler.map(ders => (
+                  <option key={ders.key} value={ders.key}>{ders.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📝 Soru Sayısı
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={soruSayisi}
+                onChange={(e) => setSoruSayisi(parseInt(e.target.value) || 20)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📅 Sınav Tarihi
+              </label>
+              <input
+                type="date"
+                value={tarih}
+                onChange={(e) => setTarih(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                🏫 Sınıf Seçin
+              </label>
+              <select
+                value={selectedSinif}
+                onChange={(e) => {
+                  setSelectedSinif(e.target.value);
+                  setStudentScores({});
+                }}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="">Sınıf seçin...</option>
+                {siniflar.map(sinif => (
+                  <option key={sinif} value={sinif}>{sinif}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Öğrenci Listesi */}
+          {selectedSinif && (
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-semibold text-gray-700">
+                  👨‍🎓 {selectedSinif} Sınıfı Öğrencileri
+                </h4>
+                <span className="text-sm text-gray-500">
+                  {filteredStudents.length} öğrenci
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200 rounded-lg">
+                  <thead>
+                    <tr className="bg-indigo-50">
+                      <th className="border border-gray-200 p-3 text-left">Öğrenci Adı</th>
+                      <th className="border border-gray-200 p-3 text-center w-24">Doğru</th>
+                      <th className="border border-gray-200 p-3 text-center w-24">Yanlış</th>
+                      <th className="border border-gray-200 p-3 text-center w-24">Boş</th>
+                      <th className="border border-gray-200 p-3 text-center w-28">Net</th>
+                      <th className="border border-gray-200 p-3 text-center w-24">Durum</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredStudents.map(student => {
+                      const scores = studentScores[student.id] || { dogru: 0, yanlis: 0, bos: 0 };
+                      const net = calculateNet(scores.dogru, scores.yanlis);
+                      const hasAnyScore = scores.dogru > 0 || scores.yanlis > 0 || scores.bos > 0;
+
+                      return (
+                        <tr key={student.id} className="hover:bg-gray-50">
+                          <td className="border border-gray-200 p-3">
+                            <div className="font-medium text-gray-900">{student.name}</div>
+                            <div className="text-sm text-gray-500">No: {student.number}</div>
+                          </td>
+                          <td className="border border-gray-200 p-3 text-center">
+                            <input
+                              type="number"
+                              min="0"
+                              max={soruSayisi}
+                              value={scores.dogru || ''}
+                              onChange={(e) => handleScoreChange(student.id, 'dogru', e.target.value)}
+                              placeholder="0"
+                              className="w-20 p-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            />
+                          </td>
+                          <td className="border border-gray-200 p-3 text-center">
+                            <input
+                              type="number"
+                              min="0"
+                              max={soruSayisi}
+                              value={scores.yanlis || ''}
+                              onChange={(e) => handleScoreChange(student.id, 'yanlis', e.target.value)}
+                              placeholder="0"
+                              className="w-20 p-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                            />
+                          </td>
+                          <td className="border border-gray-200 p-3 text-center">
+                            <input
+                              type="number"
+                              min="0"
+                              max={soruSayisi}
+                              value={scores.bos || ''}
+                              onChange={(e) => handleScoreChange(student.id, 'bos', e.target.value)}
+                              placeholder="0"
+                              className="w-20 p-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                            />
+                          </td>
+                          <td className="border border-gray-200 p-3 text-center">
+                            <span className={`text-lg font-bold ${net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {hasAnyScore ? net : '-'}
+                            </span>
+                          </td>
+                          <td className="border border-gray-200 p-3 text-center">
+                            {hasAnyScore ? (
+                              <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded text-sm">
+                                ✓ Girildi
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-500 rounded text-sm">
+                                -
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Kaydet Butonu */}
+          {selectedSinif && filteredStudents.length > 0 && (
+            <div className="flex justify-end">
+              <button
+                onClick={saveExam}
+                disabled={loading}
+                className="px-8 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium flex items-center"
+              >
+                {loading ? '⏳ Kaydediliyor...' : '💾 Denemeyi Kaydet'}
+              </button>
+            </div>
+          )}
+
+          {/* Yardım Bilgileri */}
+          <div className="mt-6 p-4 bg-indigo-50 rounded-lg">
+            <p className="text-indigo-800 text-sm">
+              <strong>📌 Net Hesaplama:</strong> Net = Doğru - (Yanlış / 3)<br />
+              <strong>📌 Örnek:</strong> 15 Doğru, 6 Yanlış → Net = 15 - (6/3) = 13.0
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* BRANŞ DENEMESİ LİSTELE */}
+      {activeSubTab === 'listele' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-semibold text-gray-800">📋 Kayıtlı Branş Denemeleri</h3>
+            <button
+              onClick={() => loadSavedExams()}
+              className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors flex items-center gap-2"
+            >
+              🔄 Yenile
+            </button>
+          </div>
+
+          {savedExams.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-6xl mb-4">📝</div>
+              <h4 className="text-lg font-semibold text-gray-600 mb-2">Henüz Deneme Yok</h4>
+              <p>Yeni branş denemesi ekleyerek başlayın.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {savedExams.map(exam => {
+                const examDers = dersler.find(d => d.key === exam.ders);
+                return (
+                  <div key={exam.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div
+                            className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
+                            style={{ backgroundColor: examDers?.color || '#6366f1' }}
+                          >
+                            {examDers?.name?.charAt(0) || 'B'}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-800">{examDers?.name || exam.ders} Branş Denemesi</h4>
+                            <p className="text-sm text-gray-500">
+                              {exam.sinif} • {new Date(exam.tarih).toLocaleDateString('tr-TR')} • {exam.soruSayisi} soru
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setSelectedExam(selectedExam?.id === exam.id ? null : exam)}
+                          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                        >
+                          {selectedExam?.id === exam.id ? 'Kapat' : 'Sonuçları Gör'}
+                        </button>
+                        <button
+                          onClick={() => deleteExam(exam.id)}
+                          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
+                        >
+                          Sil
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Sonuçlar */}
+                    {selectedExam?.id === exam.id && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <h5 className="font-medium text-gray-700 mb-3">📊 Sonuçlar</h5>
+                        {examResults.length === 0 ? (
+                          <p className="text-gray-500 text-sm">Bu deneme için henüz sonuç girilmemiş.</p>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table className="w-full border-collapse text-sm">
+                              <thead>
+                                <tr className="bg-gray-100">
+                                  <th className="border border-gray-300 p-2 text-left">Öğrenci</th>
+                                  <th className="border border-gray-300 p-2 text-center">Doğru</th>
+                                  <th className="border border-gray-300 p-2 text-center">Yanlış</th>
+                                  <th className="border border-gray-300 p-2 text-center">Boş</th>
+                                  <th className="border border-gray-300 p-2 text-center">Net</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {examResults.sort((a, b) => b.net - a.net).map((result, idx) => (
+                                  <tr key={idx} className="hover:bg-gray-50">
+                                    <td className="border border-gray-300 p-2">{result.studentName}</td>
+                                    <td className="border border-gray-300 p-2 text-center text-green-600 font-medium">{result.dogru}</td>
+                                    <td className="border border-gray-300 p-2 text-center text-red-600">{result.yanlis}</td>
+                                    <td className="border border-gray-300 p-2 text-center text-gray-500">{result.bos}</td>
+                                    <td className="border border-gray-300 p-2 text-center font-bold text-indigo-600">
+                                      {result.net.toFixed(1)}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Yardım Bilgileri */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center">
+          <span className="text-indigo-600 mr-3">💡</span>
+          Nasıl Kullanılır?
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-indigo-800">
+          <div className="flex items-start">
+            <span className="bg-indigo-200 text-indigo-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+            <div>
+              <p className="font-medium">Deneme Oluştur</p>
+              <p className="text-sm">Ders, soru sayısı, tarih ve sınıf seçin.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <span className="bg-indigo-200 text-indigo-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+            <div>
+              <p className="font-medium">Skorları Girin</p>
+              <p className="text-sm">Her öğrenci için doğru, yanlış ve boş sayılarını girin.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <span className="bg-indigo-200 text-indigo-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
+            <div>
+              <p className="font-medium">Net Hesaplama</p>
+              <p className="text-sm">Sistem otomatik olarak netleri hesaplar (3 yanlış = 1 doğru).</p>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <span className="bg-indigo-200 text-indigo-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
+            <div>
+              <p className="font-medium">Takip Edin</p>
+              <p className="text-sm">Öğrenciler kendi panellerinden sonuçları görebilir.</p>
             </div>
           </div>
         </div>

@@ -2674,7 +2674,7 @@ export const getOkumaSinaviStats = async (studentId: string): Promise<{
 }> => {
   try {
     const sinavlar = await getOkumaSinavlariByStudent(studentId);
-    
+
     if (sinavlar.length === 0) {
       return {
         totalExams: 0,
@@ -2684,7 +2684,7 @@ export const getOkumaSinaviStats = async (studentId: string): Promise<{
         lastExamDate: null
       };
     }
-    
+
     const wpms = sinavlar.map(s => s.wpm);
     return {
       totalExams: sinavlar.length,
@@ -2697,4 +2697,234 @@ export const getOkumaSinaviStats = async (studentId: string): Promise<{
     console.error('Okuma sınavı istatistikleri getirme hatası:', error);
     throw error;
   }
+};
+
+// 📝 BRANS DENEMESİ INTERFACE'LERİ
+export interface BransDenemesi {
+  id: string;
+  ders: string;        // Ders adı (Türkçe, Matematik, etc.)
+  soruSayisi: number;  // Toplam soru sayısı
+  tarih: string;       // Sınav tarihi (YYYY-MM-DD)
+  sinif: string;       // Sınıf (8-A, 8-B, etc.)
+  createdAt: string;   // Oluşturulma tarihi
 }
+
+export interface BransDenemesiSonuc {
+  id: string;
+  denemeId: string;    // Branş denemesi ID
+  studentId: string;   // Öğrenci ID
+  studentName: string; // Öğrenci adı
+  studentClass: string;// Öğrenci sınıfı
+  dogru: number;       // Doğru sayısı
+  yanlis: number;      // Yanlış sayısı
+  bos: number;         // Boş sayısı
+  net: number;         // Net (Dogru - Yanlis/3)
+  tarih: string;       // Sınav tarihi (YYYY-MM-DD)
+  createdAt: string;   // Oluşturulma tarihi
+}
+
+// Branş denemesi oluştur
+export const addBransDenemesi = async (deneme: Omit<BransDenemesi, 'id' | 'createdAt'>): Promise<string> => {
+  try {
+    const docRef = await addDoc(collection(db, 'bransDenemeleri'), {
+      ...deneme,
+      createdAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Branş denemesi ekleme hatası:', error);
+    throw error;
+  }
+};
+
+// Tüm branş denemelerini getir
+export const getBransDenemeleri = async (): Promise<BransDenemesi[]> => {
+  try {
+    const q = query(collection(db, 'bransDenemeleri'), orderBy('tarih', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as BransDenemesi[];
+  } catch (error) {
+    console.error('Branş denemeleri getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Sınıfa göre branş denemelerini getir
+export const getBransDenemeleriBySinif = async (sinif: string): Promise<BransDenemesi[]> => {
+  try {
+    const q = query(
+      collection(db, 'bransDenemeleri'),
+      where('sinif', '==', sinif),
+      orderBy('tarih', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as BransDenemesi[];
+  } catch (error) {
+    console.error('Sınıf branş denemeleri getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Branş denemesi sonucu ekle
+export const addBransDenemesiSonuc = async (sonuc: Omit<BransDenemesiSonuc, 'id' | 'createdAt'>): Promise<string> => {
+  try {
+    const docRef = await addDoc(collection(db, 'bransDenemesiSonuclari'), {
+      ...sonuc,
+      createdAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Branş denemesi sonucu ekleme hatası:', error);
+    throw error;
+  }
+};
+
+// Toplu branş denemesi sonucu ekle
+export const addBulkBransDenemesiSonuclari = async (sonuclar: Omit<BransDenemesiSonuc, 'id' | 'createdAt'>[]): Promise<void> => {
+  try {
+    const batch = writeBatch(db);
+    sonuclar.forEach(sonuc => {
+      const docRef = doc(collection(db, 'bransDenemesiSonuclari'));
+      batch.set(docRef, {
+        ...sonuc,
+        createdAt: new Date().toISOString()
+      });
+    });
+    await batch.commit();
+  } catch (error) {
+    console.error('Toplu branş denemesi sonucu ekleme hatası:', error);
+    throw error;
+  }
+};
+
+// Branş denemesi sonuçlarını getir
+export const getBransDenemesiSonuclari = async (denemeId: string): Promise<BransDenemesiSonuc[]> => {
+  try {
+    const q = query(
+      collection(db, 'bransDenemesiSonuclari'),
+      where('denemeId', '==', denemeId)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as BransDenemesiSonuc[];
+  } catch (error) {
+    console.error('Branş denemesi sonuçları getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Öğrencinin branş denemesi sonuçlarını getir
+export const getBransDenemesiSonuclariByStudent = async (studentId: string): Promise<BransDenemesiSonuc[]> => {
+  try {
+    const q = query(
+      collection(db, 'bransDenemesiSonuclari'),
+      where('studentId', '==', studentId)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as BransDenemesiSonuc[];
+  } catch (error) {
+    console.error('Öğrenci branş denemesi sonuçları getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Branş denemesi sonucunu sil
+export const deleteBransDenemesiSonuc = async (id: string): Promise<void> => {
+  try {
+    await deleteDoc(doc(db, 'bransDenemesiSonuclari', id));
+  } catch (error) {
+    console.error('Branş denemesi sonucu silme hatası:', error);
+    throw error;
+  }
+};
+
+// Branş denemesini sil (tüm sonuçlarla birlikte)
+export const deleteBransDenemesi = async (id: string): Promise<void> => {
+  try {
+    // Önce tüm sonuçları sil
+    const sonuclar = await getBransDenemesiSonuclari(id);
+    const batch = writeBatch(db);
+    sonuclar.forEach(sonuc => {
+      batch.delete(doc(db, 'bransDenemesiSonuclari', sonuc.id));
+    });
+    await batch.commit();
+
+    // Sonra denemeyi sil
+    await deleteDoc(doc(db, 'bransDenemeleri', id));
+  } catch (error) {
+    console.error('Branş denemesi silme hatası:', error);
+    throw error;
+  }
+};
+
+// Ders bazlı öğrenci performansını getir
+export const getBransDenemesiPerformans = async (denemeId: string, studentId: string): Promise<BransDenemesiSonuc | null> => {
+  try {
+    const q = query(
+      collection(db, 'bransDenemesiSonuclari'),
+      where('denemeId', '==', denemeId),
+      where('studentId', '==', studentId)
+    );
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as BransDenemesiSonuc;
+  } catch (error) {
+    console.error('Branş denemesi performans getirme hatası:', error);
+    throw error;
+  }
+};
+
+// Öğrencinin branş denemesi istatistiklerini getir
+export const getBransDenemesiStats = async (studentId: string): Promise<{
+  totalExams: number;
+  averageNet: number;
+  maxNet: number;
+  minNet: number;
+  totalCorrect: number;
+  totalWrong: number;
+  totalBlank: number;
+  lastExamDate: string | null;
+}> => {
+  try {
+    const sonuclar = await getBransDenemesiSonuclariByStudent(studentId);
+
+    if (sonuclar.length === 0) {
+      return {
+        totalExams: 0,
+        averageNet: 0,
+        maxNet: 0,
+        minNet: 0,
+        totalCorrect: 0,
+        totalWrong: 0,
+        totalBlank: 0,
+        lastExamDate: null
+      };
+    }
+
+    const nets = sonuclar.map(s => s.net);
+    return {
+      totalExams: sonuclar.length,
+      averageNet: nets.reduce((a, b) => a + b, 0) / nets.length,
+      maxNet: Math.max(...nets),
+      minNet: Math.min(...nets),
+      totalCorrect: sonuclar.reduce((a, b) => a + b.dogru, 0),
+      totalWrong: sonuclar.reduce((a, b) => a + b.yanlis, 0),
+      totalBlank: sonuclar.reduce((a, b) => a + b.bos, 0),
+      lastExamDate: sonuclar.sort((a, b) => b.tarih.localeCompare(a.tarih))[0]?.tarih || null
+    };
+  } catch (error) {
+    console.error('Branş denemesi istatistikleri getirme hatası:', error);
+    throw error;
+  }
+};

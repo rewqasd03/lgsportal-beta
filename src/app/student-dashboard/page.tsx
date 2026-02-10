@@ -10,6 +10,212 @@ import { pdf } from '@react-pdf/renderer';
 import html2canvas from 'html2canvas';
 import StudentReportPDF from './StudentReportPDF';
 
+// 📝 BRANS DENEMELERİ TAB COMPONENT
+const BransDenemeleriTab = ({ studentId }: { studentId: string }) => {
+  const [bransSonuclari, setBransSonuclari] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDers, setSelectedDers] = useState<string>('');
+  const [stats, setStats] = useState<{
+    totalExams: number;
+    averageNet: number;
+    maxNet: number;
+    minNet: number;
+  }>({ totalExams: 0, averageNet: 0, maxNet: 0, minNet: 0 });
+
+  // Ders seçenekleri
+  const dersler = [
+    { key: 'turkce', name: 'Türkçe', color: '#10B981' },
+    { key: 'matematik', name: 'Matematik', color: '#F59E0B' },
+    { key: 'fen', name: 'Fen Bilimleri', color: '#3B82F6' },
+    { key: 'sosyal', name: 'Sosyal Bilgiler', color: '#8B5CF6' },
+    { key: 'ingilizce', name: 'İngilizce', color: '#EF4444' },
+    { key: 'din', name: 'Din Kültürü', color: '#F97316' }
+  ];
+
+  useEffect(() => {
+    loadBransDenemesiSonuclari();
+  }, [studentId]);
+
+  const loadBransDenemesiSonuclari = async () => {
+    try {
+      const { getBransDenemesiSonuclariByStudent, getBransDenemeleri } = await import('../../firebase');
+      const sonuclar = await getBransDenemesiSonuclariByStudent(studentId);
+
+      // Deneme bilgilerini al
+      const denemeler = await getBransDenemeleri();
+
+      // Sonuçları deneme bilgileriyle birleştir
+      const sonuclarWithDetails = sonuclar.map(sonuc => {
+        const deneme = denemeler.find(d => d.id === sonuc.denemeId);
+        return {
+          ...sonuc,
+          dersAdi: deneme?.ders || 'Bilinmeyen Ders',
+          soruSayisi: deneme?.soruSayisi || 0
+        };
+      });
+
+      setBransSonuclari(sonuclarWithDetails);
+
+      // İstatistikleri hesapla
+      if (sonuclar.length > 0) {
+        const nets = sonuclar.map(s => s.net);
+        setStats({
+          totalExams: sonuclar.length,
+          averageNet: Math.round(nets.reduce((a, b) => a + b, 0) / nets.length * 10) / 10,
+          maxNet: Math.max(...nets),
+          minNet: Math.min(...nets)
+        });
+      }
+    } catch (error) {
+      console.error('Branş denemesi sonuçlarını yükleme hatası:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Derse göre filtrele
+  const filteredSonuclari = selectedDers
+    ? bransSonuclari.filter(s => s.ders === selectedDers)
+    : bransSonuclari;
+
+  // Tarihe göre sırala (en son en üstte)
+  const sortedSonuclari = filteredSonuclari.sort((a, b) =>
+    new Date(b.tarih).getTime() - new Date(a.tarih).getTime()
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Başlık */}
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold mb-2">📝 Branş Denemeleri</h2>
+        <p className="text-indigo-100">Katıldığınız branş denemelerini ve sonuçlarınızı görüntüleyin</p>
+      </div>
+
+      {/* İstatistikler */}
+      {stats.totalExams > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-indigo-500">
+            <div className="text-sm text-gray-500">Toplam Deneme</div>
+            <div className="text-2xl font-bold text-indigo-600">{stats.totalExams}</div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+            <div className="text-sm text-gray-500">Ortalama Net</div>
+            <div className="text-2xl font-bold text-green-600">{stats.averageNet}</div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+            <div className="text-sm text-gray-500">En Yüksek Net</div>
+            <div className="text-2xl font-bold text-blue-600">{stats.maxNet}</div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-orange-500">
+            <div className="text-sm text-gray-500">En Düşük Net</div>
+            <div className="text-2xl font-bold text-orange-600">{stats.minNet}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Ders Filtresi */}
+      <div className="bg-white rounded-lg shadow p-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">📚 Ders Filtresi</label>
+        <select
+          value={selectedDers}
+          onChange={(e) => setSelectedDers(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <option value="">Tüm Dersler</option>
+          {dersler.map(ders => (
+            <option key={ders.key} value={ders.key}>{ders.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Sonuç Listesi */}
+      {sortedSonuclari.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
+          <div className="text-6xl mb-4">📝</div>
+          <h3 className="text-xl font-semibold text-gray-600 mb-2">Henüz Branş Denemesi Yok</h3>
+          <p className="text-gray-500">Öğretmeniniz branş denemesi eklediğinde burada görünecektir.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Ders</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Tarih</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Doğru</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Yanlış</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Boş</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Net</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedSonuclari.map((sonuc, index) => {
+                const ders = dersler.find(d => d.key === sonuc.ders);
+                return (
+                  <tr key={index} className="border-t border-gray-200 hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold mr-2"
+                          style={{ backgroundColor: ders?.color || '#6366f1' }}
+                        >
+                          {ders?.name?.charAt(0) || '?'}
+                        </div>
+                        <span className="font-medium text-gray-800">{ders?.name || sonuc.dersAdi}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-600">
+                      {new Date(sonuc.tarih).toLocaleDateString('tr-TR')}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded text-sm font-medium">
+                        {sonuc.dogru}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="inline-flex items-center px-2 py-1 bg-red-100 text-red-700 rounded text-sm font-medium">
+                        {sonuc.yanlis}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm font-medium">
+                        {sonuc.bos}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`text-lg font-bold ${sonuc.net >= 0 ? 'text-indigo-600' : 'text-red-600'}`}>
+                        {sonuc.net.toFixed(1)}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Bilgilendirme */}
+      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+        <h4 className="font-semibold text-indigo-800 mb-2">💡 Bilgi</h4>
+        <ul className="text-sm text-indigo-700 space-y-1">
+          <li>• Net hesaplaması: Net = Doğru - (Yanlış / 3)</li>
+          <li>• Branş denemeleri öğretmeniniz tarafından eklenir.</li>
+          <li>• Sonuçlarınızı düzenli olarak takip edebilirsiniz.</li>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
 const firebaseConfig = {
   apiKey: "AIzaSyBYfBhkLIfjqpnL9MxBhxW6iJeC0VAEDLk",
   authDomain: "kopruler-basari-portali.firebaseapp.com",
@@ -509,7 +715,7 @@ function StudentDashboardContent() {
             <div className="mb-6">
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                  {[1, 2, 3, 11].map((tab) => (
+                  {[1, 2, 3, 11, 12].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -523,6 +729,7 @@ function StudentDashboardContent() {
                       {tab === 2 && '📈 Net Gelişim Trendi'}
                       {tab === 3 && '📊 Puan Gelişim Trendi'}
                       {tab === 11 && '📄 PDF İndir'}
+                      {tab === 12 && '📝 Branş Denemeleri'}
                     </button>
                   ))}
                 </nav>
@@ -674,8 +881,8 @@ function StudentDashboardContent() {
                     onClick={generatePDF}
                     disabled={isGeneratingPDF || !reportData}
                     className={`w-full py-4 px-6 rounded-lg text-white font-semibold text-lg transition-all ${
-                      isGeneratingPDF 
-                        ? 'bg-gray-400 cursor-not-allowed' 
+                      isGeneratingPDF
+                        ? 'bg-gray-400 cursor-not-allowed'
                         : 'bg-green-600 hover:bg-green-700 shadow-lg hover:shadow-xl'
                     }`}
                   >
@@ -698,6 +905,10 @@ function StudentDashboardContent() {
                   </button>
                 </div>
               </div>
+            )}
+
+            {activeTab === 12 && (
+              <BransDenemeleriTab studentId={studentId} />
             )}
           </>
         )}
