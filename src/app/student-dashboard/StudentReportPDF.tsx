@@ -30,15 +30,15 @@ Font.register({
   ],
 });
 
-// PDF Stilleri - Geliştirilmiş Okunabilirlik
+// PDF Stilleri - Geliştirilmiş Okunabilirlik ve Profesyonel Görünüm
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
-    padding: 40,
+    padding: 35,
     fontFamily: 'Open Sans',
-    fontSize: 12,
-    lineHeight: 1.5,
+    fontSize: 11,
+    lineHeight: 1.6,
   },
   header: {
     flexDirection: 'row',
@@ -46,43 +46,51 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     borderBottomWidth: 3,
     borderBottomColor: '#1E40AF',
-    paddingBottom: 20,
+    paddingBottom: 15,
   },
-  logo: {
-    width: 60,
-    height: 60,
-    marginRight: 20,
+  logoContainer: {
+    width: 55,
+    height: 55,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  logoText: {
+    fontSize: 24,
+    color: '#1E40AF',
   },
   headerText: {
     flex: 1,
   },
   title: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 6,
+    marginBottom: 5,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#444444',
+    fontSize: 13,
+    color: '#555555',
   },
   section: {
-    marginBottom: 25,
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1E40AF',
-    marginBottom: 15,
-    paddingBottom: 8,
+    marginBottom: 12,
+    paddingBottom: 6,
     borderBottomWidth: 2,
     borderBottomColor: '#BFDBFE',
   },
   card: {
     backgroundColor: '#F8FAFC',
-    borderRadius: 10,
-    padding: 18,
-    marginBottom: 15,
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
@@ -90,43 +98,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-    paddingBottom: 10,
+    marginBottom: 8,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
+  cardRowLast: {
+    marginBottom: 0,
+    paddingBottom: 0,
+    borderBottomWidth: 0,
+  },
   cardLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#555555',
   },
   cardValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#000000',
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 15,
+    gap: 12,
   },
   gridItem: {
-    width: '47%',
+    width: '48%',
     backgroundColor: '#EFF6FF',
-    padding: 18,
-    borderRadius: 10,
-    marginBottom: 12,
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#BFDBFE',
   },
   statValue: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#1E40AF',
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#555555',
-    marginTop: 5,
+    marginTop: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -134,9 +147,9 @@ const styles = StyleSheet.create({
     width: '100%',
     borderWidth: 2,
     borderColor: '#1E40AF',
-    borderRadius: 8,
+    borderRadius: 6,
     overflow: 'hidden',
-    marginBottom: 15,
+    marginBottom: 12,
   },
   tableRow: {
     flexDirection: 'row',
@@ -145,15 +158,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E40AF',
   },
   tableHeaderCell: {
-    padding: 14,
-    fontSize: 12,
+    padding: 12,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#FFFFFF',
     textAlign: 'center',
   },
   tableCell: {
-    padding: 12,
-    fontSize: 11,
+    padding: 10,
+    fontSize: 10,
     color: '#000000',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
@@ -164,66 +177,95 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   progressBar: {
-    height: 12,
+    height: 10,
     backgroundColor: '#E2E8F0',
-    borderRadius: 6,
+    borderRadius: 5,
     overflow: 'hidden',
-    marginTop: 8,
+    marginTop: 6,
   },
   progressFill: {
     height: '100%',
-    borderRadius: 6,
+    borderRadius: 5,
   },
   footer: {
     position: 'absolute',
     bottom: 25,
-    left: 40,
-    right: 40,
+    left: 35,
+    right: 35,
     textAlign: 'center',
-    fontSize: 10,
+    fontSize: 9,
     color: '#666666',
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0',
-    paddingTop: 12,
+    paddingTop: 10,
   },
-  liseCard: {
+  chartImage: {
+    width: '100%',
+    height: 220,
+    marginVertical: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  // Yeni eklenen stiller
+  infoBox: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: 6,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  infoText: {
+    fontSize: 10,
+    color: '#92400E',
+  },
+  subjectCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 6,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  subjectHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#F0FDF4',
-    borderRadius: 8,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#86EFAC',
+    marginBottom: 6,
   },
-  liseName: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#000000',
-    flex: 1,
-  },
-  liseType: {
-    fontSize: 11,
-    color: '#166534',
-    backgroundColor: '#DCFCE7',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginRight: 15,
-  },
-  liseScore: {
+  subjectName: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#000000',
   },
-  chartImage: {
-    width: '100%',
-    height: 250,
-    marginVertical: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+  subjectScore: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1E40AF',
+  },
+  subjectProgress: {
+    height: 8,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  subjectProgressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  subjectFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  subjectLabel: {
+    fontSize: 9,
+    color: '#555555',
+  },
+  subjectStatus: {
+    fontSize: 9,
+    fontWeight: 'bold',
   },
 });
 
@@ -298,14 +340,17 @@ const StudentReportPDF = ({ reportData, chartImage }) => {
 
   return (
     <Document>
+      {/* SAYFA 1 - Genel Performans */}
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerText}>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>📊</Text>
+          </View>
+          <View style={styles.headerText}>
             <Text style={styles.title}>LGS Portalı - Öğrenci Raporu</Text>
-            {'\n'}
             <Text style={styles.subtitle}>{student.name} - {student.class}</Text>
-          </Text>
+          </View>
         </View>
 
         {/* Özet Bilgiler */}
@@ -345,7 +390,7 @@ const StudentReportPDF = ({ reportData, chartImage }) => {
               <Text style={styles.cardLabel}>Ortalama Puan (Sizin)</Text>
               <Text style={styles.cardValue}>{(studentAverageScore || 0).toFixed(0)}</Text>
             </View>
-            <View style={[styles.cardRow, { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 }]}>
+            <View style={[styles.cardRow, styles.cardRowLast]}>
               <Text style={styles.cardLabel}>Ortalama Puan (Sınıf)</Text>
               <Text style={styles.cardValue}>{(classAverageScore || 0).toFixed(0)}</Text>
             </View>
@@ -366,15 +411,15 @@ const StudentReportPDF = ({ reportData, chartImage }) => {
           <View style={styles.table}>
             {/* Table Header */}
             <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableHeaderCell, { width: '40%', textAlign: 'left', paddingLeft: 15 }]}>Deneme Adı</Text>
+              <Text style={[styles.tableHeaderCell, { width: '40%', textAlign: 'left', paddingLeft: 12 }]}>Deneme Adı</Text>
               <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Netiniz</Text>
               <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Sınıf Ort.</Text>
               <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Genel Ort.</Text>
             </View>
             {/* Table Rows */}
-            {examResults.slice(0, 12).map((item, index) => (
+            {examResults.slice(0, 10).map((item, index) => (
               <View style={styles.tableRow} key={index}>
-                <Text style={[styles.tableCell, { width: '40%', textAlign: 'left', paddingLeft: 15 }]}>{item.exam.title}</Text>
+                <Text style={[styles.tableCell, { width: '40%', textAlign: 'left', paddingLeft: 12 }]}>{item.exam.title}</Text>
                 <Text style={[styles.tableCell, { width: '20%' }]}>
                   {item.studentTotalNet > 0 ? item.studentTotalNet.toFixed(1) : '-'}
                 </Text>
@@ -383,9 +428,9 @@ const StudentReportPDF = ({ reportData, chartImage }) => {
               </View>
             ))}
           </View>
-          {examResults.length > 12 && (
-            <Text style={{ fontSize: 11, color: '#666666', textAlign: 'center', marginTop: 10 }}>
-              ...ve {examResults.length - 12} deneme daha
+          {examResults.length > 10 && (
+            <Text style={{ fontSize: 10, color: '#666666', textAlign: 'center', marginTop: 8 }}>
+              ...ve {examResults.length - 10} deneme daha
             </Text>
           )}
         </View>
@@ -396,80 +441,80 @@ const StudentReportPDF = ({ reportData, chartImage }) => {
         </Text>
       </Page>
 
-      {/* İkinci Sayfa - Ders Bazında Gelişim */}
-      {examResults.length > 0 && (
-        <Page size="A4" style={styles.page}>
-          <View style={styles.header}>
-            <Text style={styles.headerText}>
-              <Text style={styles.title}>📚 Ders Bazında Gelişim</Text>
-              {'\n'}
-              <Text style={styles.subtitle}>{student.name} - {student.class}</Text>
-            </Text>
-          </View>
-
-          {/* Ders Performansı */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📊 Ders Bazında Net Ortalamaları</Text>
-            {['Türkçe', 'Matematik', 'Fen', 'Sosyal', 'Din', 'İngilizce'].map((subject) => {
-              const subjectScores = examResults
-                .filter(item => item.studentResults[0]?.nets?.[subject.toLowerCase()] > 0)
-                .map(item => ({
-                  title: item.exam.title,
-                  score: item.studentResults[0]?.nets?.[subject.toLowerCase()] || 0,
-                  classAvg: item.exam.subjectAverages?.[subject.toLowerCase()] || 0
-                }));
-              
-              if (subjectScores.length === 0) return null;
-              
-              const avgScore = subjectScores.reduce((sum, s) => sum + s.score, 0) / subjectScores.length;
-              const avgClass = subjectScores.reduce((sum, s) => sum + s.classAvg, 0) / subjectScores.length;
-              const percentage = Math.min((avgScore / 20) * 100, 100);
-              const isAbove = avgScore >= avgClass;
-
-              return (
-                <View style={styles.card} key={subject}>
-                  <View style={styles.cardRow}>
-                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#000000' }}>{subject}</Text>
-                    <Text style={[styles.cardValue, { fontSize: 18, color: '#1E40AF' }]}>
-                      {avgScore.toFixed(1)} net
-                    </Text>
-                  </View>
-                  <View style={styles.progressBar}>
-                    <View
-                      style={[
-                        styles.progressFill,
-                        {
-                          width: `${percentage}%`,
-                          backgroundColor: isAbove ? '#16A34A' : '#F59E0B',
-                        },
-                      ]}
-                    />
-                  </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
-                    <Text style={{ fontSize: 12, color: '#555555' }}>Sınıf Ortalaması: {avgClass.toFixed(1)}</Text>
-                    <Text style={{ fontSize: 12, fontWeight: 'bold', color: isAbove ? '#16A34A' : '#F59E0B' }}>
-                      {isAbove ? '📈 Ortalamanın Üstünde' : '📉 Ortalamanın Altında'}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-
-          <Text style={styles.footer}>
-            LGS Portalı - Rapor Tarihi: {new Date().toLocaleDateString('tr-TR')}
-          </Text>
-        </Page>
-      )}
-
-      {/* Üçüncü Sayfa - Hedefler ve Lise Önerileri */}
+      {/* SAYFA 2 - Ders Bazında Gelişim */}
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>
-            <Text style={styles.title}>🎯 Hedef Takibi & Lise Önerileri</Text>
-            {'\n'}
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>📖</Text>
+          </View>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>📚 Ders Bazında Gelişim</Text>
             <Text style={styles.subtitle}>{student.name} - {student.class}</Text>
-          </Text>
+          </View>
+        </View>
+
+        {/* Ders Performansı */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📊 Ders Bazında Net Ortalamaları</Text>
+          {['Türkçe', 'Matematik', 'Fen', 'Sosyal', 'Din', 'İngilizce'].map((subject) => {
+            const subjectScores = examResults
+              .filter(item => item.studentResults[0]?.nets?.[subject.toLowerCase()] > 0)
+              .map(item => ({
+                title: item.exam.title,
+                score: item.studentResults[0]?.nets?.[subject.toLowerCase()] || 0,
+                classAvg: item.exam.subjectAverages?.[subject.toLowerCase()] || 0
+              }));
+            
+            if (subjectScores.length === 0) return null;
+            
+            const avgScore = subjectScores.reduce((sum, s) => sum + s.score, 0) / subjectScores.length;
+            const avgClass = subjectScores.reduce((sum, s) => sum + s.classAvg, 0) / subjectScores.length;
+            const percentage = Math.min((avgScore / 20) * 100, 100);
+            const isAbove = avgScore >= avgClass;
+
+            return (
+              <View style={styles.subjectCard} key={subject}>
+                <View style={styles.subjectHeader}>
+                  <Text style={styles.subjectName}>{subject}</Text>
+                  <Text style={styles.subjectScore}>{avgScore.toFixed(1)} net</Text>
+                </View>
+                <View style={styles.subjectProgress}>
+                  <View
+                    style={[
+                      styles.subjectProgressFill,
+                      {
+                        width: `${percentage}%`,
+                        backgroundColor: isAbove ? '#16A34A' : '#F59E0B',
+                      },
+                    ]}
+                  />
+                </View>
+                <View style={styles.subjectFooter}>
+                  <Text style={styles.subjectLabel}>Sınıf Ortalaması: {avgClass.toFixed(1)}</Text>
+                  <Text style={[styles.subjectStatus, { color: isAbove ? '#16A34A' : '#F59E0B' }]}>
+                    {isAbove ? '📈 Ortalamanın Üstünde' : '📉 Ortalamanın Altında'}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+
+        <Text style={styles.footer}>
+          LGS Portalı - Rapor Tarihi: {new Date().toLocaleDateString('tr-TR')}
+        </Text>
+      </Page>
+
+      {/* SAYFA 3 - Hedefler ve Lise Önerileri */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>🎯</Text>
+          </View>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>🎯 Hedef Takibi & Lise Önerileri</Text>
+            <Text style={styles.subtitle}>{student.name} - {student.class}</Text>
+          </View>
         </View>
 
         {/* Hedef Durumu */}
@@ -478,15 +523,15 @@ const StudentReportPDF = ({ reportData, chartImage }) => {
           <View style={styles.card}>
             <View style={styles.cardRow}>
               <Text style={styles.cardLabel}>Hedef Puanınız</Text>
-              <Text style={[styles.cardValue, { fontSize: 20, color: '#1E40AF' }]}>450 Puan</Text>
+              <Text style={[styles.cardValue, { fontSize: 18, color: '#1E40AF' }]}>450 Puan</Text>
             </View>
             <View style={styles.cardRow}>
               <Text style={styles.cardLabel}>Son Puanınız (Yaklaşık)</Text>
-              <Text style={[styles.cardValue, { fontSize: 20, color: '#16A34A' }]}>{latestScore} Puan</Text>
+              <Text style={[styles.cardValue, { fontSize: 18, color: '#16A34A' }]}>{latestScore} Puan</Text>
             </View>
-            <View style={[styles.cardRow, { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 }]}>
+            <View style={[styles.cardRow, styles.cardRowLast]}>
               <Text style={styles.cardLabel}>Durumunuz</Text>
-              <Text style={[styles.cardValue, { fontSize: 16, color: latestScore >= 450 ? '#16A34A' : latestScore >= 400 ? '#F59E0B' : '#6B7280' }]}>
+              <Text style={[styles.cardValue, { fontSize: 14, color: latestScore >= 450 ? '#16A34A' : latestScore >= 400 ? '#F59E0B' : '#6B7280' }]}>
                 {latestScore >= 450 ? '🎉 Hedefe Ulaştınız!' : latestScore >= 400 ? '🔥 Çok Yaklaştınız!' : '💪 Gelişmeye Devam!'}
               </Text>
             </View>
@@ -498,7 +543,7 @@ const StudentReportPDF = ({ reportData, chartImage }) => {
           <Text style={styles.sectionTitle}>🎓 Önerilen Liseler (Taban Puanları)</Text>
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableHeaderCell, { width: '55%', textAlign: 'left', paddingLeft: 15 }]}>Lise Adı</Text>
+              <Text style={[styles.tableHeaderCell, { width: '55%', textAlign: 'left', paddingLeft: 12 }]}>Lise Adı</Text>
               <Text style={[styles.tableHeaderCell, { width: '25%' }]}>Tür</Text>
               <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Taban Puan</Text>
             </View>
@@ -511,7 +556,7 @@ const StudentReportPDF = ({ reportData, chartImage }) => {
               { name: 'Kazım Karabekir Anadolu Lisesi', type: 'Anadolu', score: '400.23' },
             ].map((lise, index) => (
               <View style={styles.tableRow} key={index}>
-                <Text style={[styles.tableCell, { width: '55%', textAlign: 'left', paddingLeft: 15 }]}>{lise.name}</Text>
+                <Text style={[styles.tableCell, { width: '55%', textAlign: 'left', paddingLeft: 12 }]}>{lise.name}</Text>
                 <Text style={[styles.tableCell, { width: '25%' }]}>{lise.type}</Text>
                 <Text style={[styles.tableCell, { width: '20%', fontWeight: 'bold' }]}>{lise.score}</Text>
               </View>
