@@ -2706,6 +2706,7 @@ export interface BransDenemesi {
   soruSayisi: number;  // Toplam soru sayısı
   tarih: string;       // Sınav tarihi (YYYY-MM-DD)
   sinif: string;       // Sınıf (8-A, 8-B, etc.)
+  ad?: string;         // Deneme adı (opsiyonel)
   createdAt: string;   // Oluşturulma tarihi
 }
 

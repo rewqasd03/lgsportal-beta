@@ -8629,11 +8629,12 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
 // 📝 BRANS DENEMESİ TAB COMPONENT
 const BransDenemesiTab = ({ students }: { students: any[] }) => {
   const [activeSubTab, setActiveSubTab] = useState<'ekle' | 'listele'>('ekle');
+  const [denemeAdi, setDenemeAdi] = useState<string>('');
   const [selectedDers, setSelectedDers] = useState<string>('');
   const [soruSayisi, setSoruSayisi] = useState<number>(20);
   const [tarih, setTarih] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedSinif, setSelectedSinif] = useState<string>('');
-  const [studentScores, setStudentScores] = useState<{ [studentId: string]: { dogru: number; yanlis: number; bos: number } }>({});
+  const [studentScores, setStudentScores] = useState<{ [studentId: string]: { dogru: number; yanlis: number } }>({});
   const [loading, setLoading] = useState(false);
   const [savedExams, setSavedExams] = useState<any[]>([]);
   const [examResults, setExamResults] = useState<any[]>([]);
@@ -8697,8 +8698,8 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
     }
   }, [selectedExam]);
 
-  // Skor değişikliği (net otomatik hesaplanır: Dogru - Yanlis/3)
-  const handleScoreChange = (studentId: string, field: 'dogru' | 'yanlis' | 'bos', value: string) => {
+  // Skor değişikliği (boş ve net otomatik hesaplanır)
+  const handleScoreChange = (studentId: string, field: 'dogru' | 'yanlis', value: string) => {
     const numValue = parseInt(value) || 0;
     setStudentScores(prev => ({
       ...prev,
@@ -8709,6 +8710,11 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
     }));
   };
 
+  // Boş hesaplama fonksiyonu: Toplam Soru - Doğru - Yanlış = Boş
+  const calculateBos = (dogru: number, yanlis: number) => {
+    return soruSayisi - dogru - yanlis;
+  };
+
   // Net hesaplama fonksiyonu (3 yanlış = 1 doğruyu götürür)
   const calculateNet = (dogru: number, yanlis: number) => {
     const net = dogru - (yanlis / 3);
@@ -8717,13 +8723,13 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
 
   // Denemeyi kaydet
   const saveExam = async () => {
-    if (!selectedDers || !selectedSinif || !tarih) {
+    if (!denemeAdi || !selectedDers || !selectedSinif || !tarih) {
       alert('Lütfen tüm alanları doldurun!');
       return;
     }
 
     const studentsWithScores = filteredStudents.filter(s => studentScores[s.id] &&
-      (studentScores[s.id].dogru > 0 || studentScores[s.id].yanlis > 0 || studentScores[s.id].bos > 0));
+      (studentScores[s.id].dogru > 0 || studentScores[s.id].yanlis > 0));
 
     if (studentsWithScores.length === 0) {
       alert('Lütfen en az bir öğrenci için skor girin!');
@@ -8739,13 +8745,15 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
         ders: selectedDers,
         soruSayisi,
         tarih,
-        sinif: selectedSinif
+        sinif: selectedSinif,
+        ad: denemeAdi // Deneme adını da kaydet
       });
 
       // Sonra sonuçları ekle
       const results = studentsWithScores.map(student => {
         const scores = studentScores[student.id];
         const net = calculateNet(scores.dogru, scores.yanlis);
+        const bos = calculateBos(scores.dogru, scores.yanlis);
         return {
           denemeId,
           studentId: student.id,
@@ -8753,7 +8761,7 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
           studentClass: student.class,
           dogru: scores.dogru,
           yanlis: scores.yanlis,
-          bos: scores.bos,
+          bos: bos,
           net,
           tarih
         };
@@ -8764,6 +8772,7 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
       alert(`✅ ${results.length} öğrencinin branş denemesi başarıyla kaydedildi!`);
 
       // Formu temizle
+      setDenemeAdi('');
       setSelectedDers('');
       setSelectedSinif('');
       setStudentScores({});
@@ -8835,7 +8844,20 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
           <h3 className="text-xl font-semibold text-gray-800 mb-6">➕ Yeni Branş Denemesi Ekle</h3>
 
           {/* Ders, Soru Sayısı, Tarih ve Sınıf Seçimi */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📝 Deneme Adı
+              </label>
+              <input
+                type="text"
+                value={denemeAdi}
+                onChange={(e) => setDenemeAdi(e.target.value)}
+                placeholder="Örn: 1. Deneme"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 📚 Ders Seçin
@@ -8924,9 +8946,10 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
                   </thead>
                   <tbody>
                     {filteredStudents.map(student => {
-                      const scores = studentScores[student.id] || { dogru: 0, yanlis: 0, bos: 0 };
+                      const scores = studentScores[student.id] || { dogru: 0, yanlis: 0 };
                       const net = calculateNet(scores.dogru, scores.yanlis);
-                      const hasAnyScore = scores.dogru > 0 || scores.yanlis > 0 || scores.bos > 0;
+                      const bos = calculateBos(scores.dogru, scores.yanlis);
+                      const hasAnyScore = scores.dogru > 0 || scores.yanlis > 0 || bos > 0;
 
                       return (
                         <tr key={student.id} className="hover:bg-gray-50">
@@ -8957,15 +8980,9 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
                             />
                           </td>
                           <td className="border border-gray-200 p-3 text-center">
-                            <input
-                              type="number"
-                              min="0"
-                              max={soruSayisi}
-                              value={scores.bos || ''}
-                              onChange={(e) => handleScoreChange(student.id, 'bos', e.target.value)}
-                              placeholder="0"
-                              className="w-20 p-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                            />
+                            <span className="text-lg font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded">
+                              {bos}
+                            </span>
                           </td>
                           <td className="border border-gray-200 p-3 text-center">
                             <span className={`text-lg font-bold ${net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -9009,7 +9026,8 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
           <div className="mt-6 p-4 bg-indigo-50 rounded-lg">
             <p className="text-indigo-800 text-sm">
               <strong>📌 Net Hesaplama:</strong> Net = Doğru - (Yanlış / 3)<br />
-              <strong>📌 Örnek:</strong> 15 Doğru, 6 Yanlış → Net = 15 - (6/3) = 13.0
+              <strong>📌 Boş Hesaplama:</strong> Boş = Soru Sayısı - Doğru - Yanlış<br />
+              <strong>📌 Örnek:</strong> 20 Soru, 15 Doğru, 6 Yanlış → Boş = 20 - 15 - 6 = -1, Net = 15 - (6/3) = 13.0
             </p>
           </div>
         </div>
