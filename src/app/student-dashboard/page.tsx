@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useRef, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
-import { Student, Exam, Result, getStudentTargets, getStudentScoreTarget, incrementStudentViewCount } from '../../firebase';
+import { Student, Exam, Result, getStudentTargets, getStudentScoreTarget, incrementStudentViewCount, getOgrenciBransDenemesiSonuclari, getBransDenemeleri, BransDenemesiSonuc, BransDenemesi } from '../../firebase';
 import { initializeApp } from 'firebase/app';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -935,7 +935,7 @@ function StudentDashboardContent() {
             <div className="mb-6">
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((tab) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -956,6 +956,7 @@ function StudentDashboardContent() {
                       {tab === 9 && '🎓 Lise Taban Puanları'}
                       {tab === 10 && '📝 Ödev Takibi'}
                       {tab === 11 && '📄 PDF İndir'}
+                      {tab === 12 && '📝 Branş Denemeleri'}
                     </button>
                   ))}
                 </nav>
@@ -2812,6 +2813,18 @@ function StudentDashboardContent() {
                     <li>PDF dosyası otomatik olarak indirilecektir</li>
                   </ul>
                 </div>
+              </div>
+            )}
+
+            {/* Tab 12: Branş Denemeleri */}
+            {activeTab === 12 && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white">
+                  <h2 className="text-2xl font-bold mb-2">📝 Branş Denemeleri</h2>
+                  <p className="text-indigo-100">Branş denemelerindeki sonuçlarınızı görüntüleyin</p>
+                </div>
+
+                <BransDenemeleriTab studentId={studentId} />
               </div>
             )}
 
@@ -5503,3 +5516,177 @@ function OkumaSinavlariTab({ studentId, studentName, studentClass }: { studentId
     </div>
   );
 }
+
+
+// 📝 BRANŞ DENEMELERİ TAB COMPONENT - Öğrenci paneli
+const BransDenemeleriTab = ({ studentId }: { studentId: string }) => {
+  const [examResults, setExamResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedExam, setSelectedExam] = useState<any>(null);
+  const [examDetails, setExamDetails] = useState<any[]>([]);
+
+  // Ders seçenekleri
+  const dersler = [
+    { key: 'turkce', name: 'Türkçe', color: '#10B981' },
+    { key: 'matematik', name: 'Matematik', color: '#F59E0B' },
+    { key: 'fen', name: 'Fen Bilimleri', color: '#3B82F6' },
+    { key: 'sosyal', name: 'Sosyal Bilgiler', color: '#8B5CF6' },
+    { key: 'ingilizce', name: 'İngilizce', color: '#EF4444' },
+    { key: 'din', name: 'Din Kültürü', color: '#F97316' }
+  ];
+
+  useEffect(() => {
+    loadStudentResults();
+  }, [studentId]);
+
+  const loadStudentResults = async () => {
+    setLoading(true);
+    try {
+      const results = await getOgrenciBransDenemesiSonuclari(studentId);
+      
+      // Sonuçları deneme ID'lerine göre grupla
+      const groupedByExam: { [key: string]: any } = {};
+      results.forEach(result => {
+        if (!groupedByExam[result.denemeId]) {
+          groupedByExam[result.denemeId] = [];
+        }
+        groupedByExam[result.denemeId].push(result);
+      });
+
+      // Her deneme için detayları al
+      const denemeler = await getBransDenemeleri();
+      const examsWithDetails = denemeler.map(deneme => {
+        const resultsForExam = groupedByExam[deneme.id] || [];
+        const ders = dersler.find(d => d.key === deneme.ders);
+        return {
+          ...deneme,
+          dersAdi: ders?.name || deneme.ders,
+          dersRenk: ders?.color || '#6366f1',
+          sonuclar: resultsForExam
+        };
+      });
+
+      setExamResults(examsWithDetails);
+    } catch (error) {
+      console.error('Sonuçları yükleme hatası:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadExamDetails = async (examId: string) => {
+    try {
+      const { getBransDenemesiSonuclari } = await import('../../firebase');
+      const results = await getBransDenemesiSonuclari(examId);
+      setExamDetails(results);
+    } catch (error) {
+      console.error('Detayları yükleme hatası:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedExam) {
+      loadExamDetails(selectedExam.id);
+    }
+  }, [selectedExam]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (examResults.length === 0) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <div className="text-6xl mb-4">📝</div>
+        <h4 className="text-lg font-semibold text-gray-600 mb-2">Henüz Branş Denemeniz Yok</h4>
+        <p>Öğretmeniniz branş denemesi eklediğinde burada görebilirsiniz.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Deneme Listesi */}
+      <div className="space-y-4">
+        {examResults.map(exam => (
+          <div key={exam.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+            <div 
+              className="flex justify-between items-start cursor-pointer"
+              onClick={() => setSelectedExam(selectedExam?.id === exam.id ? null : exam)}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+                  style={{ backgroundColor: exam.dersRenk }}
+                >
+                  {exam.dersAdi?.charAt(0) || 'B'}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800">
+                    {exam.dersAdi} 
+                    {exam.ad && <span className="text-indigo-600"> - {exam.ad}</span>}
+                  </h4>
+                  <p className="text-sm text-gray-500">
+                    {exam.sinif} • {new Date(exam.tarih).toLocaleDateString('tr-TR')} • {exam.soruSayisi} soru
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {exam.sonuclar.length > 0 && (
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-indigo-600">
+                      {exam.sonuclar[0].net.toFixed(1)}
+                    </p>
+                    <p className="text-xs text-gray-500">Net</p>
+                  </div>
+                )}
+                <svg 
+                  className={`w-5 h-5 text-gray-400 transition-transform ${selectedExam?.id === exam.id ? 'rotate-180' : ''}`} 
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Detaylar */}
+            {selectedExam?.id === exam.id && examDetails.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="grid grid-cols-4 gap-4 mb-4">
+                  <div className="bg-green-50 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-green-600">
+                      {examDetails[0].dogru}
+                    </p>
+                    <p className="text-xs text-gray-600">Doğru</p>
+                  </div>
+                  <div className="bg-red-50 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-red-600">
+                      {examDetails[0].yanlis}
+                    </p>
+                    <p className="text-xs text-gray-600">Yanlış</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-gray-600">
+                      {examDetails[0].bos}
+                    </p>
+                    <p className="text-xs text-gray-600">Boş</p>
+                  </div>
+                  <div className="bg-indigo-50 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-indigo-600">
+                      {examDetails[0].net.toFixed(1)}
+                    </p>
+                    <p className="text-xs text-gray-600">Net</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
