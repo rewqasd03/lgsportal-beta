@@ -9022,14 +9022,6 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
             </div>
           )}
 
-          {/* Yardım Bilgileri */}
-          <div className="mt-6 p-4 bg-indigo-50 rounded-lg">
-            <p className="text-indigo-800 text-sm">
-              <strong>📌 Net Hesaplama:</strong> Net = Doğru - (Yanlış / 3)<br />
-              <strong>📌 Boş Hesaplama:</strong> Boş = Soru Sayısı - Doğru - Yanlış<br />
-              <strong>📌 Örnek:</strong> 20 Soru, 15 Doğru, 6 Yanlış → Boş = 20 - 15 - 6 = -1, Net = 15 - (6/3) = 13.0
-            </p>
-          </div>
         </div>
       )}
 
@@ -9068,7 +9060,10 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
                             {examDers?.name?.charAt(0) || 'B'}
                           </div>
                           <div>
-                            <h4 className="font-semibold text-gray-800">{examDers?.name || exam.ders} Branş Denemesi</h4>
+                            <h4 className="font-semibold text-gray-800">
+                              {examDers?.name || exam.ders} 
+                              {exam.ad && <span className="text-indigo-600"> - {exam.ad}</span>} Branş Denemesi
+                            </h4>
                             <p className="text-sm text-gray-500">
                               {exam.sinif} • {new Date(exam.tarih).toLocaleDateString('tr-TR')} • {exam.soruSayisi} soru
                             </p>
