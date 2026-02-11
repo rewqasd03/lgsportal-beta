@@ -1145,6 +1145,7 @@ const TABS: Tab[] = [
   { key: "kitap-sinavi", label: "📚 Kitap Sınavı" },
   { key: "odev-takibi", label: "📝 Ödev Takibi" },
   { key: "eksik-konu", label: "📊 Deneme Değerlendirme" },
+  { key: "brans-denemesi", label: "📝 Branş Denemesi" },
 
   { key: "hedef", label: "🎯 Hedef Belirleme" },
   { key: "lgs-hesaplama", label: "🧮 LGS Puan Hesaplama" },
@@ -4080,6 +4081,7 @@ export default function FoncsDataEntry() {
       case "analytics": return <AnalyticsTab students={students} results={results} exams={exams} />;
       case "van-taban-puan": return <VanTabanPuanTab lgsSchools={lgsSchools} obpSchools={obpSchools} />;
       case "puan-bazli-tavsiye": return <PuanBazliLiseTavsiyesiTab students={students} results={results} exams={exams} lgsSchools={lgsSchools} obpSchools={obpSchools} />;
+      case "brans-denemesi": return <BransDenemesiTab students={students} />;
       case "okuma-sinavi": return <OkumaSinaviTab students={students} />;
       default: return <HomeTab />;
     }
@@ -8620,6 +8622,227 @@ const OkumaSinaviTab = ({ students }: { students: any[] }) => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+// 📝 BRANS DENEMESİ TAB COMPONENT - Öğretmen paneli
+const BransDenemesiTab = ({ students }: { students: any[] }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'ekle' | 'listele'>('ekle');
+  const [denemeAdi, setDenemeAdi] = useState<string>('');
+  const [selectedDers, setSelectedDers] = useState<string>('');
+  const [soruSayisi, setSoruSayisi] = useState<number>(20);
+  const [tarih, setTarih] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedSinif, setSelectedSinif] = useState<string>('');
+  const [studentScores, setStudentScores] = useState<{ [studentId: string]: { dogru: number; yanlis: number } }>({});
+  const [loading, setLoading] = useState(false);
+  const [savedExams, setSavedExams] = useState<any[]>([]);
+  const [examResults, setExamResults] = useState<any[]>([]);
+  const [selectedExam, setSelectedExam] = useState<any>(null);
+
+  const dersler = [
+    { key: 'turkce', name: 'Türkçe', color: '#10B981' },
+    { key: 'matematik', name: 'Matematik', color: '#F59E0B' },
+    { key: 'fen', name: 'Fen Bilimleri', color: '#3B82F6' },
+    { key: 'sosyal', name: 'Sosyal Bilgiler', color: '#8B5CF6' },
+    { key: 'ingilizce', name: 'İngilizce', color: '#EF4444' },
+    { key: 'din', name: 'Din Kültürü', color: '#F97316' }
+  ];
+
+  const siniflar = ['5-A', '6-A', '7-A', '8-A'];
+
+  const filteredStudents = selectedSinif
+    ? students.filter(s => s.class === selectedSinif).sort((a, b) => a.name.localeCompare(b.name))
+    : [];
+
+  useEffect(() => {
+    loadSavedExams();
+  }, []);
+
+  const loadSavedExams = async () => {
+    try {
+      const { getBransDenemeleri } = await import('../../firebase');
+      const exams = await getBransDenemeleri();
+      setSavedExams(exams);
+    } catch (error) {
+      console.error('Denemeleri yükleme hatası:', error);
+    }
+  };
+
+  const loadExamResults = async (examId: string) => {
+    try {
+      const { getBransDenemesiSonuclari } = await import('../../firebase');
+      const results = await getBransDenemesiSonuclari(examId);
+      setExamResults(results);
+    } catch (error) {
+      console.error('Sonuçları yükleme hatası:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedExam) {
+      loadExamResults(selectedExam.id);
+    }
+  }, [selectedExam]);
+
+  const handleScoreChange = (studentId: string, field: 'dogru' | 'yanlis', value: string) => {
+    const numValue = parseInt(value) || 0;
+    setStudentScores(prev => ({
+      ...prev,
+      [studentId]: {
+        ...prev[studentId],
+        [field]: numValue
+      }
+    }));
+  };
+
+  const calculateBos = (dogru: number, yanlis: number) => soruSayisi - dogru - yanlis;
+  const calculateNet = (dogru: number, yanlis: number) => Math.round((dogru - yanlis / 3) * 10) / 10;
+
+  const saveExam = async () => {
+    if (!denemeAdi || !selectedDers || !selectedSinif || !tarih) {
+      alert('Lütfen tüm alanları doldurun!');
+      return;
+    }
+
+    const studentsWithScores = filteredStudents.filter(s => studentScores[s.id] &&
+      (studentScores[s.id].dogru > 0 || studentScores[s.id].yanlis > 0));
+
+    if (studentsWithScores.length === 0) {
+      alert('Lütfen en az bir öğrenci için skor girin!');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { addBransDenemesi, addBulkBransDenemesiSonuclari } = await import('../../firebase');
+      const denemeId = await addBransDenemesi({ ders: selectedDers, soruSayisi, tarih, sinif: selectedSinif, ad: denemeAdi });
+
+      const results = studentsWithScores.map(student => {
+        const scores = studentScores[student.id];
+        return { denemeId, studentId: student.id, studentName: student.name, studentClass: student.class, dogru: scores.dogru, yanlis: scores.yanlis, bos: calculateBos(scores.dogru, scores.yanlis), net: calculateNet(scores.dogru, scores.yanlis), tarih };
+      });
+
+      await addBulkBransDenemesiSonuclari(results);
+      alert(`✅ ${results.length} öğrencinin branş denemesi kaydedildi!`);
+      setDenemeAdi(''); setSelectedDers(''); setSelectedSinif(''); setStudentScores({});
+      await loadSavedExams();
+    } catch (error) {
+      console.error('Hata:', error);
+      alert('Hata oluştu!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteExam = async (examId: string) => {
+    if (!confirm('Silmek istediğinize emin misiniz?')) return;
+    try {
+      const { deleteBransDenemesi } = await import('../../firebase');
+      await deleteBransDenemesi(examId);
+      await loadSavedExams();
+      setSelectedExam(null);
+      setExamResults([]);
+    } catch (error) {
+      console.error('Silme hatası:', error);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
+        <h2 className="text-3xl font-bold mb-4">📝 Branş Denemesi Yönetimi</h2>
+        <p className="text-indigo-100 text-lg">Öğrenciler için branş denemeleri oluşturun</p>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
+        <div className="flex space-x-2">
+          <button onClick={() => setActiveSubTab('ekle')} className={`px-6 py-3 rounded-lg font-medium ${activeSubTab === 'ekle' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-700'}`}>➕ Ekle</button>
+          <button onClick={() => setActiveSubTab('listele')} className={`px-6 py-3 rounded-lg font-medium ${activeSubTab === 'listele' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-700'}`}>📋 Listele</button>
+        </div>
+      </div>
+
+      {activeSubTab === 'ekle' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">➕ Yeni Branş Denemesi</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+            <div><label className="block text-sm font-medium text-gray-700 mb-2">Deneme Adı</label><input type="text" value={denemeAdi} onChange={(e) => setDenemeAdi(e.target.value)} placeholder="Örn: 1. Deneme" className="w-full p-3 border border-gray-300 rounded-lg" /></div>
+            <div><label className="block text-sm font-medium text-gray-700 mb-2">Ders</label><select value={selectedDers} onChange={(e) => setSelectedDers(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg"><option value="">Seçin...</option>{dersler.map(d => <option key={d.key} value={d.key}>{d.name}</option>)}</select></div>
+            <div><label className="block text-sm font-medium text-gray-700 mb-2">Soru Sayısı</label><input type="number" min="1" value={soruSayisi} onChange={(e) => setSoruSayisi(parseInt(e.target.value) || 20)} className="w-full p-3 border border-gray-300 rounded-lg" /></div>
+            <div><label className="block text-sm font-medium text-gray-700 mb-2">Tarih</label><input type="date" value={tarih} onChange={(e) => setTarih(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg" /></div>
+            <div><label className="block text-sm font-medium text-gray-700 mb-2">Sınıf</label><select value={selectedSinif} onChange={(e) => { setSelectedSinif(e.target.value); setStudentScores({}); }} className="w-full p-3 border border-gray-300 rounded-lg"><option value="">Seçin...</option>{siniflar.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+          </div>
+
+          {selectedSinif && (
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold text-gray-700 mb-4">{selectedSinif} Öğrencileri ({filteredStudents.length})</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200 rounded-lg">
+                  <thead><tr className="bg-indigo-50"><th className="border p-3 text-left">Öğrenci</th><th className="border p-3 text-center w-24">Doğru</th><th className="border p-3 text-center w-24">Yanlış</th><th className="border p-3 text-center w-24">Boş</th><th className="border p-3 text-center w-28">Net</th><th className="border p-3 text-center w-24">Durum</th></tr></thead>
+                  <tbody>
+                    {filteredStudents.map(student => {
+                      const scores = studentScores[student.id] || { dogru: 0, yanlis: 0 };
+                      const net = calculateNet(scores.dogru, scores.yanlis);
+                      const bos = calculateBos(scores.dogru, scores.yanlis);
+                      const hasScore = scores.dogru > 0 || scores.yanlis > 0;
+                      return (
+                        <tr key={student.id} className="hover:bg-gray-50">
+                          <td className="border p-3"><div className="font-medium">{student.name}</div><div className="text-sm text-gray-500">No: {student.number}</div></td>
+                          <td className="border p-3 text-center"><input type="number" min="0" value={scores.dogru || ''} onChange={(e) => handleScoreChange(student.id, 'dogru', e.target.value)} className="w-20 p-2 border rounded-lg text-center" /></td>
+                          <td className="border p-3 text-center"><input type="number" min="0" value={scores.yanlis || ''} onChange={(e) => handleScoreChange(student.id, 'yanlis', e.target.value)} className="w-20 p-2 border rounded-lg text-center" /></td>
+                          <td className="border p-3 text-center"><span className="font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded">{bos}</span></td>
+                          <td className="border p-3 text-center"><span className={`font-bold ${net >= 0 ? 'text-green-600' : 'text-red-600'}`}>{hasScore ? net : '-'}</span></td>
+                          <td className="border p-3 text-center">{hasScore ? <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-sm">✓</span> : <span className="px-2 py-1 bg-gray-100 text-gray-500 rounded text-sm">-</span>}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {selectedSinif && filteredStudents.length > 0 && <div className="flex justify-end"><button onClick={saveExam} disabled={loading} className="px-8 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600">{loading ? 'Kaydediliyor...' : '💾 Kaydet'}</button></div>}
+        </div>
+      )}
+
+      {activeSubTab === 'listele' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-semibold">📋 Kayıtlı Denemeler</h3>
+            <button onClick={() => loadSavedExams()} className="px-4 py-2 bg-indigo-500 text-white rounded-lg">🔄 Yenile</button>
+          </div>
+          {savedExams.length === 0 ? <div className="text-center py-12 text-gray-500"><div className="text-6xl mb-4">📝</div><h4>Henüz Deneme Yok</h4></div> : (
+            <div className="space-y-4">
+              {savedExams.map(exam => {
+                const examDers = dersler.find(d => d.key === exam.ders);
+                return (
+                  <div key={exam.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: examDers?.color || '#6366f1' }}>{examDers?.name?.charAt(0) || 'B'}</div>
+                        <div>
+                          <h4 className="font-semibold">{examDers?.name || exam.ders}{exam.ad && <span className="text-indigo-600"> - {exam.ad}</span>}</h4>
+                          <p className="text-sm text-gray-500">{exam.sinif} • {new Date(exam.tarih).toLocaleDateString('tr-TR')} • {exam.soruSayisi} soru</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setSelectedExam(selectedExam?.id === exam.id ? null : exam)} className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm">{selectedExam?.id === exam.id ? 'Kapat' : 'Sonuçlar'}</button>
+                        <button onClick={() => deleteExam(exam.id)} className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm">Sil</button>
+                      </div>
+                    </div>
+                    {selectedExam?.id === exam.id && examResults.length > 0 && (
+                      <div className="mt-4 pt-4 border-t">
+                        <table className="w-full text-sm"><thead><tr className="bg-gray-100"><th className="p-2 text-left">Öğrenci</th><th className="p-2 text-center">D</th><th className="p-2 text-center">Y</th><th className="p-2 text-center">B</th><th className="p-2 text-center">Net</th></tr></thead><tbody>{examResults.sort((a,b) => b.net - a.net).map((r,i) => <tr key={i} className="hover:bg-gray-50"><td className="p-2">{r.studentName}</td><td className="p-2 text-center">{r.dogru}</td><td className="p-2 text-center">{r.yanlis}</td><td className="p-2 text-center">{r.bos}</td><td className="p-2 text-center font-bold">{r.net.toFixed(1)}</td></tr>)}</tbody></table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
