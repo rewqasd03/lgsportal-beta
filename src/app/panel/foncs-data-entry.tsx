@@ -8649,8 +8649,8 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
     { key: 'din', name: 'Din Kültürü', color: '#F97316' }
   ];
 
-  // 8. sınıf seçenekleri
-  const siniflar = ['8-A', '8-B', '8-C'];
+  // 5, 6, 7, 8. sınıf seçenekleri
+  const siniflar = ['5-A', '6-A', '7-A', '8-A'];
 
   // Seçilen sınıfa ait öğrenciler (alfabetik sıralı)
   const filteredStudents = selectedSinif
