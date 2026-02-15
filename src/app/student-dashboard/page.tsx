@@ -715,7 +715,7 @@ function StudentDashboardContent() {
             <div className="mb-6">
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                  {[1, 2, 3, 11, 12].map((tab) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -728,6 +728,13 @@ function StudentDashboardContent() {
                       {tab === 1 && '📊 Genel Görünüm'}
                       {tab === 2 && '📈 Net Gelişim Trendi'}
                       {tab === 3 && '📊 Puan Gelişim Trendi'}
+                      {tab === 4 && '📚 Denemeler'}
+                      {tab === 5 && '🎯 Ders Bazında Gelişim'}
+                      {tab === 6 && '🎯 Hedef Takibi & Lise Tercih'}
+                      {tab === 7 && '🧮 LGS Puan Hesaplama'}
+                      {tab === 8 && '📖 Kitap Sınavı'}
+                      {tab === 9 && '🎓 Lise Taban Puanları'}
+                      {tab === 10 && '📝 Ödev Takibi'}
                       {tab === 11 && '📄 PDF İndir'}
                       {tab === 12 && '📝 Branş Denemeleri'}
                     </button>
