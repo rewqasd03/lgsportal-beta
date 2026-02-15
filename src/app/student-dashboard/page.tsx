@@ -75,7 +75,7 @@ const BransDenemeleriTab = ({ studentId }: { studentId: string }) => {
 
   // Derse göre filtrele
   const filteredSonuclari = selectedDers
-    ? bransSonuclari.filter(s => s.ders === selectedDers)
+    ? bransSonuclari.filter(s => s.dersAdi === selectedDers)
     : bransSonuclari;
 
   // Tarihe göre sırala (en son en üstte)
