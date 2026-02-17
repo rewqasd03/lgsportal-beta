@@ -257,6 +257,12 @@ const getSubjectsByClass = (studentClass: string) => {
   return SUBJECTS_CONFIG[studentClass] || SUBJECTS_CONFIG['4-A'];
 };
 
+// Sınıfa göre net hesaplaması için ders listesi
+const getNetSubjectsByClass = (studentClass: string) => {
+  const subjects = getSubjectsByClass(studentClass);
+  return subjects.map(s => s.key);
+};
+
 interface ReportData {
   student: Student;
   examResults: {
@@ -281,6 +287,9 @@ function StudentDashboardContent() {
   const [studentId, setStudentId] = useState('');
   const [error, setError] = useState('');
   const [autoLoadAttempts, setAutoLoadAttempts] = useState(0);
+  const [selectedExamId, setSelectedExamId] = useState<string>('');
+  const [allResultsData, setAllResultsData] = useState<any[]>([]);
+  const [allStudentsData, setAllStudentsData] = useState<any[]>([]);
   
   // Chart ref'leri
   const netChartRef = useRef<HTMLDivElement>(null);
@@ -406,9 +415,11 @@ function StudentDashboardContent() {
 
       const resultsSnapshot = await getDocs(collection(db, 'results'));
       const resultsData = resultsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Result));
+      setAllResultsData(resultsData);
 
       const allStudentsSnapshot = await getDocs(collection(db, 'students'));
       const studentsData = allStudentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Student));
+      setAllStudentsData(studentsData);
 
       const studentResults = resultsData.filter(r => r.studentId === studentId);
       
@@ -862,6 +873,321 @@ function StudentDashboardContent() {
                     <Line isAnimationActive={false} type="monotone" dataKey="genel" stroke="#F59E0B" strokeWidth={1} strokeDasharray="3 3" name="Genel Ortalama Puan" />
                   </LineChart>
                 </ResponsiveContainer>
+              </div>
+            )}
+
+            {activeTab === 4 && (
+              <div className="space-y-3">
+                {/* Deneme Seçimi */}
+                <div className="bg-white rounded-lg shadow p-2">
+                  <h3 className="text-xs font-semibold text-gray-800 mb-2">📚 Deneme Seçimi ve Detay Görüntüleme</h3>
+                  
+                  <div className="mb-4">
+                    <label htmlFor="examSelect" className="block text-xs font-medium text-gray-700 mb-2">
+                      Hangi Denemenin Detaylarını Görmek İstiyorsunuz?
+                    </label>
+                    <select
+                      id="examSelect"
+                      value={selectedExamId}
+                      onChange={(e) => setSelectedExamId(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Deneme Seçin...</option>
+                      {reportData.examResults.map((result) => (
+                        <option key={result.exam.id} value={result.exam.id}>
+                          {result.exam.title} - {new Date(result.exam.date).toLocaleDateString('tr-TR')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Seçilen Denemenin Detayları */}
+                {selectedExamId && (() => {
+                  const selectedExamResult = reportData.examResults.find(result => result.exam.id === selectedExamId);
+                  if (!selectedExamResult) return null;
+
+                  const studentResult = selectedExamResult.studentResults[0];
+                  
+                  return (
+                    <div className="space-y-3">
+                      {/* Seçilen Deneme Başlığı */}
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-2">
+                        <h3 className="text-sm font-bold text-gray-800">
+                          📊 {selectedExamResult.exam.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          📅 {new Date(selectedExamResult.exam.date).toLocaleDateString('tr-TR')}
+                        </p>
+                      </div>
+
+                      {/* Ana İstatistikler */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
+                        <div className="bg-white rounded-lg shadow p-1">
+                          <h4 className="text-[8px] font-medium text-gray-500 mb-1">Toplam Net</h4>
+                          <p className="text-sm font-bold text-blue-600">{selectedExamResult.studentTotalNet.toFixed(1)}</p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            <div>Sınıf: {selectedExamResult.classAverage.toFixed(1)}</div>
+                            <div className="text-orange-600">Genel: {selectedExamResult.generalAverage.toFixed(1)}</div>
+                          </p>
+                        </div>
+                        <div className="bg-white rounded-lg shadow p-1">
+                          <h4 className="text-[8px] font-medium text-gray-500 mb-1">Toplam Puan</h4>
+                          <p className="text-sm font-bold text-purple-600">{selectedExamResult.studentTotalScore.toFixed(0)}</p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            <div>Sınıf: {selectedExamResult.classAverageScore.toFixed(0)}</div>
+                            <div className="text-orange-600">Genel: {selectedExamResult.generalAverageScore.toFixed(0)}</div>
+                          </p>
+                        </div>
+                        <div className="bg-white rounded-lg shadow p-1">
+                          <h4 className="text-[8px] font-medium text-gray-500 mb-1">Sınıf İçi Sıralama</h4>
+                          <p className="text-sm font-bold text-green-600">
+                            {selectedExamResult.studentTotalNet > selectedExamResult.classAverage ? 'Üstte' : 'Altta'}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            Fark: {(selectedExamResult.studentTotalNet - selectedExamResult.classAverage).toFixed(1)}
+                          </p>
+                        </div>
+                        <div className="bg-white rounded-lg shadow p-1">
+                          <h4 className="text-[8px] font-medium text-gray-500 mb-1">Genel Ortalama</h4>
+                          <p className="text-sm font-bold text-orange-600">{selectedExamResult.generalAverage.toFixed(1)}</p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            Fark: {selectedExamResult.studentTotalNet >= selectedExamResult.generalAverage ? (
+                              <span className="text-green-600">+{(selectedExamResult.studentTotalNet - selectedExamResult.generalAverage).toFixed(1)}</span>
+                            ) : (
+                              <span className="text-red-600">-{(selectedExamResult.generalAverage - selectedExamResult.studentTotalNet).toFixed(1)}</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Ders Bazında Detaylar */}
+                      <div className="bg-white rounded-lg shadow p-1">
+                        <h4 className="text-sm font-semibold text-gray-800 mb-2">📖 Ders Bazında Detaylar</h4>
+                        
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Ders</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">D/Y/B</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Net</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Sınıf</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Genel</th>
+                                <th className="px-1.5 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Fark</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {subjects.map((subject) => {
+                                const studentSubjectNet = studentResult?.nets?.[subject.key] || 0;
+                                
+                                return (
+                                  <tr key={subject.key} className="hover:bg-gray-50">
+                                    <td className="px-2 py-1.5">
+                                      <div className="flex items-center">
+                                        <span 
+                                          className="w-2 h-2 rounded-full mr-1"
+                                          style={{ backgroundColor: subject.color }}
+                                        ></span>
+                                        <span className="text-xs font-medium text-gray-900">{subject.name}</span>
+                                      </div>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <span className="text-xs text-gray-600">-/-/-</span>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <span className="text-xs font-bold text-blue-600">
+                                        {studentSubjectNet.toFixed(1)}
+                                      </span>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <span className="text-xs text-gray-600">-</span>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <span className="text-xs text-orange-600 font-medium">-</span>
+                                    </td>
+                                    <td className="px-1.5 py-1.5 text-center">
+                                      <span className="text-xs text-gray-400">-</span>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Genel Deneme Listesi */}
+                <div className="bg-white rounded-lg shadow p-2">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-2">📋 Tüm Denemeler</h3>
+                  
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Deneme</th>
+                          <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Tarih</th>
+                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Net</th>
+                          <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 uppercase">Puan</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {reportData.examResults.map((result, index) => (
+                          <tr 
+                            key={result.exam.id} 
+                            className={`hover:bg-gray-50 cursor-pointer ${
+                              selectedExamId === result.exam.id ? 'bg-blue-50' : ''
+                            }`}
+                            onClick={() => setSelectedExamId(result.exam.id)}
+                          >
+                            <td className="px-0.5 py-0.25 text-[8px] font-medium text-gray-900">
+                              {result.exam.title}
+                            </td>
+                            <td className="px-0.5 py-0.25 text-[8px] text-gray-600">
+                              {new Date(result.exam.date).toLocaleDateString('tr-TR')}
+                            </td>
+                            <td className="px-0.5 py-0.25 text-center">
+                              <span className="text-xs font-bold text-blue-600">
+                                {result.studentTotalNet > 0 ? result.studentTotalNet.toFixed(1) : 'Girmedi'}
+                              </span>
+                            </td>
+                            <td className="px-0.5 py-0.25 text-center">
+                              <span className="text-xs font-bold text-purple-600">
+                                {result.studentTotalScore > 0 ? result.studentTotalScore.toFixed(0) : 'Girmedi'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 5: Ders Bazında Gelişim */}
+            {activeTab === 5 && (
+              <div className="space-y-3">
+                <div className="bg-white rounded-lg shadow p-4">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">🎯 Ders Bazında Gelişim</h3>
+                  <p className="text-xs text-gray-600">Derslerinizdeki gelişimi takip edin.</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {subjects.map((subject) => {
+                    const subjectResults = reportData.examResults
+                      .filter(item => item.studentResults[0]?.nets?.[subject.key] > 0)
+                      .map(item => ({
+                        date: item.exam.date,
+                        net: item.studentResults[0]?.nets?.[subject.key] || 0
+                      }));
+                    
+                    const avgNet = subjectResults.length > 0 
+                      ? subjectResults.reduce((sum, r) => sum + r.net, 0) / subjectResults.length 
+                      : 0;
+                    
+                    return (
+                      <div key={subject.key} className="bg-white rounded-lg shadow p-4">
+                        <div className="flex items-center mb-2">
+                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: subject.color }}></div>
+                          <h4 className="font-medium text-gray-800">{subject.name}</h4>
+                        </div>
+                        <div className="text-2xl font-bold" style={{ color: subject.color }}>{avgNet.toFixed(1)}</div>
+                        <div className="text-xs text-gray-500">Ortalama Net</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Tab 6: Hedef Takibi & Lise Tercih */}
+            {activeTab === 6 && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">🎯 Hedef Takibi ve Lise Tercih Önerileri</h3>
+                  <p className="text-sm text-gray-600 mb-4">LGS puanınıza göre hedeflediğiniz liselere yakınsama durumunuzu takip edin.</p>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-medium text-blue-800 mb-2">Hedef Puanınız</h4>
+                    <div className="text-3xl font-bold text-blue-600">{studentScoreTarget}</div>
+                    <p className="text-xs text-blue-700 mt-1">Son Puan: {latestScore}</p>
+                  </div>
+                  
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium text-green-800 mb-2">Durum</h4>
+                    <p className="text-sm text-green-700">
+                      {latestScore >= studentScoreTarget 
+                        ? 'Tebrikler! Hedef puanınıza ulaştınız.' 
+                        : `Hedefinize ulaşmak için ${studentScoreTarget - latestScore} puan daha neediyorsunuz.`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 7: LGS Puan Hesaplama */}
+            {activeTab === 7 && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">🧮 LGS Puan Hesaplama</h3>
+                  <p className="text-sm text-gray-600 mb-4">LGS puanınızı hesaplayın.</p>
+                  
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h4 className="font-medium text-purple-800 mb-2">Mevcut Puanınız</h4>
+                    <div className="text-3xl font-bold text-purple-600">{latestScore}</div>
+                    <p className="text-xs text-purple-700 mt-1">Ortalama: {studentAverageScore.toFixed(0)}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 8: Kitap Sınavı */}
+            {activeTab === 8 && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">📖 Kitap Sınavı</h3>
+                  <p className="text-sm text-gray-600 mb-4">Okuduğunuz kitaplar için sınav sonuçlarınız.</p>
+                  
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">📚</div>
+                    <p className="text-gray-500">Kitap sınavı verisi bulunmuyor.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 9: Lise Taban Puanları */}
+            {activeTab === 9 && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">🎓 Lise Taban Puanları</h3>
+                  <p className="text-sm text-gray-600 mb-4">2025 LGS taban puanları.</p>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-medium text-blue-800 mb-2">Van İli Taban Puanları</h4>
+                    <p className="text-sm text-blue-700">Fen Liseleri: 400+ puan</p>
+                    <p className="text-sm text-blue-700">Anadolu Liseleri: 350+ puan</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 10: Ödev Takibi */}
+            {activeTab === 10 && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">📝 Ödev Takibi</h3>
+                  <p className="text-sm text-gray-600 mb-4">Ödevlerinizi takip edin.</p>
+                  
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">📝</div>
+                    <p className="text-gray-500">Ödev verisi bulunmuyor.</p>
+                  </div>
+                </div>
               </div>
             )}
 
