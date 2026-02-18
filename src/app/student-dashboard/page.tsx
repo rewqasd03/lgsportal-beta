@@ -1087,9 +1087,9 @@ function StudentDashboardContent() {
 
                 {/* Radar ve Hedef */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Ders Bazlı Performans - Tüm Denemelerin Ortalaması */}
+                  {/* Ders Bazlı Performans - Başarı Yüzdesi */}
                   <div className="bg-white rounded-lg shadow p-4">
-                    <h3 className="text-sm font-bold text-gray-800 mb-3">🎯 Ders Bazlı Performans (Ortalamalar)</h3>
+                    <h3 className="text-sm font-bold text-gray-800 mb-3">🎯 Ders Bazlı Başarı (%)</h3>
                     <ResponsiveContainer width="100%" height={280}>
                       <RadarChart cx="50%" cy="50%" outerRadius="70%" data={(() => {
                         const subjects = getSubjectsByClass(reportData?.student?.class || '4-A');
@@ -1115,23 +1115,25 @@ function StudentDashboardContent() {
                           const avgNet = data && data.count > 0 ? data.sum / data.count : 0;
                           // 20 soruluk dersler için 20, 10 soruluk için 10
                           const maxNet = ['turkce', 'matematik', 'fen', 'sosyal'].includes(subject.key) ? 20 : 10;
+                          // Başarı yüzdesi = (net / soru sayısı) * 100
+                          const successPercent = (avgNet / maxNet) * 100;
                           return { 
                             subject: subject.name, 
-                            net: avgNet, 
-                            fullMark: maxNet,
+                            net: successPercent, 
+                            fullMark: 100,
                             class: subject.key
                           };
                         });
                       })()}>
                         <PolarGrid />
                         <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
-                        <PolarRadiusAxis angle={30} domain={[0, 20]} tick={{ fontSize: 9 }} />
-                        <Radar name="Ort. Net" dataKey="net" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9 }} />
+                        <Radar name="Başarı %" dataKey="net" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
                         <Legend />
-                        <Tooltip />
+                        <Tooltip formatter={(value: number) => [`${value.toFixed(1)}%`, 'Başarı']} />
                       </RadarChart>
                     </ResponsiveContainer>
-                    <p className="text-xs text-gray-500 mt-2 text-center">* Tüm denemelerin ders bazlı ortalaması</p>
+                    <p className="text-xs text-gray-500 mt-2 text-center">* Tüm denemelerin ders bazlı ortalaması (% başarı)</p>
                   </div>
                   
                   {/* Hedef Kıyaslama - Ortalama */}
@@ -1159,16 +1161,18 @@ function StudentDashboardContent() {
                         return subjects.slice(0, 4).map(subject => {
                           const data = subjectTotals[subject.key];
                           const avgNet = data && data.count > 0 ? data.sum / data.count : 0;
-                          const target = studentTargets[subject.key] || 15;
-                          const pct = Math.min((avgNet / target) * 100, 100);
+                          const maxNet = ['turkce', 'matematik', 'fen', 'sosyal'].includes(subject.key) ? 20 : 10;
+                          const avgPercent = (avgNet / maxNet) * 100;
+                          const targetPercent = 75; // Hedef %75 başarı
+                          const pct = Math.min((avgPercent / targetPercent) * 100, 100);
                           return (
                             <div key={subject.key}>
                               <div className="flex justify-between text-xs mb-1">
                                 <span style={{ color: subject.color }}>{subject.name}</span>
-                                <span>{avgNet.toFixed(1)}/{target}</span>
+                                <span>%{avgPercent.toFixed(0)} / %{targetPercent}</span>
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div className={`h-2 rounded-full ${avgNet >= target ? 'bg-green-500' : 'bg-blue-500'}`} style={{ width: `${pct}%` }}></div>
+                                <div className={`h-2 rounded-full ${avgPercent >= targetPercent ? 'bg-green-500' : 'bg-blue-500'}`} style={{ width: `${pct}%` }}></div>
                               </div>
                             </div>
                           );
@@ -1188,16 +1192,18 @@ function StudentDashboardContent() {
                         const latestResult = reportData?.examResults?.[reportData.examResults.length - 1];
                         return subjects.slice(0, 4).map(subject => {
                           const currentNet = latestResult?.studentResults?.[0]?.nets?.[subject.key] || 0;
-                          const target = studentTargets[subject.key] || 15;
-                          const pct = Math.min((currentNet / target) * 100, 100);
+                          const maxNet = ['turkce', 'matematik', 'fen', 'sosyal'].includes(subject.key) ? 20 : 10;
+                          const currentPercent = (currentNet / maxNet) * 100;
+                          const targetPercent = 75;
+                          const pct = Math.min((currentPercent / targetPercent) * 100, 100);
                           return (
                             <div key={subject.key}>
                               <div className="flex justify-between text-xs mb-1">
                                 <span style={{ color: subject.color }}>{subject.name}</span>
-                                <span>{currentNet.toFixed(1)}/{target}</span>
+                                <span>%{currentPercent.toFixed(0)} / %{targetPercent}</span>
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div className={`h-2 rounded-full ${currentNet >= target ? 'bg-green-500' : 'bg-purple-500'}`} style={{ width: `${pct}%` }}></div>
+                                <div className={`h-2 rounded-full ${currentPercent >= targetPercent ? 'bg-green-500' : 'bg-purple-500'}`} style={{ width: `${pct}%` }}></div>
                               </div>
                             </div>
                           );
