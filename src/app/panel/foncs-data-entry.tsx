@@ -9277,7 +9277,7 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
 
     // 5. Her sınıf için en yüksek puanlı 5 öğrenci
     const classTopStudents: { [key: string]: any[] } = {};
-    const uniqueClasses = [...new Set(students.map(s => s.class))];
+    const uniqueClasses = Array.from(new Set(students.map(s => s.class)));
     
     uniqueClasses.forEach(cls => {
       const classStudents = filteredStudents.filter((s: any) => s.student.class === cls);
@@ -9298,7 +9298,7 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
   };
 
   const getUniqueClasses = () => {
-    return [...new Set(students.map(s => s.class))].sort();
+    return Array.from(new Set(students.map(s => s.class))).sort();
   };
 
   const RankCard = ({ title, emoji, data, type }: { title: string, emoji: string, data: any[], type: 'net' | 'score' }) => (
