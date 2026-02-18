@@ -1152,7 +1152,8 @@ const TABS: Tab[] = [
   { key: "van-taban-puan", label: "🎓 Lise Taban Puanları" },
   { key: "puan-bazli-tavsiye", label: "🎯 Puan Bazlı Tavsiye" },
   { key: "okuma-sinavi", label: "📚 Okuma Sınavı" },
-  { key: "brans-denemesi", label: "📝 Branş Denemesi" }
+  { key: "brans-denemesi", label: "📝 Branş Denemesi" },
+  { key: "basari-rozetleri", label: "🏆 Başarı Rozetleri" }
 ];
 
 // 📊 DERS RENK KODLAMASI - Görsel iyileştirme
@@ -4083,6 +4084,7 @@ export default function FoncsDataEntry() {
       case "puan-bazli-tavsiye": return <PuanBazliLiseTavsiyesiTab students={students} results={results} exams={exams} lgsSchools={lgsSchools} obpSchools={obpSchools} />;
       case "okuma-sinavi": return <OkumaSinaviTab students={students} />;
       case "brans-denemesi": return <BransDenemesiTab students={students} />;
+      case "basari-rozetleri": return <BasariRozetleriTab students={students} results={results} exams={exams} />;
       default: return <HomeTab />;
     }
   };
@@ -9170,6 +9172,301 @@ const BransDenemesiTab = ({ students }: { students: any[] }) => {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
+
+
+
+// 🏆 Başarı Rozetleri Tab Component
+const BasariRozetleriTab = ({ students, results, exams }: { students: any[], results: any[], exams: any[] }) => {
+  const [loading, setLoading] = useState(true);
+  const [selectedClass, setSelectedClass] = useState<string>('all');
+  const [rankings, setRankings] = useState<any>({});
+
+  useEffect(() => {
+    calculateRankings();
+  }, [students, results, exams, selectedClass]);
+
+  const calculateRankings = () => {
+    setLoading(true);
+    
+    // Sınavları tarihe göre sırala
+    const sortedExams = [...exams].sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    if (sortedExams.length < 2) {
+      setLoading(false);
+      return;
+    }
+
+    // Her öğrenci için sonuçları analiz et
+    const studentAnalysis = students.map(student => {
+      const studentResults = results
+        .filter(r => r.studentId === student.id)
+        .sort((a, b) => {
+          const examA = sortedExams.find(e => e.id === a.examId);
+          const examB = sortedExams.find(e => e.id === b.examId);
+          if (!examA || !examB) return 0;
+          return new Date(examA.date).getTime() - new Date(examB.date).getTime();
+        });
+
+      if (studentResults.length < 2) return null;
+
+      const firstResult = studentResults[0];
+      const lastResult = studentResults[studentResults.length - 1];
+      const previousResult = studentResults[studentResults.length - 2];
+
+      // İlk ve son deneme arası değişim
+      const netChange = (lastResult.nets?.total || 0) - (firstResult.nets?.total || 0);
+      const scoreChange = (lastResult.puan || lastResult.scores?.puan || 0) - (firstResult.puan || firstResult.scores?.puan || 0);
+
+      // Son ve bir önceki deneme arası değişim
+      const lastNetChange = (lastResult.nets?.total || 0) - (previousResult.nets?.total || 0);
+      const lastScoreChange = (lastResult.puan || lastResult.scores?.puan || 0) - (previousResult.puan || previousResult.scores?.puan || 0);
+
+      return {
+        student,
+        firstNet: firstResult.nets?.total || 0,
+        lastNet: lastResult.nets?.total || 0,
+        firstScore: firstResult.puan || firstResult.scores?.puan || 0,
+        lastScore: lastResult.puan || lastResult.scores?.puan || 0,
+        netChange,
+        scoreChange,
+        lastNetChange,
+        lastScoreChange,
+        totalExams: studentResults.length,
+        examDates: {
+          first: sortedExams.find(e => e.id === firstResult.examId)?.date,
+          last: sortedExams.find(e => e.id === lastResult.examId)?.date,
+          previous: sortedExams.find(e => e.id === previousResult.examId)?.date
+        }
+      };
+    }).filter(Boolean);
+
+    // Sınıfa göre filtrele
+    const filteredStudents = selectedClass === 'all' 
+      ? studentAnalysis 
+      : studentAnalysis.filter((s: any) => s.student.class === selectedClass);
+
+    // 1. Son denemeye göre en fazla net arttıran (girmeyenler hariç)
+    const topNetIncreasers = [...filteredStudents]
+      .filter((s: any) => s.lastNetChange > 0)
+      .sort((a: any, b: any) => b.lastNetChange - a.lastNetChange)
+      .slice(0, 10);
+
+    // 2. Son denemeye göre en fazla puan arttıran
+    const topScoreIncreasers = [...filteredStudents]
+      .filter((s: any) => s.lastScoreChange > 0)
+      .sort((a: any, b: any) => b.lastScoreChange - a.lastScoreChange)
+      .slice(0, 10);
+
+    // 3. İlk denemeden son denemeye kadar en fazla net arttıran
+    const topOverallNetImprovers = [...filteredStudents]
+      .filter((s: any) => s.netChange > 0)
+      .sort((a: any, b: any) => b.netChange - a.netChange)
+      .slice(0, 10);
+
+    // 4. İlk denemeden son denemeye kadar en fazla puan arttıran
+    const topOverallScoreImprovers = [...filteredStudents]
+      .filter((s: any) => s.scoreChange > 0)
+      .sort((a: any, b: any) => b.scoreChange - a.scoreChange)
+      .slice(0, 10);
+
+    // 5. Her sınıf için en yüksek puanlı 5 öğrenci
+    const classTopStudents: { [key: string]: any[] } = {};
+    const uniqueClasses = [...new Set(students.map(s => s.class))];
+    
+    uniqueClasses.forEach(cls => {
+      const classStudents = filteredStudents.filter((s: any) => s.student.class === cls);
+      classTopStudents[cls] = [...classStudents]
+        .sort((a: any, b: any) => b.lastScore - a.lastScore)
+        .slice(0, 5);
+    });
+
+    setRankings({
+      topNetIncreasers,
+      topScoreIncreasers,
+      topOverallNetImprovers,
+      topOverallScoreImprovers,
+      classTopStudents
+    });
+
+    setLoading(false);
+  };
+
+  const getUniqueClasses = () => {
+    return [...new Set(students.map(s => s.class))].sort();
+  };
+
+  const RankCard = ({ title, emoji, data, type }: { title: string, emoji: string, data: any[], type: 'net' | 'score' }) => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center">
+        <span className="mr-2">{emoji}</span> {title}
+      </h3>
+      {loading ? (
+        <div className="text-center py-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+        </div>
+      ) : data.length === 0 ? (
+        <p className="text-sm text-gray-500 text-center py-4">Yeterli veri yok</p>
+      ) : (
+        <div className="space-y-2">
+          {data.map((item: any, index: number) => (
+            <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+              <div className="flex items-center gap-3">
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                  index === 0 ? 'bg-yellow-400 text-yellow-900' :
+                  index === 1 ? 'bg-gray-300 text-gray-700' :
+                  index === 2 ? 'bg-amber-600 text-white' :
+                  'bg-gray-200 text-gray-600'
+                }`}>
+                  {index + 1}
+                </span>
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{item.student.name}</p>
+                  <p className="text-xs text-gray-500">{item.student.class} - {item.student.number}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-bold text-green-600">
+                  {type === 'net' 
+                    ? `+${(item.lastNetChange || item.netChange).toFixed(1)} net`
+                    : `+${(item.lastScoreChange || item.scoreChange).toFixed(0)} puan`
+                  }
+                </p>
+                <p className="text-xs text-gray-500">
+                  {item.lastNet?.toFixed(1) || item.lastScore?.toFixed(0)} net/puan
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl p-6 text-white">
+        <h1 className="text-2xl font-bold mb-2">🏆 Başarı Rozetleri</h1>
+        <p className="text-yellow-100 text-sm">
+          Öğrencilerin deneme performanslarına göre başarı sıralamaları
+        </p>
+      </div>
+
+      {/* Sınıf Filtresi */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedClass('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectedClass === 'all' 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Tüm Sınıflar
+          </button>
+          {getUniqueClasses().map(cls => (
+            <button
+              key={cls}
+              onClick={() => setSelectedClass(cls)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedClass === cls 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {cls}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Sıralamalar */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <RankCard 
+          title="Son Denemede En Fazla Net Artış" 
+          emoji="📈" 
+          data={rankings.topNetIncreasers || []} 
+          type="net" 
+        />
+        <RankCard 
+          title="Son Denemede En Fazla Puan Artış" 
+          emoji="⭐" 
+          data={rankings.topScoreIncreasers || []} 
+          type="score" 
+        />
+        <RankCard 
+          title="İlkdeneme → Sondene En Fazla Net Artışı" 
+          emoji="🚀" 
+          data={rankings.topOverallNetImprovers || []} 
+          type="net" 
+        />
+        <RankCard 
+          title="İlkdeneme → Sondene En Fazla Puan Artışı" 
+          emoji="💪" 
+          data={rankings.topOverallScoreImprovers || []} 
+          type="score" 
+        />
+      </div>
+
+      {/* Sınıf Bazlı En Başarılılar */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center">
+          <span className="mr-2">👑</span> Her Sınıfın En Başarılı 5 Öğrencisi
+        </h3>
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {Object.entries(rankings.classTopStudents || {}).map(([className, classStudents]: [string, any]) => (
+              <div key={className} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
+                <h4 className="text-sm font-semibold text-blue-600 mb-3">{className}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+                  {classStudents.map((item: any, index: number) => (
+                    <div key={index} className={`p-3 rounded-lg ${
+                      index === 0 ? 'bg-yellow-50 border border-yellow-200' :
+                      index === 1 ? 'bg-gray-50 border border-gray-200' :
+                      index === 2 ? 'bg-amber-50 border border-amber-200' :
+                      'bg-white border border-gray-100'
+                    }`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                          index === 0 ? 'bg-yellow-400 text-yellow-900' :
+                          index === 1 ? 'bg-gray-300 text-gray-700' :
+                          index === 2 ? 'bg-amber-600 text-white' :
+                          'bg-gray-200 text-gray-600'
+                        }`}>
+                          {index + 1}
+                        </span>
+                      </div>
+                      <p className="text-xs font-medium text-gray-800 truncate">{item.student.name}</p>
+                      <p className="text-xs font-bold text-green-600">{item.lastScore.toFixed(0)} puan</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Açıklama */}
+      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+        <h4 className="text-sm font-bold text-blue-800 mb-2">📋 Nasıl Hesaplanıyor?</h4>
+        <ul className="text-xs text-blue-700 space-y-1">
+          <li>• <strong>Net Artış:</strong> Son deneme ile bir önceki deneme arasındaki net farkı</li>
+          <li>• <strong>Puan Artış:</strong> Son deneme ile bir önceki deneme arasındaki puan farkı</li>
+          <li>• <strong>Genel İyileşme:</strong> İlk denemeden son denemeye kadar toplam net/puan değişimi</li>
+          <li>• <strong>Sınıf Sıralaması:</strong> Her sınıfın en yüksek puanlı öğrencileri</li>
+        </ul>
       </div>
     </div>
   );

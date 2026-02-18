@@ -966,6 +966,111 @@ function StudentDashboardContent() {
             {/* Tab Content */}
             {activeTab === 1 && (
               <div className="space-y-3">
+                {/* Geri Sayım Widgetları */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  {/* LGS Geri Sayım */}
+                  <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-4 text-white shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-medium text-blue-100">LGS Sınavına</h3>
+                        <p className="text-3xl font-bold mt-1">{(() => {
+                          const lgsDate = new Date('2026-06-07');
+                          const today = new Date();
+                          const diff = Math.ceil((lgsDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                          return diff > 0 ? diff : 0;
+                        })()} Gün</p>
+                        <p className="text-xs text-blue-200 mt-1">7 Haziran 2026</p>
+                      </div>
+                      <div className="text-5xl">🎯</div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                      <div className="bg-white/10 rounded-lg py-2">
+                        <p className="text-xs text-blue-200">Gün</p>
+                        <p className="text-lg font-bold">{(() => {
+                          const lgsDate = new Date('2026-06-07');
+                          const today = new Date();
+                          return Math.floor((lgsDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                        })()}</p>
+                      </div>
+                      <div className="bg-white/10 rounded-lg py-2">
+                        <p className="text-xs text-blue-200">Saat</p>
+                        <p className="text-lg font-bold">{(() => {
+                          const lgsDate = new Date('2026-06-07');
+                          const today = new Date();
+                          return Math.floor(((lgsDate.getTime() - today.getTime()) / (1000 * 60 * 60)) % 24);
+                        })()}</p>
+                      </div>
+                      <div className="bg-white/10 rounded-lg py-2">
+                        <p className="text-xs text-blue-200">Dakika</p>
+                        <p className="text-lg font-bold">{(() => {
+                          const lgsDate = new Date('2026-06-07');
+                          const today = new Date();
+                          return Math.floor(((lgsDate.getTime() - today.getTime()) / (1000 * 60)) % 60);
+                        })()}</p>
+                      </div>
+                      <div className="bg-white/10 rounded-lg py-2">
+                        <p className="text-xs text-blue-200">Saniye</p>
+                        <p className="text-lg font-bold">{(() => {
+                          const lgsDate = new Date('2026-06-07');
+                          const today = new Date();
+                          return Math.floor(((lgsDate.getTime() - today.getTime()) / 1000) % 60);
+                        })()}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* İOKBS Geri Sayım */}
+                  <div className="bg-gradient-to-r from-green-600 to-teal-700 rounded-xl p-4 text-white shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-medium text-green-100">İOKBS Sınavına</h3>
+                        <p className="text-3xl font-bold mt-1">{(() => {
+                          const iokbsDate = new Date('2026-04-12');
+                          const today = new Date();
+                          const diff = Math.ceil((iokbsDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                          return diff > 0 ? diff : 0;
+                        })()} Gün</p>
+                        <p className="text-xs text-green-200 mt-1">12 Nisan 2026</p>
+                      </div>
+                      <div className="text-5xl">📚</div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                      <div className="bg-white/10 rounded-lg py-2">
+                        <p className="text-xs text-green-200">Gün</p>
+                        <p className="text-lg font-bold">{(() => {
+                          const iokbsDate = new Date('2026-04-12');
+                          const today = new Date();
+                          return Math.floor((iokbsDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                        })()}</p>
+                      </div>
+                      <div className="bg-white/10 rounded-lg py-2">
+                        <p className="text-xs text-green-200">Saat</p>
+                        <p className="text-lg font-bold">{(() => {
+                          const iokbsDate = new Date('2026-04-12');
+                          const today = new Date();
+                          return Math.floor(((iokbsDate.getTime() - today.getTime()) / (1000 * 60 * 60)) % 24);
+                        })()}</p>
+                      </div>
+                      <div className="bg-white/10 rounded-lg py-2">
+                        <p className="text-xs text-green-200">Dakika</p>
+                        <p className="text-lg font-bold">{(() => {
+                          const iokbsDate = new Date('2026-04-12');
+                          const today = new Date();
+                          return Math.floor(((iokbsDate.getTime() - today.getTime()) / (1000 * 60)) % 60);
+                        })()}</p>
+                      </div>
+                      <div className="bg-white/10 rounded-lg py-2">
+                        <p className="text-xs text-green-200">Saniye</p>
+                        <p className="text-lg font-bold">{(() => {
+                          const iokbsDate = new Date('2026-04-12');
+                          const today = new Date();
+                          return Math.floor(((iokbsDate.getTime() - today.getTime()) / 1000) % 60);
+                        })()}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Özet Kartları */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1">
                   <div className="bg-white rounded-lg shadow p-1">
@@ -1002,6 +1107,289 @@ function StudentDashboardContent() {
                     }`}>
                       {(scoreImprovement || 0) >= 0 ? '+' : ''}{(scoreImprovement || 0).toFixed(0)} Değişim
                     </p>
+                  </div>
+                </div>
+
+                {/* Haftalık ve Aylık Özet Kartları */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Haftalık Özet */}
+                  <div className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center">
+                      <span className="mr-2">📅</span> Haftalık Performans
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <p className="text-xs text-blue-600 mb-1">Bu Hafta Net</p>
+                        <p className="text-xl font-bold text-blue-700">
+                          {(() => {
+                            const now = new Date();
+                            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            const weeklyResults = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= weekAgo
+                            ) || [];
+                            const avg = weeklyResults.length > 0 
+                              ? weeklyResults.reduce((sum, r) => sum + r.studentTotalNet, 0) / weeklyResults.length 
+                              : 0;
+                            return avg.toFixed(1);
+                          })()}
+                        </p>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-3">
+                        <p className="text-xs text-green-600 mb-1">Bu Hafta Puan</p>
+                        <p className="text-xl font-bold text-green-700">
+                          {(() => {
+                            const now = new Date();
+                            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            const weeklyResults = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= weekAgo
+                            ) || [];
+                            const avg = weeklyResults.length > 0 
+                              ? weeklyResults.reduce((sum, r) => sum + r.studentTotalScore, 0) / weeklyResults.length 
+                              : 0;
+                            return avg.toFixed(0);
+                          })()}
+                        </p>
+                      </div>
+                      <div className="bg-purple-50 rounded-lg p-3">
+                        <p className="text-xs text-purple-600 mb-1">Deneme Sayısı</p>
+                        <p className="text-xl font-bold text-purple-700">
+                          {(() => {
+                            const now = new Date();
+                            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            return (reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= weekAgo
+                            ) || []).length;
+                          })()}
+                        </p>
+                      </div>
+                      <div className="bg-orange-50 rounded-lg p-3">
+                        <p className="text-xs text-orange-600 mb-1">Haftalık Değişim</p>
+                        <p className={`text-xl font-bold ${
+                          (() => {
+                            const now = new Date();
+                            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+                            const thisWeek = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= weekAgo
+                            ) || [];
+                            const lastWeek = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= twoWeeksAgo && new Date(r.exam.date) < weekAgo
+                            ) || [];
+                            const thisAvg = thisWeek.length > 0 ? thisWeek.reduce((s, r) => s + r.studentTotalNet, 0) / thisWeek.length : 0;
+                            const lastAvg = lastWeek.length > 0 ? lastWeek.reduce((s, r) => s + r.studentTotalNet, 0) / lastWeek.length : 0;
+                            return thisAvg - lastAvg;
+                          })() >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {(() => {
+                            const now = new Date();
+                            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+                            const thisWeek = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= weekAgo
+                            ) || [];
+                            const lastWeek = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= twoWeeksAgo && new Date(r.exam.date) < weekAgo
+                            ) || [];
+                            const thisAvg = thisWeek.length > 0 ? thisWeek.reduce((s, r) => s + r.studentTotalNet, 0) / thisWeek.length : 0;
+                            const lastAvg = lastWeek.length > 0 ? lastWeek.reduce((s, r) => s + r.studentTotalNet, 0) / lastWeek.length : 0;
+                            const diff = thisAvg - lastAvg;
+                            return (diff >= 0 ? '+' : '') + diff.toFixed(1);
+                          })()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Aylık Özet */}
+                  <div className="bg-white rounded-lg shadow p-4 border-l-4 border-indigo-500">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center">
+                      <span className="mr-2">📆</span> Aylık Performans
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-indigo-50 rounded-lg p-3">
+                        <p className="text-xs text-indigo-600 mb-1">Bu Ay Net</p>
+                        <p className="text-xl font-bold text-indigo-700">
+                          {(() => {
+                            const now = new Date();
+                            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            const monthlyResults = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= monthAgo
+                            ) || [];
+                            const avg = monthlyResults.length > 0 
+                              ? monthlyResults.reduce((sum, r) => sum + r.studentTotalNet, 0) / monthlyResults.length 
+                              : 0;
+                            return avg.toFixed(1);
+                          })()}
+                        </p>
+                      </div>
+                      <div className="bg-teal-50 rounded-lg p-3">
+                        <p className="text-xs text-teal-600 mb-1">Bu Ay Puan</p>
+                        <p className="text-xl font-bold text-teal-700">
+                          {(() => {
+                            const now = new Date();
+                            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            const monthlyResults = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= monthAgo
+                            ) || [];
+                            const avg = monthlyResults.length > 0 
+                              ? monthlyResults.reduce((sum, r) => sum + r.studentTotalScore, 0) / monthlyResults.length 
+                              : 0;
+                            return avg.toFixed(0);
+                          })()}
+                        </p>
+                      </div>
+                      <div className="bg-pink-50 rounded-lg p-3">
+                        <p className="text-xs text-pink-600 mb-1">Deneme Sayısı</p>
+                        <p className="text-xl font-bold text-pink-700">
+                          {(() => {
+                            const now = new Date();
+                            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            return (reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= monthAgo
+                            ) || []).length;
+                          })()}
+                        </p>
+                      </div>
+                      <div className="bg-amber-50 rounded-lg p-3">
+                        <p className="text-xs text-amber-600 mb-1">Aylık Değişim</p>
+                        <p className={`text-xl font-bold ${
+                          (() => {
+                            const now = new Date();
+                            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            const twoMonthsAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+                            const thisMonth = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= monthAgo
+                            ) || [];
+                            const lastMonth = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= twoMonthsAgo && new Date(r.exam.date) < monthAgo
+                            ) || [];
+                            const thisAvg = thisMonth.length > 0 ? thisMonth.reduce((s, r) => s + r.studentTotalNet, 0) / thisMonth.length : 0;
+                            const lastAvg = lastMonth.length > 0 ? lastMonth.reduce((s, r) => s + r.studentTotalNet, 0) / lastMonth.length : 0;
+                            return thisAvg - lastAvg;
+                          })() >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {(() => {
+                            const now = new Date();
+                            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            const twoMonthsAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+                            const thisMonth = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= monthAgo
+                            ) || [];
+                            const lastMonth = reportData?.examResults?.filter(r => 
+                              new Date(r.exam.date) >= twoMonthsAgo && new Date(r.exam.date) < monthAgo
+                            ) || [];
+                            const thisAvg = thisMonth.length > 0 ? thisMonth.reduce((s, r) => s + r.studentTotalNet, 0) / thisMonth.length : 0;
+                            const lastAvg = lastMonth.length > 0 ? lastMonth.reduce((s, r) => s + r.studentTotalNet, 0) / lastMonth.length : 0;
+                            const diff = thisAvg - lastAvg;
+                            return (diff >= 0 ? '+' : '') + diff.toFixed(1);
+                          })()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ders Bazlı Performans Radar Grafiği ve Hedef Kıyaslama */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Ders Bazlı Radar Grafik */}
+                  <div className="bg-white rounded-lg shadow p-4">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center">
+                      <span className="mr-2">🎯</span> Ders Bazlı Performans
+                    </h3>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <RadarChart cx="50%" cy="50%" outerRadius="70%" data={(() => {
+                        const subjects = getSubjectsByClass(reportData?.student?.class || '4-A');
+                        return subjects.map(subject => {
+                          const latestResult = reportData?.examResults?.[reportData.examResults.length - 1];
+                          const net = latestResult?.studentResults?.[0]?.nets?.[subject.key as keyof typeof latestResult.studentResults[0].nets] || 0;
+                          return {
+                            subject: subject.name,
+                            fullMark: 20,
+                            net: net || 0,
+                            classAvg: (() => {
+                              const classResults = allResultsData.filter(r => {
+                                const exam = reportData?.examResults?.find(e => e.exam.id === r.examId);
+                                return exam && allStudentsData.find(s => s.id === r.studentId && s.class === reportData?.student?.class);
+                              });
+                              return classResults.length > 0 
+                                ? classResults.reduce((sum, r) => sum + (r.nets?.[subject.key as keyof typeof r.nets] || 0), 0) / classResults.length 
+                                : 0;
+                            })()
+                          };
+                        });
+                      })()}>
+                        <PolarGrid />
+                        <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
+                        <PolarRadiusAxis angle={30} domain={[0, 20]} tick={{ fontSize: 9 }} />
+                        <Radar name="Sen" dataKey="net" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
+                        <Radar name="Sınıf Ortalaması" dataKey="classAvg" stroke="#10B981" fill="#10B981" fillOpacity={0.2} />
+                        <Legend />
+                        <Tooltip />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Hedef Kıyaslama Göstergesi */}
+                  <div className="bg-white rounded-lg shadow p-4">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center">
+                      <span className="mr-2">📊</span> Hedef Kıyaslama
+                    </h3>
+                    <div className="space-y-4">
+                      {(() => {
+                        const subjects = getSubjectsByClass(reportData?.student?.class || '4-A');
+                        const latestResult = reportData?.examResults?.[reportData.examResults.length - 1];
+                        return subjects.map(subject => {
+                          const currentNet = latestResult?.studentResults?.[0]?.nets?.[subject.key as keyof typeof latestResult.studentResults[0].nets] || 0;
+                          const target = studentTargets[subject.key] || 15;
+                          const percentage = Math.min((currentNet / target) * 100, 100);
+                          const isComplete = currentNet >= target;
+                          
+                          return (
+                            <div key={subject.key} className="space-y-1">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs font-medium" style={{ color: subject.color }}>
+                                  {subject.emoji} {subject.name}
+                                </span>
+                                <span className="text-xs text-gray-600">
+                                  {currentNet.toFixed(1)} / {target} net
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className={`h-2 rounded-full transition-all duration-500 ${isComplete ? 'bg-green-500' : 'bg-blue-500'}`}
+                                  style={{ width: `${percentage}%` }}
+                                ></div>
+                              </div>
+                              <p className={`text-xs ${isComplete ? 'text-green-600' : 'text-gray-500'}`}>
+                                {percentage.toFixed(0)}% tamamlandı
+                                {!isComplete && ` • ${(target - currentNet).toFixed(1)} net kaldı`}
+                              </p>
+                            </div>
+                          );
+                        });
+                      })()}
+                      
+                      {/* Genel Puan Hedefi */}
+                      <div className="mt-4 pt-4 border-t">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-bold text-gray-800">🎯 Genel Puan Hedefi</span>
+                          <span className="text-sm text-gray-600">
+                            {(latestScore || 0).toFixed(0)} / {studentScoreTarget} puan
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div 
+                            className={`h-3 rounded-full transition-all duration-500 ${(latestScore || 0) >= studentScoreTarget ? 'bg-green-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'}`}
+                            style={{ width: `${Math.min(((latestScore || 0) / studentScoreTarget) * 100, 100)}%` }}
+                          ></div>
+                        </div>
+                        <p className={`text-xs mt-1 ${(latestScore || 0) >= studentScoreTarget ? 'text-green-600' : 'text-gray-500'}`}>
+                          {(latestScore || 0) >= studentScoreTarget 
+                            ? '🎉 Tebrikler! Hedefine ulaştın!' 
+                            : `Hedefine ulaşmak için ${(studentScoreTarget - (latestScore || 0)).toFixed(0)} puan daha gerekli`}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
