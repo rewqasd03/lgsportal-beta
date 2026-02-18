@@ -1113,8 +1113,8 @@ function StudentDashboardContent() {
                         return subjects.map(subject => {
                           const data = subjectTotals[subject.key];
                           const avgNet = data && data.count > 0 ? data.sum / data.count : 0;
-                          // 20 soruluk dersler için 20, 10 soruluk için 10
-                          const maxNet = ['turkce', 'matematik', 'fen', 'sosyal'].includes(subject.key) ? 20 : 10;
+                          // LGS'de tüm dersler 20 soru
+                          const maxNet = 20;
                           // Başarı yüzdesi = (net / soru sayısı) * 100
                           const successPercent = (avgNet / maxNet) * 100;
                           return { 
@@ -1161,18 +1161,18 @@ function StudentDashboardContent() {
                         return subjects.map(subject => {
                           const data = subjectTotals[subject.key];
                           const avgNet = data && data.count > 0 ? data.sum / data.count : 0;
-                          const maxNet = ['turkce', 'matematik', 'fen', 'sosyal'].includes(subject.key) ? 20 : 10;
-                          const avgPercent = (avgNet / maxNet) * 100;
-                          const targetPercent = 75; // Hedef %75 başarı
-                          const pct = Math.min((avgPercent / targetPercent) * 100, 100);
+                          const maxNet = 20; // LGS'de tüm dersler 20 soru
+                          // Öğrencinin belirlediği hedefi kullan
+                          const targetNet = studentTargets[subject.key] || 15;
+                          const pct = Math.min((avgNet / targetNet) * 100, 100);
                           return (
                             <div key={subject.key}>
                               <div className="flex justify-between text-xs mb-1">
                                 <span style={{ color: subject.color }}>{subject.name}</span>
-                                <span>%{avgPercent.toFixed(0)} / %{targetPercent}</span>
+                                <span>{avgNet.toFixed(1)} / {targetNet}</span>
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div className={`h-2 rounded-full ${avgPercent >= targetPercent ? 'bg-green-500' : 'bg-blue-500'}`} style={{ width: `${pct}%` }}></div>
+                                <div className={`h-2 rounded-full ${avgNet >= targetNet ? 'bg-green-500' : 'bg-blue-500'}`} style={{ width: `${pct}%` }}></div>
                               </div>
                             </div>
                           );
@@ -1192,18 +1192,18 @@ function StudentDashboardContent() {
                         const latestResult = reportData?.examResults?.[reportData.examResults.length - 1];
                         return subjects.map(subject => {
                           const currentNet = latestResult?.studentResults?.[0]?.nets?.[subject.key] || 0;
-                          const maxNet = ['turkce', 'matematik', 'fen', 'sosyal'].includes(subject.key) ? 20 : 10;
-                          const currentPercent = (currentNet / maxNet) * 100;
-                          const targetPercent = 75;
-                          const pct = Math.min((currentPercent / targetPercent) * 100, 100);
+                          const maxNet = 20; // LGS'de tüm dersler 20 soru
+                          // Öğrencinin belirlediği hedefi kullan
+                          const targetNet = studentTargets[subject.key] || 15;
+                          const pct = Math.min((currentNet / targetNet) * 100, 100);
                           return (
                             <div key={subject.key}>
                               <div className="flex justify-between text-xs mb-1">
                                 <span style={{ color: subject.color }}>{subject.name}</span>
-                                <span>%{currentPercent.toFixed(0)} / %{targetPercent}</span>
+                                <span>{currentNet.toFixed(1)} / {targetNet}</span>
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div className={`h-2 rounded-full ${currentPercent >= targetPercent ? 'bg-green-500' : 'bg-purple-500'}`} style={{ width: `${pct}%` }}></div>
+                                <div className={`h-2 rounded-full ${currentNet >= targetNet ? 'bg-green-500' : 'bg-purple-500'}`} style={{ width: `${pct}%` }}></div>
                               </div>
                             </div>
                           );
