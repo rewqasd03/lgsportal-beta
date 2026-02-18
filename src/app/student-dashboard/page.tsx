@@ -1158,7 +1158,7 @@ function StudentDashboardContent() {
                           }
                         });
                         
-                        return subjects.slice(0, 4).map(subject => {
+                        return subjects.map(subject => {
                           const data = subjectTotals[subject.key];
                           const avgNet = data && data.count > 0 ? data.sum / data.count : 0;
                           const maxNet = ['turkce', 'matematik', 'fen', 'sosyal'].includes(subject.key) ? 20 : 10;
@@ -1190,7 +1190,7 @@ function StudentDashboardContent() {
                       {(() => {
                         const subjects = getSubjectsByClass(reportData?.student?.class || '4-A');
                         const latestResult = reportData?.examResults?.[reportData.examResults.length - 1];
-                        return subjects.slice(0, 4).map(subject => {
+                        return subjects.map(subject => {
                           const currentNet = latestResult?.studentResults?.[0]?.nets?.[subject.key] || 0;
                           const maxNet = ['turkce', 'matematik', 'fen', 'sosyal'].includes(subject.key) ? 20 : 10;
                           const currentPercent = (currentNet / maxNet) * 100;
