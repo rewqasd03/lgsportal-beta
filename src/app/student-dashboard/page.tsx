@@ -973,9 +973,9 @@ function StudentDashboardContent() {
                       <div>
                         <h3 className="text-sm font-medium text-blue-100">LGS Sınavına</h3>
                         <p className="text-3xl font-bold mt-1">
-                          {Math.max(0, Math.ceil((new Date('2026-06-07').getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} Gün
+                          {Math.max(0, Math.ceil((new Date('2026-06-14').getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} Gün
                         </p>
-                        <p className="text-xs text-blue-200 mt-1">7 Haziran 2026</p>
+                        <p className="text-xs text-blue-200 mt-1">14 Haziran 2026</p>
                       </div>
                       <div className="text-4xl">🎯</div>
                     </div>
@@ -985,40 +985,62 @@ function StudentDashboardContent() {
                       <div>
                         <h3 className="text-sm font-medium text-green-100">İOKBS Sınavına</h3>
                         <p className="text-3xl font-bold mt-1">
-                          {Math.max(0, Math.ceil((new Date('2026-04-12').getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} Gün
+                          {Math.max(0, Math.ceil((new Date('2026-04-26').getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} Gün
                         </p>
-                        <p className="text-xs text-green-200 mt-1">12 Nisan 2026</p>
+                        <p className="text-xs text-green-200 mt-1">26 Nisan 2026</p>
                       </div>
                       <div className="text-4xl">📚</div>
                     </div>
                   </div>
                 </div>
 
-                {/* Haftalık/Aylık Özet */}
+                {/* Bir Önceki Denemeye Göre Değişim */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-                    <h3 className="text-sm font-bold text-gray-800 mb-3">📅 Haftalık Performans</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-blue-50 rounded-lg p-3">
-                        <p className="text-xs text-blue-600 mb-1">Bu Hafta Net</p>
-                        <p className="text-xl font-bold text-blue-700">-</p>
+                  <div className="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3">📈 Net Değişimi</h3>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-3xl font-bold text-green-600">
+                          {(improvement || 0) >= 0 ? '+' : ''}{(improvement || 0).toFixed(1)}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">Net</p>
                       </div>
-                      <div className="bg-green-50 rounded-lg p-3">
-                        <p className="text-xs text-green-600 mb-1">Bu Hafta Puan</p>
-                        <p className="text-xl font-bold text-green-700">-</p>
+                      <div className="text-right">
+                        {examResultsWithScores.length > 1 && (
+                          <>
+                            <p className={`text-2xl font-bold ${improvement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {improvement >= 0 ? '+' : ''}{((improvement / previousNet) * 100 || 0).toFixed(1)}%
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">% Artış</p>
+                          </>
+                        )}
+                        {examResultsWithScores.length <= 1 && (
+                          <p className="text-sm text-gray-400">Yeterli veri yok</p>
+                        )}
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg shadow p-4 border-l-4 border-indigo-500">
-                    <h3 className="text-sm font-bold text-gray-800 mb-3">📆 Aylık Performans</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-indigo-50 rounded-lg p-3">
-                        <p className="text-xs text-indigo-600 mb-1">Bu Ay Net</p>
-                        <p className="text-xl font-bold text-indigo-700">-</p>
+                  <div className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3">📊 Puan Değişimi</h3>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-3xl font-bold text-blue-600">
+                          {(scoreImprovement || 0) >= 0 ? '+' : ''}{(scoreImprovement || 0).toFixed(0)}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">Puan</p>
                       </div>
-                      <div className="bg-teal-50 rounded-lg p-3">
-                        <p className="text-xs text-teal-600 mb-1">Bu Ay Puan</p>
-                        <p className="text-xl font-bold text-teal-700">-</p>
+                      <div className="text-right">
+                        {examResultsWithScores.length > 1 && (
+                          <>
+                            <p className={`text-2xl font-bold ${scoreImprovement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {scoreImprovement >= 0 ? '+' : ''}{((scoreImprovement / (previousScore || 1)) * 100 || 0).toFixed(1)}%
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">% Artış</p>
+                          </>
+                        )}
+                        {examResultsWithScores.length <= 1 && (
+                          <p className="text-sm text-gray-400">Yeterli veri yok</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1065,28 +1087,101 @@ function StudentDashboardContent() {
 
                 {/* Radar ve Hedef */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Ders Bazlı Performans - Tüm Denemelerin Ortalaması */}
                   <div className="bg-white rounded-lg shadow p-4">
-                    <h3 className="text-sm font-bold text-gray-800 mb-3">🎯 Ders Bazlı Performans</h3>
-                    <ResponsiveContainer width="100%" height={250}>
+                    <h3 className="text-sm font-bold text-gray-800 mb-3">🎯 Ders Bazlı Performans (Ortalamalar)</h3>
+                    <ResponsiveContainer width="100%" height={280}>
                       <RadarChart cx="50%" cy="50%" outerRadius="70%" data={(() => {
                         const subjects = getSubjectsByClass(reportData?.student?.class || '4-A');
-                        const latestResult = reportData?.examResults?.[reportData.examResults.length - 1];
+                        // Tüm denemelerin ders ortalamasını hesapla
+                        const subjectTotals: {[key: string]: {sum: number, count: number}} = {};
+                        
+                        // Her deneme için ders netlerini topla
+                        reportData?.examResults?.forEach((er: any) => {
+                          if (er.studentResults && er.studentResults[0] && er.studentTotalNet > 0) {
+                            subjects.forEach((subject: any) => {
+                              const net = er.studentResults[0].nets?.[subject.key] || 0;
+                              if (!subjectTotals[subject.key]) {
+                                subjectTotals[subject.key] = {sum: 0, count: 0};
+                              }
+                              subjectTotals[subject.key].sum += net;
+                              subjectTotals[subject.key].count += 1;
+                            });
+                          }
+                        });
+                        
                         return subjects.map(subject => {
-                          const net = latestResult?.studentResults?.[0]?.nets?.[subject.key] || 0;
-                          return { subject: subject.name, net: net, fullMark: 20 };
+                          const data = subjectTotals[subject.key];
+                          const avgNet = data && data.count > 0 ? data.sum / data.count : 0;
+                          // 20 soruluk dersler için 20, 10 soruluk için 10
+                          const maxNet = ['turkce', 'matematik', 'fen', 'sosyal'].includes(subject.key) ? 20 : 10;
+                          return { 
+                            subject: subject.name, 
+                            net: avgNet, 
+                            fullMark: maxNet,
+                            class: subject.key
+                          };
                         });
                       })()}>
                         <PolarGrid />
                         <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
                         <PolarRadiusAxis angle={30} domain={[0, 20]} tick={{ fontSize: 9 }} />
-                        <Radar name="Net" dataKey="net" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
+                        <Radar name="Ort. Net" dataKey="net" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
                         <Legend />
                         <Tooltip />
                       </RadarChart>
                     </ResponsiveContainer>
+                    <p className="text-xs text-gray-500 mt-2 text-center">* Tüm denemelerin ders bazlı ortalaması</p>
                   </div>
+                  
+                  {/* Hedef Kıyaslama - Ortalama */}
                   <div className="bg-white rounded-lg shadow p-4">
-                    <h3 className="text-sm font-bold text-gray-800 mb-3">📊 Hedef Kıyaslama</h3>
+                    <h3 className="text-sm font-bold text-gray-800 mb-3">📊 Hedef Kıyaslama (Ortalama)</h3>
+                    <div className="space-y-3">
+                      {(() => {
+                        const subjects = getSubjectsByClass(reportData?.student?.class || '4-A');
+                        // Tüm denemelerin ders ortalamasını hesapla
+                        const subjectTotals: {[key: string]: {sum: number, count: number}} = {};
+                        
+                        reportData?.examResults?.forEach((er: any) => {
+                          if (er.studentResults && er.studentResults[0] && er.studentTotalNet > 0) {
+                            subjects.forEach((subject: any) => {
+                              const net = er.studentResults[0].nets?.[subject.key] || 0;
+                              if (!subjectTotals[subject.key]) {
+                                subjectTotals[subject.key] = {sum: 0, count: 0};
+                              }
+                              subjectTotals[subject.key].sum += net;
+                              subjectTotals[subject.key].count += 1;
+                            });
+                          }
+                        });
+                        
+                        return subjects.slice(0, 4).map(subject => {
+                          const data = subjectTotals[subject.key];
+                          const avgNet = data && data.count > 0 ? data.sum / data.count : 0;
+                          const target = studentTargets[subject.key] || 15;
+                          const pct = Math.min((avgNet / target) * 100, 100);
+                          return (
+                            <div key={subject.key}>
+                              <div className="flex justify-between text-xs mb-1">
+                                <span style={{ color: subject.color }}>{subject.name}</span>
+                                <span>{avgNet.toFixed(1)}/{target}</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div className={`h-2 rounded-full ${avgNet >= target ? 'bg-green-500' : 'bg-blue-500'}`} style={{ width: `${pct}%` }}></div>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Hedef Kıyaslama - Son Deneme */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="bg-white rounded-lg shadow p-4 md:col-start-2">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3">🎯 Hedef Kıyaslama (Son Deneme)</h3>
                     <div className="space-y-3">
                       {(() => {
                         const subjects = getSubjectsByClass(reportData?.student?.class || '4-A');
@@ -1102,7 +1197,7 @@ function StudentDashboardContent() {
                                 <span>{currentNet.toFixed(1)}/{target}</span>
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div className={`h-2 rounded-full ${currentNet >= target ? 'bg-green-500' : 'bg-blue-500'}`} style={{ width: `${pct}%` }}></div>
+                                <div className={`h-2 rounded-full ${currentNet >= target ? 'bg-green-500' : 'bg-purple-500'}`} style={{ width: `${pct}%` }}></div>
                               </div>
                             </div>
                           );
