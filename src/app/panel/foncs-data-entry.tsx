@@ -9192,23 +9192,26 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
   const calculateRankings = () => {
     setLoading(true);
     
-    // Sınavları tarihe göre sırala
-    const sortedExams = [...exams].sort((a, b) => 
-      new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-
-    if (sortedExams.length < 2) {
+    // Guvenli kontrol
+    if (!exams || !students || !results || exams.length < 2 || students.length === 0 || results.length === 0) {
       setLoading(false);
+      setRankings({});
       return;
     }
+    
+    const sortedExams = [...exams].sort((a, b) => 
+      new Date(a?.date || 0).getTime() - new Date(b?.date || 0).getTime()
+    );
 
     // Her öğrenci için sonuçları analiz et
     const studentAnalysis = students.map(student => {
+      if (!student || !student.id) return null;
+      
       const studentResults = results
-        .filter(r => r.studentId === student.id)
+        .filter(r => r && r.studentId === student.id)
         .sort((a, b) => {
-          const examA = sortedExams.find(e => e.id === a.examId);
-          const examB = sortedExams.find(e => e.id === b.examId);
+          const examA = sortedExams.find(e => e && e.id === a?.examId);
+          const examB = sortedExams.find(e => e && e.id === b?.examId);
           if (!examA || !examB) return 0;
           return new Date(examA.date).getTime() - new Date(examB.date).getTime();
         });
@@ -9219,13 +9222,15 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
       const lastResult = studentResults[studentResults.length - 1];
       const previousResult = studentResults[studentResults.length - 2];
 
-      // İlk ve son deneme arası değişim
-      const netChange = (lastResult.nets?.total || 0) - (firstResult.nets?.total || 0);
-      const scoreChange = (lastResult.puan || lastResult.scores?.puan || 0) - (firstResult.puan || firstResult.scores?.puan || 0);
+      if (!firstResult || !lastResult || !previousResult) return null;
 
-      // Son ve bir önceki deneme arası değişim
-      const lastNetChange = (lastResult.nets?.total || 0) - (previousResult.nets?.total || 0);
-      const lastScoreChange = (lastResult.puan || lastResult.scores?.puan || 0) - (previousResult.puan || previousResult.scores?.puan || 0);
+      //Ilk ve son deneme arasi degisim
+      const netChange = ((lastResult.nets?.total ?? 0)) - ((firstResult.nets?.total ?? 0));
+      const scoreChange = (lastResult.scores?.puan ?? lastResult.puan ?? 0) - (firstResult.scores?.puan ?? firstResult.puan ?? 0);
+
+      // Son ve bir onceki deneme arasi degisim
+      const lastNetChange = ((lastResult.nets?.total ?? 0)) - ((previousResult.nets?.total ?? 0));
+      const lastScoreChange = (lastResult.scores?.puan ?? lastResult.puan ?? 0) - (previousResult.scores?.puan ?? previousResult.puan ?? 0);
 
       return {
         student,
@@ -9239,48 +9244,48 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
         lastScoreChange,
         totalExams: studentResults.length,
         examDates: {
-          first: sortedExams.find(e => e.id === firstResult.examId)?.date,
-          last: sortedExams.find(e => e.id === lastResult.examId)?.date,
-          previous: sortedExams.find(e => e.id === previousResult.examId)?.date
+          first: sortedExams.find(e => e && e.id === firstResult.examId)?.date,
+          last: sortedExams.find(e => e && e.id === lastResult.examId)?.date,
+          previous: sortedExams.find(e => e && e.id === previousResult.examId)?.date
         }
       };
     }).filter(Boolean);
 
-    // Sınıfa göre filtrele
+    // Sinifa gore filtrele
     const filteredStudents = selectedClass === 'all' 
       ? studentAnalysis 
-      : studentAnalysis.filter((s: any) => s.student.class === selectedClass);
+      : studentAnalysis.filter((s: any) => s && s.student && s.student.class === selectedClass);
 
-    // 1. Son denemeye göre en fazla net arttıran (girmeyenler hariç)
+    // 1. Son denemeye gore en fazla net arttiran
     const topNetIncreasers = [...filteredStudents]
-      .filter((s: any) => s.lastNetChange > 0)
+      .filter((s: any) => s && s.lastNetChange > 0)
       .sort((a: any, b: any) => b.lastNetChange - a.lastNetChange)
       .slice(0, 10);
 
-    // 2. Son denemeye göre en fazla puan arttıran
+    // 2. Son denemeye gore en fazla puan arttiran
     const topScoreIncreasers = [...filteredStudents]
-      .filter((s: any) => s.lastScoreChange > 0)
+      .filter((s: any) => s && s.lastScoreChange > 0)
       .sort((a: any, b: any) => b.lastScoreChange - a.lastScoreChange)
       .slice(0, 10);
 
-    // 3. İlk denemeden son denemeye kadar en fazla net arttıran
+    // 3. Ilk denemeden son denemeye kadar en fazla net arttiran
     const topOverallNetImprovers = [...filteredStudents]
-      .filter((s: any) => s.netChange > 0)
+      .filter((s: any) => s && s.netChange > 0)
       .sort((a: any, b: any) => b.netChange - a.netChange)
       .slice(0, 10);
 
-    // 4. İlk denemeden son denemeye kadar en fazla puan arttıran
+    // 4. Ilk denemeden son denemeye kadar en fazla puan arttiran
     const topOverallScoreImprovers = [...filteredStudents]
-      .filter((s: any) => s.scoreChange > 0)
+      .filter((s: any) => s && s.scoreChange > 0)
       .sort((a: any, b: any) => b.scoreChange - a.scoreChange)
       .slice(0, 10);
 
     // 5. Her sınıf için en yüksek puanlı 5 öğrenci
     const classTopStudents: { [key: string]: any[] } = {};
-    const uniqueClasses = Array.from(new Set(students.map(s => s.class)));
+    const uniqueClasses = Array.from(new Set(students.map(s => s?.class).filter(Boolean)));
     
     uniqueClasses.forEach(cls => {
-      const classStudents = filteredStudents.filter((s: any) => s.student.class === cls);
+      const classStudents = filteredStudents.filter((s: any) => s && s.student && s.student.class === cls);
       classTopStudents[cls] = [...classStudents]
         .sort((a: any, b: any) => b.lastScore - a.lastScore)
         .slice(0, 5);
