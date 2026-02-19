@@ -9256,27 +9256,27 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
       ? studentAnalysis 
       : studentAnalysis.filter((s: any) => s && s.student && s.student.class === selectedClass);
 
-    // 1. Son denemeye gore en fazla net arttiran (5 ogrenci) - En az 2 deneme girmis olmali
+    // 1. Son denemeye gore en fazla net degisim (5 ogrenci) - En az 2 deneme girmis olmali
     const topNetIncreasers = [...filteredStudents]
-      .filter((s: any) => s && s.totalExams >= 2 && s.lastNetChange > 0)
+      .filter((s: any) => s && s.totalExams >= 2)
       .sort((a: any, b: any) => b.lastNetChange - a.lastNetChange)
       .slice(0, 5);
 
-    // 2. Son denemeye gore en fazla puan arttiran (5 ogrenci) - En az 2 deneme girmis olmali
+    // 2. Son denemeye gore en fazla puan degisim (5 ogrenci) - En az 2 deneme girmis olmali
     const topScoreIncreasers = [...filteredStudents]
-      .filter((s: any) => s && s.totalExams >= 2 && s.lastScoreChange > 0)
+      .filter((s: any) => s && s.totalExams >= 2)
       .sort((a: any, b: any) => b.lastScoreChange - a.lastScoreChange)
       .slice(0, 5);
 
-    // 3. Ilk denemeden son denemeye kadar en fazla net arttiran (5 ogrenci) - En az 2 deneme girmis olmali
+    // 3. Ilk denemeden son denemeye kadar en fazla net degisim (5 ogrenci) - En az 2 deneme girmis olmali
     const topOverallNetImprovers = [...filteredStudents]
-      .filter((s: any) => s && s.totalExams >= 2 && s.netChange > 0)
+      .filter((s: any) => s && s.totalExams >= 2)
       .sort((a: any, b: any) => b.netChange - a.netChange)
       .slice(0, 5);
 
-    // 4. Ilk denemeden son denemeye kadar en fazla puan arttiran (5 ogrenci) - En az 2 deneme girmis olmali
+    // 4. Ilk denemeden son denemeye kadar en fazla puan degisim (5 ogrenci) - En az 2 deneme girmis olmali
     const topOverallScoreImprovers = [...filteredStudents]
-      .filter((s: any) => s && s.totalExams >= 2 && s.scoreChange > 0)
+      .filter((s: any) => s && s.totalExams >= 2)
       .sort((a: any, b: any) => b.scoreChange - a.scoreChange)
       .slice(0, 5);
 
