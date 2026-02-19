@@ -9256,38 +9256,50 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
       ? studentAnalysis 
       : studentAnalysis.filter((s: any) => s && s.student && s.student.class === selectedClass);
 
-    // 1. Son denemeye gore en fazla net arttiran
+    // 1. Son denemeye gore en fazla net arttiran (5 ogrenci)
     const topNetIncreasers = [...filteredStudents]
-      .filter((s: any) => s && s.lastNetChange > 0)
+      .filter((s: any) => s && s.lastNetChange !== undefined)
       .sort((a: any, b: any) => b.lastNetChange - a.lastNetChange)
-      .slice(0, 10);
+      .slice(0, 5);
 
-    // 2. Son denemeye gore en fazla puan arttiran
+    // 2. Son denemeye gore en fazla puan arttiran (5 ogrenci)
     const topScoreIncreasers = [...filteredStudents]
-      .filter((s: any) => s && s.lastScoreChange > 0)
+      .filter((s: any) => s && s.lastScoreChange !== undefined)
       .sort((a: any, b: any) => b.lastScoreChange - a.lastScoreChange)
-      .slice(0, 10);
+      .slice(0, 5);
 
-    // 3. Ilk denemeden son denemeye kadar en fazla net arttiran
+    // 3. Ilk denemeden son denemeye kadar en fazla net arttiran (5 ogrenci)
     const topOverallNetImprovers = [...filteredStudents]
-      .filter((s: any) => s && s.netChange > 0)
+      .filter((s: any) => s && s.netChange !== undefined)
       .sort((a: any, b: any) => b.netChange - a.netChange)
-      .slice(0, 10);
+      .slice(0, 5);
 
-    // 4. Ilk denemeden son denemeye kadar en fazla puan arttiran
+    // 4. Ilk denemeden son denemeye kadar en fazla puan arttiran (5 ogrenci)
     const topOverallScoreImprovers = [...filteredStudents]
-      .filter((s: any) => s && s.scoreChange > 0)
+      .filter((s: any) => s && s.scoreChange !== undefined)
       .sort((a: any, b: any) => b.scoreChange - a.scoreChange)
-      .slice(0, 10);
+      .slice(0, 5);
 
-    // 5. Her sınıf için en yüksek puanlı 5 öğrenci
+    // 5. Her sinif icin en yuksek puanli 5 ogrenci (ortalama puana gore)
     const classTopStudents: { [key: string]: any[] } = {};
     const uniqueClasses = Array.from(new Set(students.map(s => s?.class).filter(Boolean)));
+    
+    // Siniflari sayisal olarak sirala (2'den 8'e)
+    uniqueClasses.sort((a, b) => {
+      const numA = parseInt(a.replace(/[^0-9]/g, '')) || 0;
+      const numB = parseInt(b.replace(/[^0-9]/g, '')) || 0;
+      return numA - numB;
+    });
     
     uniqueClasses.forEach(cls => {
       const classStudents = filteredStudents.filter((s: any) => s && s.student && s.student.class === cls);
       classTopStudents[cls] = [...classStudents]
-        .sort((a: any, b: any) => b.lastScore - a.lastScore)
+        .sort((a: any, b: any) => {
+          // Ortalamaya gore sirala
+          const avgA = a.totalExams > 0 ? (a.firstNet + a.lastNet) / 2 : 0;
+          const avgB = b.totalExams > 0 ? (b.firstNet + b.lastNet) / 2 : 0;
+          return avgB - avgA;
+        })
         .slice(0, 5);
     });
 
@@ -9336,14 +9348,17 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-green-600">
+                <p className={`text-sm font-bold ${(item.lastNetChange || item.netChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {type === 'net' 
-                    ? `+${Number(item.lastNetChange || item.netChange || 0).toFixed(1)} net`
-                    : `+${Number(item.lastScoreChange || item.scoreChange || 0).toFixed(0)} puan`
+                    ? `${(item.lastNetChange || item.netChange || 0) >= 0 ? '+' : ''}${Number(item.lastNetChange || item.netChange || 0).toFixed(1)} net`
+                    : `${(item.lastScoreChange || item.scoreChange || 0) >= 0 ? '+' : ''}${Number(item.lastScoreChange || item.scoreChange || 0).toFixed(0)} puan`
                   }
                 </p>
                 <p className="text-xs text-gray-500">
-                  {Number(item.lastNet || item.lastScore || 0).toFixed(1)} net/puan
+                  {type === 'net' 
+                    ? `${Number(item.lastNet || 0).toFixed(1)} net`
+                    : `${Number(item.lastScore || 0).toFixed(0)} puan`
+                  }
                 </p>
               </div>
             </div>
@@ -9407,13 +9422,13 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
           type="score" 
         />
         <RankCard 
-          title="İlkdeneme → Sondene En Fazla Net Artışı" 
+          title="İlk deneme → Son deneme En Fazla Net Artışı" 
           emoji="🚀" 
           data={rankings.topOverallNetImprovers || []} 
           type="net" 
         />
         <RankCard 
-          title="İlkdeneme → Sondene En Fazla Puan Artışı" 
+          title="İlk deneme → Son deneme En Fazla Puan Artışı" 
           emoji="💪" 
           data={rankings.topOverallScoreImprovers || []} 
           type="score" 
@@ -9431,7 +9446,13 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
           </div>
         ) : (
           <div className="space-y-6">
-            {Object.entries(rankings.classTopStudents || {}).map(([className, classStudents]: [string, any]) => (
+            {Object.entries(rankings.classTopStudents || {})
+              .sort(([a], [b]) => {
+                const numA = parseInt(a.replace(/[^0-9]/g, '')) || 0;
+                const numB = parseInt(b.replace(/[^0-9]/g, '')) || 0;
+                return numA - numB;
+              })
+              .map(([className, classStudents]: [string, any]) => (
               <div key={className} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
                 <h4 className="text-sm font-semibold text-blue-600 mb-3">{className}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
@@ -9453,7 +9474,7 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
                         </span>
                       </div>
                       <p className="text-xs font-medium text-gray-800 truncate">{item.student.name}</p>
-                      <p className="text-xs font-bold text-green-600">{Number(item.lastScore || 0).toFixed(0)} puan</p>
+                      <p className="text-xs font-bold text-green-600">{item.totalExams > 0 ? ((item.firstNet + item.lastNet) / 2).toFixed(1) : Number(item.lastNet || 0).toFixed(1)} net</p>
                     </div>
                   ))}
                 </div>
