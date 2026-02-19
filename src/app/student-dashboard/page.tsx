@@ -1113,8 +1113,8 @@ function StudentDashboardContent() {
                         return subjects.map(subject => {
                           const data = subjectTotals[subject.key];
                           const avgNet = data && data.count > 0 ? data.sum / data.count : 0;
-                          // LGS'de tüm dersler 20 soru
-                          const maxNet = 20;
+                          // Türkçe, Fen, Matematik = 20 soru | Sosyal, Din, İngilizce = 10 soru
+                          const maxNet = ['turkce', 'matematik', 'fen'].includes(subject.key) ? 20 : 10;
                           // Başarı yüzdesi = (net / soru sayısı) * 100
                           const successPercent = (avgNet / maxNet) * 100;
                           return { 
