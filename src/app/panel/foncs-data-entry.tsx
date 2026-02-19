@@ -9303,7 +9303,7 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
   };
 
   const getUniqueClasses = () => {
-    return Array.from(new Set(students.map(s => s.class))).sort();
+    return Array.from(new Set(students?.map((s: any) => s?.class).filter(Boolean))).sort();
   };
 
   const RankCard = ({ title, emoji, data, type }: { title: string, emoji: string, data: any[], type: 'net' | 'score' }) => (
@@ -9338,12 +9338,12 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
               <div className="text-right">
                 <p className="text-sm font-bold text-green-600">
                   {type === 'net' 
-                    ? `+${(item.lastNetChange || item.netChange).toFixed(1)} net`
-                    : `+${(item.lastScoreChange || item.scoreChange).toFixed(0)} puan`
+                    ? `+${Number(item.lastNetChange || item.netChange || 0).toFixed(1)} net`
+                    : `+${Number(item.lastScoreChange || item.scoreChange || 0).toFixed(0)} puan`
                   }
                 </p>
                 <p className="text-xs text-gray-500">
-                  {item.lastNet?.toFixed(1) || item.lastScore?.toFixed(0)} net/puan
+                  {Number(item.lastNet || item.lastScore || 0).toFixed(1)} net/puan
                 </p>
               </div>
             </div>
@@ -9453,7 +9453,7 @@ const BasariRozetleriTab = ({ students, results, exams }: { students: any[], res
                         </span>
                       </div>
                       <p className="text-xs font-medium text-gray-800 truncate">{item.student.name}</p>
-                      <p className="text-xs font-bold text-green-600">{item.lastScore.toFixed(0)} puan</p>
+                      <p className="text-xs font-bold text-green-600">{Number(item.lastScore || 0).toFixed(0)} puan</p>
                     </div>
                   ))}
                 </div>
